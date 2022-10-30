@@ -1,4 +1,4 @@
-package ir.erfansn.nsmavpn
+package ir.erfansn.nsmavpn.core.application
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
