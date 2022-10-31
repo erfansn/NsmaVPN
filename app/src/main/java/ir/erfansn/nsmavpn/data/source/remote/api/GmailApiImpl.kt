@@ -23,12 +23,14 @@ class GmailApiImpl @Inject constructor(
 
     private val httpTransport = GoogleNetHttpTransport.newTrustedTransport()
     private val gsonFactory = GsonFactory.getDefaultInstance()
-    private val service = Gmail.Builder(httpTransport, gsonFactory, credential)
-        .setApplicationName(context.getString(R.string.app_name))
-        .build()
+    private val service by lazy {
+        Gmail.Builder(httpTransport, gsonFactory, credential)
+            .setApplicationName(context.getString(R.string.app_name))
+            .build()
+    }
 
-    override fun selectAccount(name: String): Gmail {
-        credential.selectedAccountName = name
+    override fun selectAccount(id: String): Gmail {
+        credential.selectedAccountName = id
         return service
     }
 }
