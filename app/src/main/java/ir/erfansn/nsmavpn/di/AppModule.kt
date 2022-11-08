@@ -5,8 +5,8 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import ir.erfansn.nsmavpn.data.source.remote.DefaultGmailMessagesRemoteDataSource
-import ir.erfansn.nsmavpn.data.source.remote.GmailMessagesRemoteDataSource
+import ir.erfansn.nsmavpn.data.source.remote.DefaultVpnGateMessagesRemoteDataSource
+import ir.erfansn.nsmavpn.data.source.remote.VpnGateMessagesRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.remote.api.GmailApi
 import ir.erfansn.nsmavpn.data.source.remote.api.GmailApiImpl
 import kotlinx.coroutines.Dispatchers
@@ -20,11 +20,10 @@ abstract class AppModule {
 
     @Binds
     abstract fun bindsGmailMessagesRemoteDataSource(
-        defaultGmailMessagesRemoteDataSource: DefaultGmailMessagesRemoteDataSource
-    ): GmailMessagesRemoteDataSource
+        defaultVpnGateMessagesRemoteDataSource: DefaultVpnGateMessagesRemoteDataSource,
+    ): VpnGateMessagesRemoteDataSource
 
     companion object {
-
         @Provides
         fun providesIoDispatcher() = Dispatchers.IO
     }
