@@ -6,24 +6,36 @@ import ir.erfansn.nsmavpn.data.source.local.datastore.VpnProvider
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
-class VpnProviderLocalDataSource @Inject constructor(
+class DefaultVpnProviderLocalDataSource @Inject constructor(
     private val dataStore: DataStore<VpnProvider>,
-) {
-    suspend fun getVpnProviderAddress() =
+) : VpnProviderLocalDataSource {
+
+    override suspend fun getVpnServers(): List<Server> {
+        return dataStore.data.first().serversList
+    }
+
+    override suspend fun getVpnProviderAddress() =
         dataStore.data.first().address!!
 
-    suspend fun updateVpnProviderAddress(address: String) {
+    override suspend fun updateVpnProviderAddress(address: String) {
         dataStore.updateData {
             it.toBuilder().setAddress(address).build()
         }
     }
 
-    suspend fun saveVpnServers(servers: List<Server>) {
+    override suspend fun saveVpnServers(servers: List<Server>) {
         dataStore.updateData { vpnProvider ->
             vpnProvider.toBuilder().apply {
-                val newServers = servers.filter { it in vpnProvider.serversList }
+                val newServers = servers.filter { it !in vpnProvider.serversList }
                 addAllServers(newServers)
             }.build()
         }
     }
+}
+
+interface VpnProviderLocalDataSource {
+    suspend fun getVpnServers(): List<Server>
+    suspend fun getVpnProviderAddress(): String
+    suspend fun updateVpnProviderAddress(address: String)
+    suspend fun saveVpnServers(servers: List<Server>)
 }
