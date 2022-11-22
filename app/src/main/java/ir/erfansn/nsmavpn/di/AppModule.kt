@@ -16,7 +16,9 @@ import ir.erfansn.nsmavpn.data.source.remote.DefaultVpnGateMessagesRemoteDataSou
 import ir.erfansn.nsmavpn.data.source.remote.VpnGateMessagesRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.remote.api.GmailApi
 import ir.erfansn.nsmavpn.data.source.remote.api.GmailApiImpl
+import ir.erfansn.nsmavpn.data.util.DefaultLinkAvailabilityChecker
 import ir.erfansn.nsmavpn.data.util.DefaultVpnGateContentExtractor
+import ir.erfansn.nsmavpn.data.util.LinkAvailabilityChecker
 import ir.erfansn.nsmavpn.data.util.VpnGateContentExtractor
 import kotlinx.coroutines.Dispatchers
 import javax.inject.Singleton
@@ -42,6 +44,11 @@ abstract class AppModule {
     abstract fun bindsVpnProviderLocalDataSource(
         defaultVpnProviderLocalDataSource: DefaultVpnProviderLocalDataSource
     ): VpnProviderLocalDataSource
+
+    @Binds
+    abstract fun bindsLinkAvailabilityChecker(
+        defaultLinkAvailabilityChecker: DefaultLinkAvailabilityChecker
+    ): LinkAvailabilityChecker
 
     companion object {
 
