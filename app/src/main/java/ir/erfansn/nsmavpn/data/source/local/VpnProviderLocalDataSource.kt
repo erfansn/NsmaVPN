@@ -10,12 +10,11 @@ class DefaultVpnProviderLocalDataSource @Inject constructor(
     private val dataStore: DataStore<VpnProvider>,
 ) : VpnProviderLocalDataSource {
 
-    override suspend fun getVpnServers(): List<Server> {
-        return dataStore.data.first().serversList
-    }
+    override suspend fun getVpnServers(): List<Server> =
+        dataStore.data.first().serversList
 
-    override suspend fun getVpnProviderAddress() =
-        dataStore.data.first().address!!
+    override suspend fun getVpnProviderAddress(): String =
+        dataStore.data.first().address
 
     override suspend fun updateVpnProviderAddress(address: String) {
         dataStore.updateData {
