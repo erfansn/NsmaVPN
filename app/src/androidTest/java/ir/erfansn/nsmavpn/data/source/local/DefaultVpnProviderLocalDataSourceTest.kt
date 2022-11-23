@@ -3,53 +3,73 @@
 package ir.erfansn.nsmavpn.data.source.local
 
 import android.content.Context
+import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.dataStoreFile
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import ir.erfansn.nsmavpn.data.source.local.datastore.Server
+import ir.erfansn.nsmavpn.data.source.local.datastore.VpnProvider
 import ir.erfansn.nsmavpn.data.source.local.datastore.VpnProviderSerializer
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.*
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.File
 
 @RunWith(AndroidJUnit4::class)
 class DefaultVpnProviderLocalDataSourceTest {
 
-    private val testContext: Context = ApplicationProvider.getApplicationContext()
     private val testCoroutineDispatcher = UnconfinedTestDispatcher()
     private val testCoroutineScope = TestScope(testCoroutineDispatcher)
-    private val testDataStore = DataStoreFactory.create(
-        serializer = VpnProviderSerializer,
-        scope = testCoroutineScope,
-        produceFile = { testContext.dataStoreFile("test") }
-    )
-    private val dataSource = DefaultVpnProviderLocalDataSource(testDataStore)
+
+    private lateinit var testDataStoreFile: File
+    private lateinit var testDataStore: DataStore<VpnProvider>
+    private lateinit var vpnProviderLocalDataSource: VpnProviderLocalDataSource
+
+    @Before
+    fun setUp() {
+        val testContext: Context = ApplicationProvider.getApplicationContext()
+        testDataStoreFile = testContext.dataStoreFile("test")
+        testDataStore = DataStoreFactory.create(
+            serializer = VpnProviderSerializer,
+            scope = testCoroutineScope,
+            produceFile = { testDataStoreFile }
+        )
+        vpnProviderLocalDataSource = DefaultVpnProviderLocalDataSource(testDataStore)
+    }
+
+    @After
+    fun tearDown() {
+        testDataStoreFile.delete()
+    }
 
     @Test
     fun savesVpnServersCorrectly() = testCoroutineScope.runTest {
-        dataSource.saveVpnServers(fakeServers)
+        vpnProviderLocalDataSource.saveVpnServers(fakeServersOne)
 
-        val vpnProvider = testDataStore.data.first()
-        assertThat(vpnProvider.serversList.size).isEqualTo(2)
-        assertThat(vpnProvider.serversList).isEqualTo(fakeServers)
+        val vpnServers = vpnProviderLocalDataSource.getVpnServers()
+        assertThat(vpnServers.size).isEqualTo(2)
+        assertThat(vpnServers).isEqualTo(fakeServersOne)
     }
 
     @Test
     fun ignoresSavingDuplicateVpnServers() = testCoroutineScope.runTest {
-        dataSource.saveVpnServers(fakeServers)
-        dataSource.saveVpnServers(fakeOtherServers)
+        vpnProviderLocalDataSource.saveVpnServers(fakeServersOne)
+        vpnProviderLocalDataSource.saveVpnServers(fakeServersTwo)
 
-        val vpnProvider = testDataStore.data.first()
-        assertThat(vpnProvider.serversList.size).isEqualTo(3)
-        assertThat(vpnProvider.serversList).isEqualTo(fakeOtherServers)
+        val vpnServers = vpnProviderLocalDataSource.getVpnServers()
+        assertThat(vpnServers.size).isEqualTo(3)
+        assertThat(vpnServers).isEqualTo(fakeServersTwo)
     }
 }
 
-val fakeServers = listOf(
+val fakeServersOne = listOf(
     Server.newBuilder()
         .setCountry("japan")
         .setHostName("public-vpn-200.opengw.net")
@@ -62,11 +82,11 @@ val fakeServers = listOf(
         .build(),
 )
 
-val fakeOtherServers = listOf(
+val fakeServersTwo = listOf(
+    *fakeServersOne.toTypedArray(),
     Server.newBuilder()
         .setCountry("usa")
         .setHostName("vpn83734893.opengw.net")
         .setPort("1880")
         .build(),
-    *fakeServers.toTypedArray()
 )
