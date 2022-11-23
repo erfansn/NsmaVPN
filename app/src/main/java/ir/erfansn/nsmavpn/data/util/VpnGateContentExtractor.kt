@@ -48,8 +48,18 @@ class DefaultVpnGateContentExtractor @Inject constructor() : VpnGateContentExtra
             }
         }
     }
+
+    override fun findVpnGateMirrorLinks(content: String) = VPN_GATE_MIRROR_LINK_REGEX
+        .findAll(content)
+        .map { it.value }
+        .toList()
+
+    companion object {
+        private val VPN_GATE_MIRROR_LINK_REGEX = """(http://(?:\d+.){3}\d+:\d{1,5})""".toRegex()
+    }
 }
 
 interface VpnGateContentExtractor {
     fun extractSstpVpnServers(address: String): List<Server>
+    fun findVpnGateMirrorLinks(content: String): List<String>
 }
