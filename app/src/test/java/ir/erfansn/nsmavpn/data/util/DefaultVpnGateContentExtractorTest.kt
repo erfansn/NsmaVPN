@@ -29,6 +29,12 @@ class DefaultVpnGateContentExtractorTest {
     }
 
     @Test
+    fun returnsEmptyListWhenContentDoesNotAnyMirrorLink() {
+        val mirrorLinks = vpnGateContentExtractor.findVpnGateMirrorLinks("")
+        assertThat(mirrorLinks).isEmpty()
+    }
+
+    @Test
     fun findsVpnGateMirrorLinksCorrectly() {
         val mirrorLinks = vpnGateContentExtractor.findVpnGateMirrorLinks(fakeVpnGateEmailContent)
         assertThat(mirrorLinks).isEqualTo(
