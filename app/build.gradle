@@ -65,7 +65,7 @@ dependencies {
 
     implementation "it.skrape:skrapeit:1.2.2"
 
-    implementation 'com.google.android.gms:play-services-auth:20.3.0'
+    implementation 'com.google.android.gms:play-services-auth:20.4.0'
 
     implementation 'com.google.api-client:google-api-client:2.0.0'
     implementation 'com.google.api-client:google-api-client-android:2.0.0'
