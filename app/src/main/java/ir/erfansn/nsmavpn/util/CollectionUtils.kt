@@ -1,15 +1,16 @@
 package ir.erfansn.nsmavpn.util
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 
-suspend fun <T, R : Comparable<R>> Iterable<T>.asyncMinByOrNull(coroutineScope: CoroutineScope, selector: suspend (T) -> R): T? {
-    val result = map {
-        coroutineScope.async {
-            selector(it) to it
-        }
-    }.awaitAll()
+suspend fun <T, R : Comparable<R>> Iterable<T>.asyncMinByOrNull(selector: suspend (T) -> R): T? =
+    coroutineScope {
+        val result = map {
+            async {
+                selector(it) to it
+            }
+        }.awaitAll()
 
-    return result.minByOrNull(Pair<R, T>::first)?.second
-}
+        result.minByOrNull(Pair<R, T>::first)?.second
+    }
