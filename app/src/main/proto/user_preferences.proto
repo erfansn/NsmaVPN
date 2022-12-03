@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option java_package = "ir.erfansn.nsmavpn.data.source.local.datastore";
+option java_multiple_files = true;
+
+message UserPreferences {
+  string account_name = 1;
+  ThemeMode theme_mode = 2;
+  Reconnection reconnection = 3;
+}
+
+enum ThemeMode {
+  SYSTEM = 0;
+  LIGHT = 1;
+  DARK = 2;
+}
+
+message Reconnection {
+  bool enable = 1;
+  int32 retry_count = 2;
+  int64 interval_time = 3;
+}

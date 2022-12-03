@@ -11,6 +11,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import ir.erfansn.nsmavpn.data.source.local.DefaultVpnProviderLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.VpnProviderLocalDataSource
+import ir.erfansn.nsmavpn.data.source.local.datastore.UserPreferencesSerializer
 import ir.erfansn.nsmavpn.data.source.local.datastore.VpnProviderSerializer
 import ir.erfansn.nsmavpn.data.source.remote.DefaultVpnGateMessagesRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.remote.VpnGateMessagesRemoteDataSource
@@ -39,17 +40,17 @@ abstract class AppModule {
 
     @Binds
     abstract fun bindsVpnProviderLocalDataSource(
-        defaultVpnProviderLocalDataSource: DefaultVpnProviderLocalDataSource
+        defaultVpnProviderLocalDataSource: DefaultVpnProviderLocalDataSource,
     ): VpnProviderLocalDataSource
 
     @Binds
     abstract fun bindsLinkAvailabilityChecker(
-        defaultLinkAvailabilityChecker: DefaultLinkAvailabilityChecker
+        defaultLinkAvailabilityChecker: DefaultLinkAvailabilityChecker,
     ): LinkAvailabilityChecker
 
     @Binds
     abstract fun bindsPingChecker(
-        defaultPingChecker: DefaultPingChecker
+        defaultPingChecker: DefaultPingChecker,
     ): PingChecker
 
     companion object {
@@ -59,6 +60,13 @@ abstract class AppModule {
             DataStoreFactory.create(
                 serializer = VpnProviderSerializer,
                 produceFile = { context.dataStoreFile("vpn_provider") }
+            )
+
+        @[Provides Singleton]
+        fun providesUserPreferencesDataStore(@ApplicationContext context: Context) =
+            DataStoreFactory.create(
+                serializer = UserPreferencesSerializer,
+                produceFile = { context.dataStoreFile("user_preferences") }
             )
 
         @Provides
