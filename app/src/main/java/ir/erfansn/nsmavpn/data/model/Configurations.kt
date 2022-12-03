@@ -9,6 +9,7 @@ data class Configurations(
 )
 
 data class Reconnection(
+    val enable: Boolean,
     val intervalTime: Long,
     val retryCount: Int,
 )
@@ -16,6 +17,7 @@ data class Reconnection(
 fun UserPreferences.toConfiguration() = Configurations(
     themeMode = themeMode,
     reconnection = Reconnection(
+        enable = reconnection.enable,
         intervalTime = reconnection.intervalTime,
         retryCount = reconnection.retryCount
     )
