@@ -10,9 +10,6 @@ class DefaultVpnProviderLocalDataSource @Inject constructor(
     private val dataStore: DataStore<VpnProvider>,
 ) : VpnProviderLocalDataSource {
 
-    override suspend fun getVpnServers(): List<Server> =
-        dataStore.data.first().serversList
-
     override suspend fun getVpnProviderAddress(): String =
         dataStore.data.first().address
 
@@ -22,6 +19,11 @@ class DefaultVpnProviderLocalDataSource @Inject constructor(
         }
     }
 
+    override suspend fun getVpnServers(): List<Server> =
+        dataStore.data.first().let { vpnProvider ->
+            vpnProvider.serversList.filter { it !in vpnProvider.blackServersList }
+        }
+
     override suspend fun saveVpnServers(servers: List<Server>) {
         dataStore.updateData { vpnProvider ->
             vpnProvider.toBuilder().apply {
@@ -30,11 +32,34 @@ class DefaultVpnProviderLocalDataSource @Inject constructor(
             }.build()
         }
     }
+
+    override suspend fun getBlockedVpnServers(): List<Server> {
+        return dataStore.data.first().blackServersList
+    }
+
+    override suspend fun blockVpnServers(servers: List<Server>) {
+        dataStore.updateData { vpnProvider ->
+            val newServers = servers.filter { it !in vpnProvider.blackServersList }
+            vpnProvider.toBuilder().addAllBlackServers(newServers).build()
+        }
+    }
+
+    override suspend fun unblockVpnServer(server: Server) {
+        dataStore.updateData {
+            check(server in it.blackServersList)
+
+            val serverIndex = it.blackServersList.indexOf(server)
+            it.toBuilder().removeBlackServers(serverIndex).build()
+        }
+    }
 }
 
 interface VpnProviderLocalDataSource {
-    suspend fun getVpnServers(): List<Server>
     suspend fun getVpnProviderAddress(): String
     suspend fun updateVpnProviderAddress(address: String)
+    suspend fun getVpnServers(): List<Server>
     suspend fun saveVpnServers(servers: List<Server>)
+    suspend fun getBlockedVpnServers(): List<Server>
+    suspend fun blockVpnServers(servers: List<Server>)
+    suspend fun unblockVpnServer(server: Server)
 }

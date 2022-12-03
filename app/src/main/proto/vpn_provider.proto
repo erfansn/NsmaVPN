@@ -12,4 +12,5 @@ message Server {
 message VpnProvider {
   string address = 1;
   repeated Server servers = 2;
+  repeated Server black_servers = 3;
 }
