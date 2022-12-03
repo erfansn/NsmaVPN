@@ -41,7 +41,7 @@ class DefaultVpnGateContentExtractor @Inject constructor() : VpnGateContentExtra
                             Server.newBuilder()
                                 .setCountry(country)
                                 .setHostName(urlParts.first())
-                                .setPort(urlParts.getOrNull(1) ?: "443")
+                                .setPort(urlParts.getOrNull(1)?.toInt() ?: 443)
                                 .build()
                         }
                 }

@@ -6,7 +6,7 @@ option java_multiple_files = true;
 message Server {
   string country = 1;
   string host_name = 2;
-  string port = 3;
+  int32 port = 3;
 }
 
 message VpnProvider {
