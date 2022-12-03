@@ -1,4 +1,4 @@
-package ir.erfansn.nsmavpn.data.repository.server
+package ir.erfansn.nsmavpn.data.repository
 
 import ir.erfansn.nsmavpn.data.source.local.VpnProviderLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.datastore.Server
@@ -16,16 +16,33 @@ class ServersRepository @Inject constructor(
     private val vpnGateContentExtractor: VpnGateContentExtractor,
     private val pingChecker: PingChecker,
 ) {
-    suspend fun getFastVpnServer(): Server {
-        return vpnProviderLocalDataSource.getVpnServers().asyncMinByOrNull {
-            pingChecker.measure(it.hostName)
+    private lateinit var currentVpnServer: Server
+    private var vpnServerSelectionTimeMs: Long = 0L
+
+    suspend fun getFastestVpnServer(): Server {
+        if (selectedVpnServerIsValid) return currentVpnServer
+
+        return vpnProviderLocalDataSource.getVpnServers().asyncMinByOrNull { server ->
+            pingChecker.measure(server.hostName)
+        }?.also {
+            currentVpnServer = it
+            vpnServerSelectionTimeMs = System.currentTimeMillis()
         } ?: throw VpnServersNotExistsException()
     }
 
+    private val selectedVpnServerIsValid get() =
+        System.currentTimeMillis() - vpnServerSelectionTimeMs <= SELECTED_SERVER_TIMEOUT_MS
+
     suspend fun collectVpnServers(userId: String) {
         val vpnProviderAddress = obtainVpnProviderAddress(userId)
-        val servers = vpnGateContentExtractor.extractSstpVpnServers(vpnProviderAddress)
-        vpnProviderLocalDataSource.saveVpnServers(servers)
+        val (blackServers, availableServers) = vpnGateContentExtractor
+            .extractSstpVpnServers(vpnProviderAddress)
+            .partition {
+                pingChecker.measure(it.hostName) != Int.MAX_VALUE
+            }
+
+        vpnProviderLocalDataSource.blockVpnServers(blackServers)
+        vpnProviderLocalDataSource.saveVpnServers(availableServers)
     }
 
     private suspend fun obtainVpnProviderAddress(userId: String): String {
@@ -41,6 +58,10 @@ class ServersRepository @Inject constructor(
 
         vpnProviderLocalDataSource.updateVpnProviderAddress(mirrorLink)
         return vpnProviderLocalDataSource.getVpnProviderAddress()
+    }
+
+    companion object {
+        private const val SELECTED_SERVER_TIMEOUT_MS = 30 * 60 * 1000
     }
 }
 
