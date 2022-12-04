@@ -60,6 +60,14 @@ class ServersRepository @Inject constructor(
         return vpnProviderLocalDataSource.getVpnProviderAddress()
     }
 
+    suspend fun unblockAvailableVpnServerFromBlacklistRandomly() {
+        val server = vpnProviderLocalDataSource.getBlockedVpnServers().randomOrNull() ?: return
+
+        if (linkAvailabilityChecker.checkLink(server.hostName)) {
+            vpnProviderLocalDataSource.unblockVpnServer(server)
+        }
+    }
+
     companion object {
         private const val SELECTED_SERVER_TIMEOUT_MS = 30 * 60 * 1000
     }
