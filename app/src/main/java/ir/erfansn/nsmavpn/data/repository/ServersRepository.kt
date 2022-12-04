@@ -3,6 +3,7 @@ package ir.erfansn.nsmavpn.data.repository
 import ir.erfansn.nsmavpn.data.source.local.VpnProviderLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.datastore.Server
 import ir.erfansn.nsmavpn.data.source.remote.VpnGateMessagesRemoteDataSource
+import ir.erfansn.nsmavpn.data.source.task.ServersTasksDataSource
 import ir.erfansn.nsmavpn.data.util.LinkAvailabilityChecker
 import ir.erfansn.nsmavpn.data.util.PingChecker
 import ir.erfansn.nsmavpn.data.util.VpnGateContentExtractor
@@ -15,7 +16,13 @@ class ServersRepository @Inject constructor(
     private val linkAvailabilityChecker: LinkAvailabilityChecker,
     private val vpnGateContentExtractor: VpnGateContentExtractor,
     private val pingChecker: PingChecker,
+    serversTasksDataSource: ServersTasksDataSource,
 ) {
+    init {
+        serversTasksDataSource.collectVpnServerPeriodically()
+        serversTasksDataSource.removeAvailableVpnServerFromBlacklistPeriodically()
+    }
+
     private lateinit var currentVpnServer: Server
     private var vpnServerSelectionTimeMs: Long = 0L
 
