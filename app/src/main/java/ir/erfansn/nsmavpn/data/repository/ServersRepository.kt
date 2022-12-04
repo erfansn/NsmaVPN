@@ -7,7 +7,7 @@ import ir.erfansn.nsmavpn.data.source.task.ServersTasksDataSource
 import ir.erfansn.nsmavpn.data.util.LinkAvailabilityChecker
 import ir.erfansn.nsmavpn.data.util.PingChecker
 import ir.erfansn.nsmavpn.data.util.VpnGateContentExtractor
-import ir.erfansn.nsmavpn.util.asyncMinByOrNull
+import ir.erfansn.nsmavpn.data.util.asyncMinByOrNull
 import javax.inject.Inject
 
 class ServersRepository @Inject constructor(

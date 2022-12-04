@@ -1,4 +1,4 @@
-package ir.erfansn.nsmavpn.util
+package ir.erfansn.nsmavpn.data.util
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
