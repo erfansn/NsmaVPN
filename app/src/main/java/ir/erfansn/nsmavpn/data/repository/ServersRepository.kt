@@ -70,7 +70,7 @@ class ServersRepository @Inject constructor(
     suspend fun unblockAvailableVpnServerFromBlacklistRandomly() {
         val server = vpnProviderLocalDataSource.getBlockedVpnServers().randomOrNull() ?: return
 
-        if (linkAvailabilityChecker.checkLink(server.hostName)) {
+        if (pingChecker.measure(server.hostName) != Int.MAX_VALUE) {
             vpnProviderLocalDataSource.unblockVpnServer(server)
         }
     }
