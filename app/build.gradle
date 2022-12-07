@@ -56,6 +56,7 @@ dependencies {
     implementation 'androidx.activity:activity-compose:1.6.1'
     implementation 'androidx.datastore:datastore:1.0.0'
     implementation "androidx.startup:startup-runtime:1.1.1"
+    implementation 'androidx.core:core-splashscreen:1.0.0'
 
     implementation  'com.google.protobuf:protobuf-javalite:3.8.0'
 
