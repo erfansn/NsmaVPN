@@ -73,12 +73,12 @@ val fakeServersOne = listOf(
     Server.newBuilder()
         .setCountry("japan")
         .setHostName("public-vpn-200.opengw.net")
-        .setPort("443")
+        .setPort(433)
         .build(),
     Server.newBuilder()
         .setCountry("japan")
         .setHostName("public-vpn-220.opengw.net")
-        .setPort("1345")
+        .setPort(1345)
         .build(),
 )
 
@@ -87,6 +87,6 @@ val fakeServersTwo = listOf(
     Server.newBuilder()
         .setCountry("usa")
         .setHostName("vpn83734893.opengw.net")
-        .setPort("1880")
+        .setPort(1880)
         .build(),
 )
