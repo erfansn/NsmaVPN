@@ -4,7 +4,9 @@ import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -40,6 +42,13 @@ fun NsmaVpnTheme(
     } else {
         if (darkTheme) DarkColorScheme else LightColorScheme
     }
+
+    val systemUiController = rememberSystemUiController()
+    systemUiController.setSystemBarsColor(
+        color = Color.Transparent,
+        darkIcons = !darkTheme,
+        isNavigationBarContrastEnforced = false
+    )
 
     MaterialTheme(
         colorScheme = colorScheme,
