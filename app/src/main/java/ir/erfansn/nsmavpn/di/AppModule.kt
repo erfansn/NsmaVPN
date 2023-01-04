@@ -3,6 +3,7 @@ package ir.erfansn.nsmavpn.di
 import android.content.Context
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.dataStoreFile
+import androidx.work.WorkManager
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -84,5 +85,9 @@ abstract class AppModule {
 
         @Provides
         fun providesIoDispatcher() = Dispatchers.IO
+
+        @[Provides Singleton]
+        fun providesWorkManager(@ApplicationContext context: Context) =
+            WorkManager.getInstance(context)
     }
 }
