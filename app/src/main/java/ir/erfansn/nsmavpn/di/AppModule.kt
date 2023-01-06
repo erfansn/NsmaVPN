@@ -48,11 +48,6 @@ abstract class AppModule {
     ): VpnProviderLocalDataSource
 
     @Binds
-    abstract fun bindsLinkAvailabilityChecker(
-        defaultLinkAvailabilityChecker: DefaultLinkAvailabilityChecker,
-    ): LinkAvailabilityChecker
-
-    @Binds
     abstract fun bindsPingChecker(
         defaultPingChecker: DefaultPingChecker,
     ): PingChecker

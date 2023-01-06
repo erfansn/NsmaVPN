@@ -1,28 +1,21 @@
 package ir.erfansn.nsmavpn.data.repository
 
+import android.content.res.Resources.NotFoundException
 import ir.erfansn.nsmavpn.data.source.local.VpnProviderLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.datastore.Server
+import ir.erfansn.nsmavpn.data.source.local.datastore.UrlLink
 import ir.erfansn.nsmavpn.data.source.remote.VpnGateMessagesRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.task.ServersTasksDataSource
-import ir.erfansn.nsmavpn.data.util.LinkAvailabilityChecker
-import ir.erfansn.nsmavpn.data.util.PingChecker
-import ir.erfansn.nsmavpn.data.util.VpnGateContentExtractor
-import ir.erfansn.nsmavpn.data.util.asyncMinByOrNull
+import ir.erfansn.nsmavpn.data.util.*
 import javax.inject.Inject
 
 class ServersRepository @Inject constructor(
     private val vpnGateMessagesRemoteDataSource: VpnGateMessagesRemoteDataSource,
     private val vpnProviderLocalDataSource: VpnProviderLocalDataSource,
-    private val linkAvailabilityChecker: LinkAvailabilityChecker,
     private val vpnGateContentExtractor: VpnGateContentExtractor,
     private val pingChecker: PingChecker,
-    serversTasksDataSource: ServersTasksDataSource,
+    private val serversTasksDataSource: ServersTasksDataSource,
 ) {
-    init {
-        serversTasksDataSource.collectVpnServerPeriodically()
-        serversTasksDataSource.removeAvailableVpnServerFromBlacklistPeriodically()
-    }
-
     private lateinit var currentVpnServer: Server
     private var vpnServerSelectionTimeMs: Long = 0L
 
@@ -56,14 +49,13 @@ class ServersRepository @Inject constructor(
 
     private suspend fun obtainVpnProviderAddress(userAccountId: String): UrlLink {
         val vpnProvider = vpnProviderLocalDataSource.getVpnProviderAddress()
-        if (vpnProvider.hostName.isNotEmpty() && linkAvailabilityChecker.checkLink(vpnProvider.toAbsoluteLink())) {
-            return vpnProvider
-        }
+        if (pingChecker.isReachable(vpnProvider.hostName)) return vpnProvider
 
-        val bodyText = vpnGateMessagesRemoteDataSource.fetchLatestMessageBodyText(userId)
-        val mirrorLink = vpnGateContentExtractor.findVpnGateMirrorLinks(bodyText).first {
-            linkAvailabilityChecker.checkLink(it)
-        }
+        // TODO: if mirror links are unavailable check second email message
+        val bodyText = vpnGateMessagesRemoteDataSource.fetchLatestMessageBodyText(userAccountId)
+        val mirrorLink = vpnGateContentExtractor.findVpnGateMirrorLinks(bodyText).asyncMinByOrNull {
+            pingChecker.isReachable(it.hostName)
+        } ?: throw NotFoundException()
 
         vpnProviderLocalDataSource.updateVpnProviderAddress(mirrorLink.asUrlLink())
         return vpnProviderLocalDataSource.getVpnProviderAddress()
@@ -72,9 +64,17 @@ class ServersRepository @Inject constructor(
     suspend fun unblockAvailableVpnServerFromBlacklistRandomly() {
         val server = vpnProviderLocalDataSource.getBlockedVpnServers().randomOrNull() ?: return
 
-        if (pingChecker.measure(server.hostName) != Int.MAX_VALUE) {
+        if (!pingChecker.measure(server.address.hostName).isNaN()) {
             vpnProviderLocalDataSource.unblockVpnServer(server)
         }
+    }
+
+    suspend fun userIsSubscribedToVpnGateDailyMail(userId: String) =
+        vpnGateMessagesRemoteDataSource.userIsSubscribedToVpnGateDailyMail(userId)
+
+    fun beginVpnServersWorker() {
+        serversTasksDataSource.collectVpnServerPeriodically()
+        serversTasksDataSource.removeAvailableVpnServerFromBlacklistPeriodically()
     }
 
     companion object {
