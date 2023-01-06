@@ -18,9 +18,9 @@ class ServerCollectorWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val userId = userRepository.getUserEmailAddress()
+        val userAccountId = userRepository.getUserAccountId()
         return try {
-            serversRepository.collectVpnServers(userId)
+            serversRepository.collectVpnServers(userAccountId)
             Result.success()
         } catch (e: Exception) {
             Result.retry()

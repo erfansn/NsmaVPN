@@ -19,9 +19,6 @@ import ir.erfansn.nsmavpn.data.source.remote.VpnGateMessagesRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.remote.api.GmailApi
 import ir.erfansn.nsmavpn.data.source.remote.api.GmailApiImpl
 import ir.erfansn.nsmavpn.data.util.*
-import ir.erfansn.nsmavpn.ui.feature.signin.onetap.OneTapSignIn
-import ir.erfansn.nsmavpn.ui.feature.signin.onetap.OneTapSignInWrapper
-import ir.erfansn.nsmavpn.ui.feature.signin.onetap.OneTapSignOut
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.CoroutineDispatcher
@@ -59,16 +56,6 @@ abstract class AppModule {
     abstract fun bindsPingChecker(
         defaultPingChecker: DefaultPingChecker,
     ): PingChecker
-
-    @Binds
-    abstract fun bindsOneTapSignIn(
-        oneTapSignInWrapper: OneTapSignInWrapper,
-    ): OneTapSignIn
-
-    @Binds
-    abstract fun bindsOneTapSignOut(
-        oneTapSignInWrapper: OneTapSignInWrapper,
-    ): OneTapSignOut
 
     companion object {
 
