@@ -18,6 +18,10 @@ class DefaultPingChecker @Inject constructor(
         }
     }
 
+    override suspend fun isReachable(hostName: String): Boolean {
+        return hostName.isNotEmpty() && !measure(hostName).isNaN()
+    }
+
     private fun parsePingResult(result: String): Double {
         val matchResult = AVERAGE_PING_PATTERN.find(result)
         return matchResult?.groupValues?.get(1)?.toDouble() ?: Double.NaN
@@ -30,4 +34,5 @@ class DefaultPingChecker @Inject constructor(
 
 interface PingChecker {
     suspend fun measure(hostName: String): Double
+    suspend fun isReachable(hostName: String): Boolean
 }
