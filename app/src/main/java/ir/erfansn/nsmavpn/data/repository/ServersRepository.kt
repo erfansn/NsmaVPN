@@ -29,32 +29,34 @@ class ServersRepository @Inject constructor(
     suspend fun getFastestVpnServer(): Server {
         if (selectedVpnServerIsValid) return currentVpnServer
 
-        return vpnProviderLocalDataSource.getVpnServers().asyncMinByOrNull { server ->
-            pingChecker.measure(server.hostName)
-        }?.also {
-            currentVpnServer = it
-            vpnServerSelectionTimeMs = System.currentTimeMillis()
+        val vpnServer = vpnProviderLocalDataSource.getAvailableVpnServers().asyncMinByOrNull { server ->
+            pingChecker.measure(server.address.hostName)
         } ?: throw VpnServersNotExistsException()
+
+        currentVpnServer = vpnServer
+        vpnServerSelectionTimeMs = System.currentTimeMillis()
+        return vpnServer
     }
 
     private val selectedVpnServerIsValid get() =
         System.currentTimeMillis() - vpnServerSelectionTimeMs <= SELECTED_SERVER_TIMEOUT_MS
 
-    suspend fun collectVpnServers(userId: String) {
-        val vpnProviderAddress = obtainVpnProviderAddress(userId)
+    suspend fun collectVpnServers(userAccountId: String) {
+        val vpnProviderAddress = obtainVpnProviderAddress(userAccountId)
+
         val (blackServers, availableServers) = vpnGateContentExtractor
             .extractSstpVpnServers(vpnProviderAddress)
             .partition {
-                pingChecker.measure(it.hostName) != Int.MAX_VALUE
+                pingChecker.measure(it.address.hostName) != Int.MAX_VALUE
             }
 
         vpnProviderLocalDataSource.blockVpnServers(blackServers)
         vpnProviderLocalDataSource.saveVpnServers(availableServers)
     }
 
-    private suspend fun obtainVpnProviderAddress(userId: String): String {
+    private suspend fun obtainVpnProviderAddress(userAccountId: String): UrlLink {
         val vpnProvider = vpnProviderLocalDataSource.getVpnProviderAddress()
-        if (vpnProvider.isNotEmpty() && linkAvailabilityChecker.checkLink(vpnProvider)) {
+        if (vpnProvider.hostName.isNotEmpty() && linkAvailabilityChecker.checkLink(vpnProvider.toAbsoluteLink())) {
             return vpnProvider
         }
 
@@ -63,7 +65,7 @@ class ServersRepository @Inject constructor(
             linkAvailabilityChecker.checkLink(it)
         }
 
-        vpnProviderLocalDataSource.updateVpnProviderAddress(mirrorLink)
+        vpnProviderLocalDataSource.updateVpnProviderAddress(mirrorLink.asUrlLink())
         return vpnProviderLocalDataSource.getVpnProviderAddress()
     }
 
@@ -80,4 +82,8 @@ class ServersRepository @Inject constructor(
     }
 }
 
-class VpnServersNotExistsException : Throwable()
+private fun UrlLink.toAbsoluteLink(): String {
+    return "${protocol.name.lowercase()}://$hostName:$portNumber"
+}
+
+class VpnServersNotExistsException : Exception("Vpn servers list is empty")

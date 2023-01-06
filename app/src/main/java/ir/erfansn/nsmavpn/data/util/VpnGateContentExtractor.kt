@@ -1,19 +1,25 @@
 package ir.erfansn.nsmavpn.data.util
 
+import ir.erfansn.nsmavpn.data.source.local.datastore.Protocol
 import ir.erfansn.nsmavpn.data.source.local.datastore.Server
+import ir.erfansn.nsmavpn.data.source.local.datastore.UrlLink
 import it.skrape.core.htmlDocument
-import it.skrape.fetcher.HttpFetcher
+import it.skrape.fetcher.AsyncFetcher
 import it.skrape.fetcher.response
 import it.skrape.fetcher.skrape
 import it.skrape.selects.eachText
 import it.skrape.selects.html5.td
 import it.skrape.selects.html5.tr
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class DefaultVpnGateContentExtractor @Inject constructor() : VpnGateContentExtractor {
+class DefaultVpnGateContentExtractor @Inject constructor(
+    private val ioDispatcher: CoroutineDispatcher,
+) : VpnGateContentExtractor {
 
-    override fun extractSstpVpnServers(address: String): List<Server> {
-        return skrape(HttpFetcher) {
+    override suspend fun extractSstpVpnServers(address: String) = withContext(ioDispatcher) {
+        skrape(AsyncFetcher) {
             request { url = address }
             response {
                 htmlDocument {
@@ -37,11 +43,9 @@ class DefaultVpnGateContentExtractor @Inject constructor() : VpnGateContentExtra
 
                     countrySelector.zip(serverSelector).filterNot { it.second.isEmpty() }
                         .map { (country, url) ->
-                            val urlParts = url.split(":")
                             Server.newBuilder()
                                 .setCountry(country)
-                                .setHostName(urlParts.first())
-                                .setPort(urlParts.getOrNull(1)?.toInt() ?: 443)
+                                .setAddress(url.toUrlLink())
                                 .build()
                         }
                 }
@@ -49,17 +53,45 @@ class DefaultVpnGateContentExtractor @Inject constructor() : VpnGateContentExtra
         }
     }
 
+    private fun String.toUrlLink(): UrlLink {
+        val urlParts = split(":")
+        return UrlLink.newBuilder()
+            .setProtocol(Protocol.HTTPS)
+            .setHostName(urlParts.first())
+            .setPortNumber(urlParts.getOrNull(1)?.toInt() ?: 443)
+            .build()
+    }
+
     override fun findVpnGateMirrorLinks(content: String) = VPN_GATE_MIRROR_LINK_REGEX
         .findAll(content)
-        .map { it.value }
+        .map {
+            val (protocol, host, port) = it.destructured
+            MirrorLink(protocol, host, port)
+        }
         .toList()
 
     companion object {
-        private val VPN_GATE_MIRROR_LINK_REGEX = """(http://(?:\d+.){3}\d+:\d{1,5})""".toRegex()
+        val VPN_GATE_MIRROR_LINK_REGEX = """(\w+)://(.*):(\d{1,5})""".toRegex()
     }
 }
 
 interface VpnGateContentExtractor {
-    fun extractSstpVpnServers(address: String): List<Server>
-    fun findVpnGateMirrorLinks(content: String): List<String>
+    suspend fun extractSstpVpnServers(address: String): List<Server>
+    fun findVpnGateMirrorLinks(content: String): List<MirrorLink>
 }
+
+data class MirrorLink(
+    val protocol: String,
+    val hostName: String,
+    val port: String,
+) {
+    override fun toString(): String {
+        return "$protocol://$hostName:$port"
+    }
+}
+
+fun MirrorLink.asUrlLink(): UrlLink = UrlLink.newBuilder()
+    .setProtocolValue(if (protocol == "http") 0 else 1)
+    .setHostName(hostName)
+    .setPortNumber(port.toInt())
+    .build()

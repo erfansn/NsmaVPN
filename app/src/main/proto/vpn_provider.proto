@@ -5,12 +5,22 @@ option java_multiple_files = true;
 
 message Server {
   string country = 1;
-  string host_name = 2;
-  int32 port = 3;
+  UrlLink address = 2;
 }
 
 message VpnProvider {
-  string address = 1;
+  UrlLink address = 1;
   repeated Server servers = 2;
   repeated Server black_servers = 3;
+}
+
+message UrlLink {
+  Protocol protocol = 1;
+  string host_name = 2;
+  int32 port_number = 3;
+}
+
+enum Protocol {
+  HTTP = 0;
+  HTTPS = 1;
 }

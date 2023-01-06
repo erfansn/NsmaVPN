@@ -2,6 +2,7 @@ package ir.erfansn.nsmavpn.data.source.local
 
 import androidx.datastore.core.DataStore
 import ir.erfansn.nsmavpn.data.source.local.datastore.Server
+import ir.erfansn.nsmavpn.data.source.local.datastore.UrlLink
 import ir.erfansn.nsmavpn.data.source.local.datastore.VpnProvider
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -10,16 +11,16 @@ class DefaultVpnProviderLocalDataSource @Inject constructor(
     private val dataStore: DataStore<VpnProvider>,
 ) : VpnProviderLocalDataSource {
 
-    override suspend fun getVpnProviderAddress(): String =
+    override suspend fun getVpnProviderAddress(): UrlLink =
         dataStore.data.first().address
 
-    override suspend fun updateVpnProviderAddress(address: String) {
+    override suspend fun updateVpnProviderAddress(address: UrlLink) {
         dataStore.updateData {
             it.toBuilder().setAddress(address).build()
         }
     }
 
-    override suspend fun getVpnServers(): List<Server> =
+    override suspend fun getAvailableVpnServers(): List<Server> =
         dataStore.data.first().let { vpnProvider ->
             vpnProvider.serversList.filter { it !in vpnProvider.blackServersList }
         }
@@ -55,9 +56,9 @@ class DefaultVpnProviderLocalDataSource @Inject constructor(
 }
 
 interface VpnProviderLocalDataSource {
-    suspend fun getVpnProviderAddress(): String
-    suspend fun updateVpnProviderAddress(address: String)
-    suspend fun getVpnServers(): List<Server>
+    suspend fun getVpnProviderAddress(): UrlLink
+    suspend fun updateVpnProviderAddress(address: UrlLink)
+    suspend fun getAvailableVpnServers(): List<Server>
     suspend fun saveVpnServers(servers: List<Server>)
     suspend fun getBlockedVpnServers(): List<Server>
     suspend fun blockVpnServers(servers: List<Server>)
