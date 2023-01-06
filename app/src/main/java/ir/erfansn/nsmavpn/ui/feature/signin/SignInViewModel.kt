@@ -1,6 +1,5 @@
 package ir.erfansn.nsmavpn.ui.feature.signin
 
-import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,8 +26,8 @@ class SignInViewModel @Inject constructor(
     fun verifyVpnGateSubscription(userId: String) {
         viewModelScope.launch {
             _uiState.update {
-                if (serversRepository.userIsSubscribedToVpnGateDailyMail(userId)) {
-                    SignInUiState.Success(accountName = userId)
+                if (serversRepository.userIsSubscribedToVpnGateDailyMail(id)) {
+                    SignInUiState.Success(accountName = id)
                 } else {
                     SignInUiState.Error(
                         signOutIsNeed = true,
@@ -39,9 +38,9 @@ class SignInViewModel @Inject constructor(
         }
     }
 
-    fun saveUserEmailAddress(address: String) {
+    fun saveUserAccountId(id: String) {
         externalScope.launch {
-            userRepository.saveUserEmailAddress(address)
+            userRepository.saveUserAccountId(id = id)
         }
     }
 }

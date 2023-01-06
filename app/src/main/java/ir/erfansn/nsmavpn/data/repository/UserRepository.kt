@@ -7,10 +7,10 @@ import javax.inject.Inject
 class UserRepository @Inject constructor(
     private val userPreferencesLocalDataSource: UserPreferencesLocalDataSource,
 ) {
-    suspend fun getUserEmailAddress(): String =
+    suspend fun getUserAccountId(): String =
         userPreferencesLocalDataSource.userPreferencesStream.first().emailAddress
 
-    suspend fun saveUserEmailAddress(email: String) {
-        userPreferencesLocalDataSource.saveUserEmailAddress(address = email)
+    suspend fun saveUserAccountId(id: String) {
+        userPreferencesLocalDataSource.saveUserEmailAddress(address = id)
     }
 }
