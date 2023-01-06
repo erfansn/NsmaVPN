@@ -23,6 +23,9 @@ import ir.erfansn.nsmavpn.ui.feature.signin.onetap.OneTapSignIn
 import ir.erfansn.nsmavpn.ui.feature.signin.onetap.OneTapSignInWrapper
 import ir.erfansn.nsmavpn.ui.feature.signin.onetap.OneTapSignOut
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import javax.inject.Singleton
 
 @Module
@@ -89,5 +92,10 @@ abstract class AppModule {
         @[Provides Singleton]
         fun providesWorkManager(@ApplicationContext context: Context) =
             WorkManager.getInstance(context)
+
+        @Provides
+        fun providesExternalCoroutineScope(
+            ioDispatcher: CoroutineDispatcher
+        ) = CoroutineScope(SupervisorJob() + ioDispatcher)
     }
 }
