@@ -20,19 +20,16 @@ class SignInViewModel @Inject constructor(
     private val externalScope: CoroutineScope,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<SignInUiState>(SignInUiState.None)
+    private val _uiState = MutableStateFlow<SignInUiState>(SignInUiState.SignedOut)
     val uiState = _uiState.asStateFlow()
 
-    fun verifyVpnGateSubscription(userId: String) {
+    fun verifyVpnGateSubscription(id: String) {
         viewModelScope.launch {
             _uiState.update {
                 if (serversRepository.userIsSubscribedToVpnGateDailyMail(id)) {
-                    SignInUiState.Success(accountName = id)
+                    SignInUiState.SignIn(userAccountId = id)
                 } else {
-                    SignInUiState.Error(
-                        signOutIsNeed = true,
-                        message = R.string.not_being_subscribed_to_vpngate
-                    )
+                    SignInUiState.Error(messageId = R.string.not_being_subscribed_to_vpngate)
                 }
             }
         }
@@ -46,10 +43,7 @@ class SignInViewModel @Inject constructor(
 }
 
 sealed interface SignInUiState {
-    object None : SignInUiState
-    data class Success(val accountName: String) : SignInUiState
-    data class Error(
-        val signOutIsNeed: Boolean = false,
-        @StringRes val message: Int,
-    ) : SignInUiState
+    object SignedOut : SignInUiState
+    data class SignIn(val userAccountId: String) : SignInUiState
+    data class Error(val messageId: Int) : SignInUiState
 }
