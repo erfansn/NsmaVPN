@@ -11,9 +11,9 @@ class UserPreferencesLocalDataSource @Inject constructor(
 ) {
     val userPreferencesStream = dataStore.data
 
-    suspend fun saveUserAccountName(accountName: String) {
+    suspend fun saveUserEmailAddress(address: String) {
         dataStore.updateData {
-            it.toBuilder().setAccountName(accountName).build()
+            it.toBuilder().setEmailAddress(address).build()
         }
     }
 

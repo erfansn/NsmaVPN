@@ -4,7 +4,7 @@ option java_package = "ir.erfansn.nsmavpn.data.source.local.datastore";
 option java_multiple_files = true;
 
 message UserPreferences {
-  string account_name = 1;
+  string email_address = 1;
   ThemeMode theme_mode = 2;
   Reconnection reconnection = 3;
 }

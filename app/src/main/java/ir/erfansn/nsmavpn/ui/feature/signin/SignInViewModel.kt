@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.erfansn.nsmavpn.R
 import ir.erfansn.nsmavpn.data.repository.ServersRepository
 import ir.erfansn.nsmavpn.data.repository.UserRepository
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -17,16 +18,17 @@ import javax.inject.Inject
 class SignInViewModel @Inject constructor(
     private val serversRepository: ServersRepository,
     private val userRepository: UserRepository,
+    private val externalScope: CoroutineScope,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<SignInUiState>(SignInUiState.None)
     val uiState = _uiState.asStateFlow()
 
-    fun userIsSubscribedToVpnGateDailyMail(accountName: String) {
+    fun verifyVpnGateSubscription(userId: String) {
         viewModelScope.launch {
             _uiState.update {
-                if (serversRepository.userIsSubscribedToVpnGateDailyMail(accountName)) {
-                    SignInUiState.Success(accountName = accountName)
+                if (serversRepository.userIsSubscribedToVpnGateDailyMail(userId)) {
+                    SignInUiState.Success(accountName = userId)
                 } else {
                     SignInUiState.Error(
                         signOutIsNeed = true,
@@ -37,9 +39,9 @@ class SignInViewModel @Inject constructor(
         }
     }
 
-    fun saveUserAccountName(accountName: String) {
-        viewModelScope.launch {
-            userRepository.saveUserEmailAddress(accountName)
+    fun saveUserEmailAddress(address: String) {
+        externalScope.launch {
+            userRepository.saveUserEmailAddress(address)
         }
     }
 }
