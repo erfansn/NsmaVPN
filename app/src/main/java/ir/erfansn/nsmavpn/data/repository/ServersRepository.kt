@@ -45,9 +45,9 @@ class ServersRepository @Inject constructor(
         val vpnProviderAddress = obtainVpnProviderAddress(userAccountId)
 
         val (blackServers, availableServers) = vpnGateContentExtractor
-            .extractSstpVpnServers(vpnProviderAddress)
-            .partition {
-                pingChecker.measure(it.address.hostName) != Int.MAX_VALUE
+            .extractSstpVpnServers(vpnProviderAddress.toAbsoluteLink())
+            .asyncPartition {
+                pingChecker.measure(it.address.hostName).isNaN()
             }
 
         vpnProviderLocalDataSource.blockVpnServers(blackServers)
