@@ -1,2 +1,2 @@
-# NsmaVpn
+# NsmaVPN
 🚧 Under construction 🚧
