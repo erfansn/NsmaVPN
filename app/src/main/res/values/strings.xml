@@ -3,5 +3,13 @@
 
     <string name="web_client_id">870845865908\-4qde8iut5e3j76tmtn54rcthqjh4lcg8.apps.googleusercontent.com</string>
 
+    <string name="sign_in_description">To obtain and collect VPN servers this app uses your email messages that sent from VpnGate thus only way to use this app sign-in with email that subscribed to VpnGate daily mirror link</string>
+    <string name="sign_in">Sign in</string>
+    <string name="permission_description">To use app must be granted access to Gmail Messages</string>
+    <string name="grand_permission">Grand permission</string>
+    <string name="sign_out">Sign out</string>
     <string name="not_being_subscribed_to_vpngate">Not being subscribed to VpnGate</string>
+    <string name="network_problem">Check your internet connection</string>
+    <string name="sign_in_failed">A non-recoverable sign in failure occurred</string>
+    <string name="unknown_error">Unknown error occurred</string>
 </resources>
