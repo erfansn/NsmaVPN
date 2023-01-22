@@ -38,6 +38,7 @@ import ir.erfansn.nsmavpn.ui.component.BackgroundState
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnBackground
 import ir.erfansn.nsmavpn.ui.feature.signin.google.*
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
+import ir.erfansn.nsmavpn.ui.ThemePreviews
 
 @Composable
 fun SignInRoute(
@@ -254,9 +255,7 @@ fun GoogleSignInButton(
         }
     }
 }
-
-@Preview(showBackground = true)
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@ThemePreviews
 @Composable
 private fun SignInScreenPreview() {
     NsmaVpnTheme {
