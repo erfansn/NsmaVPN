@@ -2,13 +2,14 @@ package ir.erfansn.nsmavpn.data.source.remote
 
 import com.google.api.services.gmail.model.Message
 import ir.erfansn.nsmavpn.data.source.remote.api.GmailApi
+import ir.erfansn.nsmavpn.di.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class DefaultVpnGateMessagesRemoteDataSource @Inject constructor(
     private val api: GmailApi,
-    private val ioDispatcher: CoroutineDispatcher,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : VpnGateMessagesRemoteDataSource {
 
     override suspend fun fetchLatestMessageBodyText(userAccountId: String): String {

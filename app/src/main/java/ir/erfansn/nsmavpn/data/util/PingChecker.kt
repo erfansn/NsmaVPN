@@ -1,11 +1,12 @@
 package ir.erfansn.nsmavpn.data.util
 
+import ir.erfansn.nsmavpn.di.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class DefaultPingChecker @Inject constructor(
-    private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : PingChecker {
 
     private val runtime = Runtime.getRuntime()

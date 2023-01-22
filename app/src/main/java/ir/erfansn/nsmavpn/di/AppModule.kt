@@ -23,6 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import javax.inject.Qualifier
 import javax.inject.Singleton
 
 @Module
@@ -68,7 +69,7 @@ abstract class AppModule {
                 produceFile = { context.dataStoreFile("user_preferences") }
             )
 
-        @Provides
+        @[IoDispatcher Provides]
         fun providesIoDispatcher() = Dispatchers.IO
 
         @[Provides Singleton]
@@ -77,7 +78,11 @@ abstract class AppModule {
 
         @Provides
         fun providesExternalCoroutineScope(
-            ioDispatcher: CoroutineDispatcher
+            @IoDispatcher ioDispatcher: CoroutineDispatcher
         ) = CoroutineScope(SupervisorJob() + ioDispatcher)
     }
 }
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class IoDispatcher

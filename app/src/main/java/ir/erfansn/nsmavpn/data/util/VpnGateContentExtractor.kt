@@ -3,6 +3,7 @@ package ir.erfansn.nsmavpn.data.util
 import ir.erfansn.nsmavpn.data.source.local.datastore.Protocol
 import ir.erfansn.nsmavpn.data.source.local.datastore.Server
 import ir.erfansn.nsmavpn.data.source.local.datastore.UrlLink
+import ir.erfansn.nsmavpn.di.IoDispatcher
 import it.skrape.core.htmlDocument
 import it.skrape.fetcher.AsyncFetcher
 import it.skrape.fetcher.response
@@ -15,7 +16,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class DefaultVpnGateContentExtractor @Inject constructor(
-    private val ioDispatcher: CoroutineDispatcher,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : VpnGateContentExtractor {
 
     override suspend fun extractSstpVpnServers(address: String) = withContext(ioDispatcher) {
