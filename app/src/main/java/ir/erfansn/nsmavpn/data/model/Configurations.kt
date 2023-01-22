@@ -1,24 +1,19 @@
 package ir.erfansn.nsmavpn.data.model
 
-import ir.erfansn.nsmavpn.data.source.local.datastore.ThemeMode
+import ir.erfansn.nsmavpn.data.source.local.datastore.ThemeModeProto
 import ir.erfansn.nsmavpn.data.source.local.datastore.UserPreferences
 
 data class Configurations(
     val themeMode: ThemeMode,
-    val reconnection: Reconnection,
 )
+enum class ThemeMode { LIGHT, DARK, SYSTEM }
 
-data class Reconnection(
-    val enable: Boolean,
-    val intervalTime: Long,
-    val retryCount: Int,
-)
-
-fun UserPreferences.toConfiguration() = Configurations(
-    themeMode = themeMode,
-    reconnection = Reconnection(
-        enable = reconnection.enable,
-        intervalTime = reconnection.intervalTime,
-        retryCount = reconnection.retryCount
-    )
+fun UserPreferences.toConfigurations() = Configurations(
+    themeMode = when (themeMode) {
+        null,
+        ThemeModeProto.UNRECOGNIZED,
+        ThemeModeProto.SYSTEM -> ThemeMode.SYSTEM
+        ThemeModeProto.LIGHT -> ThemeMode.LIGHT
+        ThemeModeProto.DARK -> ThemeMode.DARK
+    },
 )

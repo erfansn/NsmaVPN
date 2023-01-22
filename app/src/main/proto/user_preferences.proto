@@ -5,18 +5,11 @@ option java_multiple_files = true;
 
 message UserPreferences {
   string email_address = 1;
-  ThemeMode theme_mode = 2;
-  Reconnection reconnection = 3;
+  ThemeModeProto theme_mode = 2;
 }
 
-enum ThemeMode {
+enum ThemeModeProto {
   SYSTEM = 0;
   LIGHT = 1;
   DARK = 2;
-}
-
-message Reconnection {
-  bool enable = 1;
-  int32 retry_count = 2;
-  int64 interval_time = 3;
 }
