@@ -9,8 +9,8 @@ import javax.inject.Inject
 class ConfigurationsRepository @Inject constructor(
     private val userPreferencesLocalDataSource: UserPreferencesLocalDataSource,
 ) {
-    fun getConfigurationStream() = userPreferencesLocalDataSource.userPreferencesStream.map {
-        it.toConfiguration()
+    val configurations = userPreferencesLocalDataSource.userPreferences.map {
+        it.toConfigurations()
     }
 
     suspend fun setThemeMode(mode: ThemeMode) {

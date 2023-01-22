@@ -8,7 +8,7 @@ class UserRepository @Inject constructor(
     private val userPreferencesLocalDataSource: UserPreferencesLocalDataSource,
 ) {
     suspend fun getUserAccountId(): String =
-        userPreferencesLocalDataSource.userPreferencesStream.first().emailAddress
+        userPreferencesLocalDataSource.userPreferences.first().emailAddress
 
     suspend fun saveUserAccountId(id: String) {
         userPreferencesLocalDataSource.saveUserEmailAddress(address = id)

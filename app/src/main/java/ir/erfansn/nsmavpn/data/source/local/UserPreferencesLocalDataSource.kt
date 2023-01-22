@@ -9,7 +9,7 @@ import javax.inject.Inject
 class UserPreferencesLocalDataSource @Inject constructor(
     private val dataStore: DataStore<UserPreferences>,
 ) {
-    val userPreferencesStream = dataStore.data
+    val userPreferences = dataStore.data
 
     suspend fun saveUserEmailAddress(address: String) {
         dataStore.updateData {
