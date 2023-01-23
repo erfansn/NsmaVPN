@@ -77,6 +77,7 @@ dependencies {
     implementation 'com.google.api-client:google-api-client:2.0.0'
     implementation 'com.google.api-client:google-api-client-android:2.0.0'
     implementation 'com.google.apis:google-api-services-gmail:v1-rev20220404-2.0.0'
+    implementation 'com.google.apis:google-api-services-people:v1-rev20220531-2.0.0'
 
     def composeBom = platform('androidx.compose:compose-bom:2022.10.00')
     implementation composeBom
