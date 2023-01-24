@@ -4,6 +4,12 @@ import android.content.Context
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.dataStoreFile
 import androidx.work.WorkManager
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+import com.google.api.client.json.gson.GsonFactory
+import com.google.api.services.gmail.Gmail
+import com.google.api.services.gmail.GmailScopes
+import com.google.api.services.people.v1.PeopleServiceScopes
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -17,7 +23,7 @@ import ir.erfansn.nsmavpn.data.source.local.datastore.VpnProviderSerializer
 import ir.erfansn.nsmavpn.data.source.remote.DefaultVpnGateMessagesRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.remote.VpnGateMessagesRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.remote.api.GmailApi
-import ir.erfansn.nsmavpn.data.source.remote.api.GmailApiImpl
+import ir.erfansn.nsmavpn.data.source.remote.api.GoogleApi
 import ir.erfansn.nsmavpn.data.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -31,7 +37,7 @@ import javax.inject.Singleton
 abstract class AppModule {
 
     @Binds
-    abstract fun bindsGmailApi(gmailApiImpl: GmailApiImpl): GmailApi
+    abstract fun bindsGmailApi(gmailApi: GmailApi): GoogleApi<Gmail>
 
     @Binds
     abstract fun bindsVpnGateMessagesRemoteDataSource(
@@ -78,8 +84,24 @@ abstract class AppModule {
 
         @Provides
         fun providesExternalCoroutineScope(
-            @IoDispatcher ioDispatcher: CoroutineDispatcher
+            @IoDispatcher ioDispatcher: CoroutineDispatcher,
         ) = CoroutineScope(SupervisorJob() + ioDispatcher)
+
+        @[Provides Singleton]
+        fun providesGoogleAccountCredential(@ApplicationContext context: Context) =
+            GoogleAccountCredential.usingOAuth2(
+                context,
+                listOf(
+                    GmailScopes.GMAIL_READONLY,
+                    PeopleServiceScopes.USERINFO_PROFILE
+                )
+            )!!
+
+        @[Provides Singleton]
+        fun providesNetHttpTransport() = GoogleNetHttpTransport.newTrustedTransport()!!
+
+        @Provides
+        fun providesGsonFactory() = GsonFactory.getDefaultInstance()!!
     }
 }
 
