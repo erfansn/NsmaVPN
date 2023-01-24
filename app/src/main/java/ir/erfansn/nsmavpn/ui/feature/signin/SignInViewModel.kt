@@ -17,7 +17,6 @@ import javax.inject.Inject
 class SignInViewModel @Inject constructor(
     private val serversRepository: ServersRepository,
     private val userRepository: UserRepository,
-    private val externalScope: CoroutineScope,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<SignInUiState>(SignInUiState.SignedOut)
@@ -36,7 +35,7 @@ class SignInViewModel @Inject constructor(
     }
 
     fun saveUserAccountId(id: String) {
-        externalScope.launch {
+        viewModelScope.launch {
             userRepository.saveUserAccountId(id = id)
         }
     }
