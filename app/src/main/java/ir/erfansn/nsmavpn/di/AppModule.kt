@@ -9,6 +9,7 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.gmail.Gmail
 import com.google.api.services.gmail.GmailScopes
+import com.google.api.services.people.v1.PeopleService
 import com.google.api.services.people.v1.PeopleServiceScopes
 import dagger.Binds
 import dagger.Module
@@ -24,6 +25,7 @@ import ir.erfansn.nsmavpn.data.source.remote.DefaultVpnGateMessagesRemoteDataSou
 import ir.erfansn.nsmavpn.data.source.remote.VpnGateMessagesRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.remote.api.GmailApi
 import ir.erfansn.nsmavpn.data.source.remote.api.GoogleApi
+import ir.erfansn.nsmavpn.data.source.remote.api.PeopleApi
 import ir.erfansn.nsmavpn.data.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -38,6 +40,9 @@ abstract class AppModule {
 
     @Binds
     abstract fun bindsGmailApi(gmailApi: GmailApi): GoogleApi<Gmail>
+
+    @Binds
+    abstract fun bindsPeopleApi(peopleApi: PeopleApi): GoogleApi<PeopleService>
 
     @Binds
     abstract fun bindsVpnGateMessagesRemoteDataSource(
