@@ -21,7 +21,9 @@ import ir.erfansn.nsmavpn.data.source.local.DefaultVpnProviderLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.VpnProviderLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.datastore.UserPreferencesSerializer
 import ir.erfansn.nsmavpn.data.source.local.datastore.VpnProviderSerializer
+import ir.erfansn.nsmavpn.data.source.remote.DefaultPersonInfoRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.remote.DefaultVpnGateMessagesRemoteDataSource
+import ir.erfansn.nsmavpn.data.source.remote.PersonInfoRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.remote.VpnGateMessagesRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.remote.api.GmailApi
 import ir.erfansn.nsmavpn.data.source.remote.api.GoogleApi
@@ -48,6 +50,11 @@ abstract class AppModule {
     abstract fun bindsVpnGateMessagesRemoteDataSource(
         defaultVpnGateMessagesRemoteDataSource: DefaultVpnGateMessagesRemoteDataSource,
     ): VpnGateMessagesRemoteDataSource
+
+    @Binds
+    abstract fun bindsPersonInfoRemoteDataSource(
+        defaultPersonInfoRemoteDataSource: DefaultPersonInfoRemoteDataSource,
+    ): PersonInfoRemoteDataSource
 
     @Binds
     abstract fun bindsVpnGateContentExtractor(
