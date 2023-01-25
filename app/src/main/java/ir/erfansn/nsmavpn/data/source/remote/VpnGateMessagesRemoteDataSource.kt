@@ -12,11 +12,11 @@ class DefaultVpnGateMessagesRemoteDataSource @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : VpnGateMessagesRemoteDataSource {
 
-    override suspend fun fetchLatestMessageBodyText(userAccountId: String): String {
-        val threadId = fetchLatestThreadIdFromVpnGate(userAccountId) ?: throw NoVpnGateSubscribed()
+    override suspend fun fetchLatestMessageBodyText(emailAddress: String): String {
+        val threadId = fetchLatestThreadIdFromVpnGate(emailAddress) ?: throw NoVpnGateSubscribed()
 
         val data: Message = withContext(ioDispatcher) {
-            api.selectAccount(userAccountId)
+            api.selectAccount(emailAddress)
                 .users()
                 .messages()
                 .get("me", threadId)
@@ -26,14 +26,14 @@ class DefaultVpnGateMessagesRemoteDataSource @Inject constructor(
         return data.payload.body.decodeData().decodeToString()
     }
 
-    override suspend fun userIsSubscribedToVpnGateDailyMail(userAccountId: String): Boolean {
-        return fetchLatestThreadIdFromVpnGate(userAccountId) != null
+    override suspend fun userIsSubscribedToVpnGateDailyMail(emailAddress: String): Boolean {
+        return fetchLatestThreadIdFromVpnGate(emailAddress) != null
     }
 
-    private suspend fun fetchLatestThreadIdFromVpnGate(userAccountId: String) =
+    private suspend fun fetchLatestThreadIdFromVpnGate(emailAddress: String) =
         withContext(ioDispatcher) {
             val data = api
-                .selectAccount(userAccountId)
+                .selectAccount(emailAddress)
                 .users()
                 .messages()
                 .list("me")
@@ -50,8 +50,8 @@ class DefaultVpnGateMessagesRemoteDataSource @Inject constructor(
 }
 
 interface VpnGateMessagesRemoteDataSource {
-    suspend fun fetchLatestMessageBodyText(userAccountId: String): String
-    suspend fun userIsSubscribedToVpnGateDailyMail(userAccountId: String): Boolean
+    suspend fun fetchLatestMessageBodyText(emailAddress: String): String
+    suspend fun userIsSubscribedToVpnGateDailyMail(emailAddress: String): Boolean
 }
 
 class NoVpnGateSubscribed :
