@@ -98,7 +98,8 @@ abstract class AppModule {
                 context,
                 listOf(
                     GmailScopes.GMAIL_READONLY,
-                    PeopleServiceScopes.USERINFO_PROFILE
+                    PeopleServiceScopes.USERINFO_PROFILE,
+                    PeopleServiceScopes.USERINFO_EMAIL,
                 )
             )!!
 
