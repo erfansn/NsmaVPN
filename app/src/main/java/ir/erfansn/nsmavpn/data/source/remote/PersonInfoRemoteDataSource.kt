@@ -12,7 +12,7 @@ class DefaultPersonInfoRemoteDataSource @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : PersonInfoRemoteDataSource {
 
-    override suspend fun getUserInfo(emailAddress: String): Person = withContext(ioDispatcher) {
+    override suspend fun fetchPublicInfo(emailAddress: String): Person = withContext(ioDispatcher) {
         api.selectAccount(emailAddress)
             .people()
             .get("people/me")
@@ -22,5 +22,5 @@ class DefaultPersonInfoRemoteDataSource @Inject constructor(
 }
 
 interface PersonInfoRemoteDataSource {
-    suspend fun getUserInfo(emailAddress: String): Person
+    suspend fun fetchPublicInfo(emailAddress: String): Person
 }
