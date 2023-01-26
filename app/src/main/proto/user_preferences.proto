@@ -6,10 +6,17 @@ option java_multiple_files = true;
 message UserPreferences {
   string email_address = 1;
   ThemeModeProto theme_mode = 2;
+  ProfileProto profile = 3;
 }
 
 enum ThemeModeProto {
   SYSTEM = 0;
   LIGHT = 1;
   DARK = 2;
+}
+
+message ProfileProto {
+  string avatar_url = 1;
+  string display_name = 2;
+  string email_address = 3;
 }
