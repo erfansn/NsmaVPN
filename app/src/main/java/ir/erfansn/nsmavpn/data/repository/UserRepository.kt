@@ -1,10 +1,12 @@
 package ir.erfansn.nsmavpn.data.repository
 
 import ir.erfansn.nsmavpn.data.model.Profile
+import ir.erfansn.nsmavpn.data.model.asProfileProto
 import ir.erfansn.nsmavpn.data.source.local.UserPreferencesLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.datastore.ProfileProto
 import ir.erfansn.nsmavpn.data.source.remote.PersonInfoRemoteDataSource
 import kotlinx.coroutines.CoroutineScope
+import ir.erfansn.nsmavpn.data.source.local.datastore.model.asProfile
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -15,11 +17,7 @@ class UserRepository @Inject constructor(
     private val externalScope: CoroutineScope,
 ) {
     val userProfile = userPreferencesLocalDataSource.userPreferences.map {
-        Profile(
-            avatarUrl = it.profile.avatarUrl.ifEmpty { null },
-            displayName = it.profile.displayName,
-            emailAddress = it.profile.emailAddress
-        )
+        it.asProfile()
     }
 
     private val mutex = Mutex()
@@ -47,13 +45,7 @@ class UserRepository @Inject constructor(
 
     suspend fun saveUserProfile(profile: Profile) {
         externalScope.launch {
-            val profileProto = ProfileProto.newBuilder()
-                .setEmailAddress(profile.emailAddress)
-                .setAvatarUrl(profile.avatarUrl.orEmpty())
-                .setDisplayName(profile.displayName)
-                .build()
-
-            userPreferencesLocalDataSource.saveUserProfile(profileProto)
+            userPreferencesLocalDataSource.saveUserProfile(profile.asProfileProto())
         }.join()
     }
 }

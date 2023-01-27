@@ -19,13 +19,13 @@ class UserPreferencesLocalDataSource @Inject constructor(
 
     suspend fun setThemeMode(mode: ThemeModeProto) {
         dataStore.updateData {
-            it.toBuilder().setThemeMode(mode).build()
+            it.toBuilder().setThemeModeProto(mode).build()
         }
     }
 
     suspend fun saveUserProfile(profile: ProfileProto) {
         dataStore.updateData {
-            it.toBuilder().setProfile(profile).build()
+            it.toBuilder().setProfileProto(profile).build()
         }
     }
 }
