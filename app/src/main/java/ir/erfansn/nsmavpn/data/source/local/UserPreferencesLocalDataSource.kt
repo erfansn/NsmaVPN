@@ -11,12 +11,6 @@ class UserPreferencesLocalDataSource @Inject constructor(
 ) {
     val userPreferences = dataStore.data
 
-    suspend fun saveUserEmailAddress(address: String) {
-        dataStore.updateData {
-            it.toBuilder().setEmailAddress(address).build()
-        }
-    }
-
     suspend fun setThemeMode(mode: ThemeModeProto) {
         dataStore.updateData {
             it.toBuilder().setThemeModeProto(mode).build()
