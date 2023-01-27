@@ -1,13 +1,13 @@
 package ir.erfansn.nsmavpn.data.repository
 
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import ir.erfansn.nsmavpn.data.model.Profile
 import ir.erfansn.nsmavpn.data.model.toProfile
 import ir.erfansn.nsmavpn.data.source.local.UserPreferencesLocalDataSource
 import ir.erfansn.nsmavpn.data.source.remote.PersonInfoRemoteDataSource
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
@@ -17,8 +17,16 @@ class UserRepository @Inject constructor(
     private val personInfoRemoteDataSource: PersonInfoRemoteDataSource,
     private val externalScope: CoroutineScope,
 ) {
+    val userProfile = userPreferencesLocalDataSource.userPreferences.map {
+        Profile(
+            avatarUrl = it.profile.avatarUrl.ifEmpty { null },
+            displayName = it.profile.displayName,
+            emailAddress = it.profile.emailAddress
+        )
+    }
+
     private val mutex = Mutex()
-    private var userProfile: Profile? = null
+    private var _userProfile: Profile? = null
 
     suspend fun getUserAccountId(): String =
         userPreferencesLocalDataSource.userPreferences.first().emailAddress
@@ -32,11 +40,17 @@ class UserRepository @Inject constructor(
     suspend fun getUserProfile(userAccountId: String): Profile {
         return externalScope.async {
             mutex.withLock {
-                userProfile ?: personInfoRemoteDataSource.fetchPublicInfo(userAccountId).toProfile()
+                _userProfile ?: personInfoRemoteDataSource.fetchPublicInfo(userAccountId).toProfile()
                     .also {
-                        userProfile = it
+                        _userProfile = it
                     }
             }
         }.await()
+    }
+
+    suspend fun saveUserProfile(profile: Profile) {
+        externalScope.launch {
+            userPreferencesLocalDataSource.saveUserProfile(profile)
+        }.join()
     }
 }
