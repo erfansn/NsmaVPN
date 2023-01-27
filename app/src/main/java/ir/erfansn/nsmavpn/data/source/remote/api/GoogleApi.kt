@@ -14,8 +14,8 @@ abstract class GoogleApi<T : AbstractGoogleJsonClient> {
 
     protected abstract fun getService(): T
 
-    fun selectAccount(id: String): T {
-        credential.selectedAccountName = id
+    fun selectAccount(emailAddress: String): T {
+        credential.selectedAccountName = emailAddress
         return getService()
     }
 }
