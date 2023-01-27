@@ -26,7 +26,7 @@ class SignInViewModel @Inject constructor(
     fun verifyVpnGateSubscription(userAccount: GoogleSignInAccount) {
         viewModelScope.launch {
             _uiState.update {
-                if (serversRepository.userIsSubscribedToVpnGateDailyMail(userAccount.email!!)) {
+                if (serversRepository.isSubscribedToVpnGateDailyMail(userAccount.email!!)) {
                     SignInUiState.SignIn(userAccount = userAccount)
                 } else {
                     SignInUiState.Error(messageId = R.string.not_being_subscribed_to_vpngate)

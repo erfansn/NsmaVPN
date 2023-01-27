@@ -69,8 +69,8 @@ class ServersRepository @Inject constructor(
         }
     }
 
-    suspend fun userIsSubscribedToVpnGateDailyMail(userId: String) =
-        vpnGateMessagesRemoteDataSource.userIsSubscribedToVpnGateDailyMail(userId)
+    suspend fun isSubscribedToVpnGateDailyMail(emailAddress: String) =
+        vpnGateMessagesRemoteDataSource.isSubscribedToDailyMail(emailAddress)
 
     fun beginVpnServersWorker() {
         serversTasksDataSource.collectVpnServerPeriodically()

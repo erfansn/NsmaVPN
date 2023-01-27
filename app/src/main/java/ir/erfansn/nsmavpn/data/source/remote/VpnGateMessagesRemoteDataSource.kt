@@ -26,14 +26,13 @@ class DefaultVpnGateMessagesRemoteDataSource @Inject constructor(
         return data.payload.body.decodeData().decodeToString()
     }
 
-    override suspend fun userIsSubscribedToVpnGateDailyMail(emailAddress: String): Boolean {
+    override suspend fun isSubscribedToDailyMail(emailAddress: String): Boolean {
         return fetchLatestThreadIdFromVpnGate(emailAddress) != null
     }
 
     private suspend fun fetchLatestThreadIdFromVpnGate(emailAddress: String) =
         withContext(ioDispatcher) {
-            val data = api
-                .selectAccount(emailAddress)
+            val data = api.selectAccount(emailAddress)
                 .users()
                 .messages()
                 .list("me")
@@ -51,7 +50,7 @@ class DefaultVpnGateMessagesRemoteDataSource @Inject constructor(
 
 interface VpnGateMessagesRemoteDataSource {
     suspend fun fetchLatestMessageBodyText(emailAddress: String): String
-    suspend fun userIsSubscribedToVpnGateDailyMail(emailAddress: String): Boolean
+    suspend fun isSubscribedToDailyMail(emailAddress: String): Boolean
 }
 
 class NoVpnGateSubscribed :
