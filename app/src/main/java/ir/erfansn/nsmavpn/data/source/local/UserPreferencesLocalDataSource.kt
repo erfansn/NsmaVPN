@@ -1,7 +1,9 @@
 package ir.erfansn.nsmavpn.data.source.local
 
 import androidx.datastore.core.DataStore
+import ir.erfansn.nsmavpn.data.model.Profile
 import ir.erfansn.nsmavpn.data.model.ThemeMode
+import ir.erfansn.nsmavpn.data.source.local.datastore.ProfileProto
 import ir.erfansn.nsmavpn.data.source.local.datastore.ThemeModeProto
 import ir.erfansn.nsmavpn.data.source.local.datastore.UserPreferences
 import javax.inject.Inject
@@ -26,6 +28,17 @@ class UserPreferencesLocalDataSource @Inject constructor(
                     ThemeMode.SYSTEM -> ThemeModeProto.SYSTEM
                 }
             ).build()
+        }
+    }
+
+    suspend fun saveUserProfile(profile: Profile) {
+        dataStore.updateData {
+            val profileProto = ProfileProto.newBuilder()
+                .setEmailAddress(profile.emailAddress)
+                .setAvatarUrl(profile.avatarUrl.orEmpty())
+                .setDisplayName(profile.displayName)
+                .build()
+            it.toBuilder().setProfile(profileProto).build()
         }
     }
 }
