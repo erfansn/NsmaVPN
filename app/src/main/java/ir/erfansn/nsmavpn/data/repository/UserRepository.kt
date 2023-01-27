@@ -1,15 +1,12 @@
 package ir.erfansn.nsmavpn.data.repository
 
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import ir.erfansn.nsmavpn.data.model.Profile
-import ir.erfansn.nsmavpn.data.model.toProfile
 import ir.erfansn.nsmavpn.data.source.local.UserPreferencesLocalDataSource
+import ir.erfansn.nsmavpn.data.source.local.datastore.ProfileProto
 import ir.erfansn.nsmavpn.data.source.remote.PersonInfoRemoteDataSource
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class UserRepository @Inject constructor(
@@ -50,7 +47,13 @@ class UserRepository @Inject constructor(
 
     suspend fun saveUserProfile(profile: Profile) {
         externalScope.launch {
-            userPreferencesLocalDataSource.saveUserProfile(profile)
+            val profileProto = ProfileProto.newBuilder()
+                .setEmailAddress(profile.emailAddress)
+                .setAvatarUrl(profile.avatarUrl.orEmpty())
+                .setDisplayName(profile.displayName)
+                .build()
+
+            userPreferencesLocalDataSource.saveUserProfile(profileProto)
         }.join()
     }
 }
