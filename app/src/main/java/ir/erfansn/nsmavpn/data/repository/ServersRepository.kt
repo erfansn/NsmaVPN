@@ -10,11 +10,12 @@ import ir.erfansn.nsmavpn.data.util.*
 import javax.inject.Inject
 
 class ServersRepository @Inject constructor(
+    private val userRepository: UserRepository,
     private val vpnGateMessagesRemoteDataSource: VpnGateMessagesRemoteDataSource,
     private val vpnProviderLocalDataSource: VpnProviderLocalDataSource,
+    private val serversTasksDataSource: ServersTasksDataSource,
     private val vpnGateContentExtractor: VpnGateContentExtractor,
     private val pingChecker: PingChecker,
-    private val serversTasksDataSource: ServersTasksDataSource,
 ) {
     private lateinit var currentVpnServer: Server
     private var vpnServerSelectionTimeMs: Long = 0L
@@ -34,8 +35,9 @@ class ServersRepository @Inject constructor(
     private val selectedVpnServerIsValid get() =
         System.currentTimeMillis() - vpnServerSelectionTimeMs <= SELECTED_SERVER_TIMEOUT_MS
 
-    suspend fun collectVpnServers(userAccountId: String) {
-        val vpnProviderAddress = obtainVpnProviderAddress(userAccountId)
+    suspend fun collectVpnServers() {
+        val userAccountEmail = userRepository.userProfile.first().emailAddress
+        val vpnProviderAddress = obtainVpnProviderAddress(userAccountEmail)
 
         val (blackServers, availableServers) = vpnGateContentExtractor
             .extractSstpVpnServers(vpnProviderAddress.toAbsoluteLink())
@@ -47,12 +49,12 @@ class ServersRepository @Inject constructor(
         vpnProviderLocalDataSource.saveVpnServers(availableServers)
     }
 
-    private suspend fun obtainVpnProviderAddress(userAccountId: String): UrlLink {
+    private suspend fun obtainVpnProviderAddress(userAccountEmail: String): UrlLink {
         val vpnProvider = vpnProviderLocalDataSource.getVpnProviderAddress()
         if (pingChecker.isReachable(vpnProvider.hostName)) return vpnProvider
 
         // TODO: if mirror links are unavailable check second email message
-        val bodyText = vpnGateMessagesRemoteDataSource.fetchLatestMessageBodyText(userAccountId)
+        val bodyText = vpnGateMessagesRemoteDataSource.fetchLatestMessageBodyText(userAccountEmail)
         val mirrorLink = vpnGateContentExtractor.findVpnGateMirrorLinks(bodyText).asyncMinByOrNull {
             pingChecker.isReachable(it.hostName)
         } ?: throw NotFoundException()

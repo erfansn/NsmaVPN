@@ -6,7 +6,6 @@ import androidx.work.*
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import ir.erfansn.nsmavpn.data.repository.ServersRepository
-import ir.erfansn.nsmavpn.data.repository.UserRepository
 import java.util.concurrent.TimeUnit
 
 @HiltWorker
@@ -14,13 +13,11 @@ class ServerCollectorWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val serversRepository: ServersRepository,
-    private val userRepository: UserRepository,
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val userAccountId = userRepository.getUserAccountId()
         return try {
-            serversRepository.collectVpnServers(userAccountId)
+            serversRepository.collectVpnServers()
             Result.success()
         } catch (e: Exception) {
             Result.retry()
