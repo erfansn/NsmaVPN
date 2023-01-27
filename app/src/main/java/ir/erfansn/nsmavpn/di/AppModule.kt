@@ -9,8 +9,6 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.gmail.Gmail
 import com.google.api.services.gmail.GmailScopes
-import com.google.api.services.people.v1.PeopleService
-import com.google.api.services.people.v1.PeopleServiceScopes
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -21,13 +19,10 @@ import ir.erfansn.nsmavpn.data.source.local.DefaultVpnProviderLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.VpnProviderLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.datastore.UserPreferencesSerializer
 import ir.erfansn.nsmavpn.data.source.local.datastore.VpnProviderSerializer
-import ir.erfansn.nsmavpn.data.source.remote.DefaultPersonInfoRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.remote.DefaultVpnGateMessagesRemoteDataSource
-import ir.erfansn.nsmavpn.data.source.remote.PersonInfoRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.remote.VpnGateMessagesRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.remote.api.GmailApi
 import ir.erfansn.nsmavpn.data.source.remote.api.GoogleApi
-import ir.erfansn.nsmavpn.data.source.remote.api.PeopleApi
 import ir.erfansn.nsmavpn.data.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -44,17 +39,9 @@ abstract class AppModule {
     abstract fun bindsGmailApi(gmailApi: GmailApi): GoogleApi<Gmail>
 
     @Binds
-    abstract fun bindsPeopleApi(peopleApi: PeopleApi): GoogleApi<PeopleService>
-
-    @Binds
     abstract fun bindsVpnGateMessagesRemoteDataSource(
         defaultVpnGateMessagesRemoteDataSource: DefaultVpnGateMessagesRemoteDataSource,
     ): VpnGateMessagesRemoteDataSource
-
-    @Binds
-    abstract fun bindsPersonInfoRemoteDataSource(
-        defaultPersonInfoRemoteDataSource: DefaultPersonInfoRemoteDataSource,
-    ): PersonInfoRemoteDataSource
 
     @Binds
     abstract fun bindsVpnGateContentExtractor(
@@ -103,11 +90,7 @@ abstract class AppModule {
         fun providesGoogleAccountCredential(@ApplicationContext context: Context) =
             GoogleAccountCredential.usingOAuth2(
                 context,
-                listOf(
-                    GmailScopes.GMAIL_READONLY,
-                    PeopleServiceScopes.USERINFO_PROFILE,
-                    PeopleServiceScopes.USERINFO_EMAIL,
-                )
+                listOf(GmailScopes.GMAIL_READONLY,)
             )!!
 
         @[Provides Singleton]

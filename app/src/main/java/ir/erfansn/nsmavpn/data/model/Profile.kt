@@ -1,6 +1,5 @@
 package ir.erfansn.nsmavpn.data.model
 
-import com.google.api.services.people.v1.model.Person
 import ir.erfansn.nsmavpn.data.source.local.datastore.ProfileProto
 
 data class Profile(
@@ -9,14 +8,10 @@ data class Profile(
     val emailAddress: String,
 )
 
-fun Profile.asProfileProto(): ProfileProto = ProfileProto.newBuilder()
-    .setEmailAddress(emailAddress)
-    .setAvatarUrl(avatarUrl.orEmpty())
-    .setDisplayName(displayName)
-    .build()
-
-fun Person.toProfile() = Profile(
-    avatarUrl = photos?.first()?.url,
-    displayName = names?.first()?.displayName.orEmpty(),
-    emailAddress = emailAddresses?.first()?.value.orEmpty().lowercase()
-)
+fun Profile?.asProfileProto(): ProfileProto = this?.let {
+    ProfileProto.newBuilder()
+        .setEmailAddress(emailAddress)
+        .setAvatarUrl(avatarUrl.orEmpty())
+        .setDisplayName(displayName)
+        .build()
+} ?: ProfileProto.getDefaultInstance()
