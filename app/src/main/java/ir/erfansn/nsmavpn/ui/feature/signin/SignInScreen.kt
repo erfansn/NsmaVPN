@@ -2,7 +2,6 @@
 
 package ir.erfansn.nsmavpn.ui.feature.signin
 
-import android.content.res.Configuration
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -24,7 +23,6 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -33,6 +31,7 @@ import androidx.constraintlayout.compose.atMost
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import ir.erfansn.nsmavpn.R
 import ir.erfansn.nsmavpn.ui.component.BackgroundState
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnBackground
@@ -54,7 +53,7 @@ fun SignInRoute(
         windowSize = windowSize,
         showErrorMessage = showErrorMessage,
         verifyVpnGateSubscription = viewModel::verifyVpnGateSubscription,
-        saveUserAccountId = viewModel::saveUserAccountId,
+        saveUserAccountInfo = viewModel::saveUserAccountInfo,
         navigateToHome = navigateToHome
     )
 }
@@ -64,8 +63,8 @@ fun SignInScreen(
     uiState: SignInUiState = SignInUiState.SignedOut,
     windowSize: WindowSizeClass,
     showErrorMessage: (Int) -> Unit,
-    verifyVpnGateSubscription: (String) -> Unit,
-    saveUserAccountId: (String) -> Unit,
+    verifyVpnGateSubscription: (GoogleSignInAccount) -> Unit,
+    saveUserAccountInfo: (GoogleSignInAccount) -> Unit,
     navigateToHome: () -> Unit,
 ) {
     val clientId = stringResource(id = R.string.web_client_id)
@@ -76,7 +75,7 @@ fun SignInScreen(
             showErrorMessage(uiState.messageId)
         }
         is SignInUiState.SignIn -> {
-            saveUserAccountId(uiState.userAccountId)
+            saveUserAccountInfo(uiState.userAccount)
             navigateToHome()
         }
         SignInUiState.SignedOut -> {
@@ -103,7 +102,7 @@ fun SignInContent(
     modifier: Modifier = Modifier,
     windowSize: WindowSizeClass,
     onErrorReceive: (Int) -> Unit,
-    verifyVpnGateSubscription: (String) -> Unit,
+    verifyVpnGateSubscription: (GoogleSignInAccount) -> Unit,
     googleSignInState: GoogleSignInState,
 ) {
     val baseModifier = modifier then when {
@@ -209,7 +208,7 @@ fun SignInContent(
 @Composable
 fun GoogleSignInButton(
     state: GoogleSignInState,
-    onSignInSuccess: (accountName: String) -> Unit = { },
+    onSignInSuccess: (GoogleSignInAccount) -> Unit = { },
     onFailure: (errorMessageId: Int) -> Unit = { },
 ) {
     var signInButtonTextId by remember {
@@ -235,7 +234,7 @@ fun GoogleSignInButton(
                     return@rememberLauncherForActivityResult
                 }
 
-                onSignInSuccess(googleAccount.account!!.name)
+                onSignInSuccess(googleAccount)
             } catch (e: SignInFailedException) {
                 onFailure(R.string.sign_in_failed)
             } catch (e: NoNetworkConnectionException) {
@@ -265,7 +264,7 @@ private fun SignInScreenPreview() {
                     uiState = SignInUiState.SignedOut,
                     showErrorMessage = { },
                     verifyVpnGateSubscription = { },
-                    saveUserAccountId = { },
+                    saveUserAccountInfo = { },
                     navigateToHome = { },
                     windowSize = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight))
                 )

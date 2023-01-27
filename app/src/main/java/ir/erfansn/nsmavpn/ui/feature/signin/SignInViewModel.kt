@@ -23,21 +23,15 @@ class SignInViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<SignInUiState>(SignInUiState.SignedOut)
     val uiState = _uiState.asStateFlow()
 
-    fun verifyVpnGateSubscription(userAccountId: String) {
+    fun verifyVpnGateSubscription(userAccount: GoogleSignInAccount) {
         viewModelScope.launch {
             _uiState.update {
-                if (serversRepository.userIsSubscribedToVpnGateDailyMail(userAccountId)) {
-                    SignInUiState.SignIn(userAccountId = userAccountId)
+                if (serversRepository.userIsSubscribedToVpnGateDailyMail(userAccount.email!!)) {
+                    SignInUiState.SignIn(userAccount = userAccount)
                 } else {
                     SignInUiState.Error(messageId = R.string.not_being_subscribed_to_vpngate)
                 }
             }
-        }
-    }
-
-    fun saveUserAccountId(userAccountId: String) {
-        viewModelScope.launch {
-            userRepository.saveUserAccountId(userAccountId)
         }
     }
 
@@ -60,6 +54,6 @@ private fun GoogleSignInAccount.photoUrl(size: UInt) = photoUrl?.let {
 
 sealed interface SignInUiState {
     object SignedOut : SignInUiState
-    data class SignIn(val userAccountId: String) : SignInUiState
+    data class SignIn(val userAccount: GoogleSignInAccount) : SignInUiState
     data class Error(val messageId: Int) : SignInUiState
 }
