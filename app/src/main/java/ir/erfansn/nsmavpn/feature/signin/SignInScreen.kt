@@ -1,6 +1,6 @@
-@file:OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalLifecycleComposeApi::class)
+@file:OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 
-package ir.erfansn.nsmavpn.ui.feature.signin
+package ir.erfansn.nsmavpn.feature.signin
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,16 +28,14 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.atMost
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import ir.erfansn.nsmavpn.R
-import ir.erfansn.nsmavpn.ui.component.BackgroundState
-import ir.erfansn.nsmavpn.ui.component.NsmaVpnBackground
-import ir.erfansn.nsmavpn.ui.feature.signin.google.*
-import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
+import ir.erfansn.nsmavpn.feature.signin.google.*
 import ir.erfansn.nsmavpn.ui.ThemePreviews
+import ir.erfansn.nsmavpn.ui.component.NsmaVpnBackground
+import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
 
 @Composable
 fun SignInRoute(
@@ -254,12 +252,13 @@ fun GoogleSignInButton(
         }
     }
 }
+
 @ThemePreviews
 @Composable
 private fun SignInScreenPreview() {
     NsmaVpnTheme {
         BoxWithConstraints {
-            NsmaVpnBackground(state = BackgroundState.Static) {
+            NsmaVpnBackground {
                 SignInScreen(
                     uiState = SignInUiState.SignedOut,
                     showErrorMessage = { },

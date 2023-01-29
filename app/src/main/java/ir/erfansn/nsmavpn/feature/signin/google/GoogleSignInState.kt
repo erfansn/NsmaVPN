@@ -1,4 +1,4 @@
-package ir.erfansn.nsmavpn.ui.feature.signin.google
+package ir.erfansn.nsmavpn.feature.signin.google
 
 import android.content.Context
 import android.content.Intent

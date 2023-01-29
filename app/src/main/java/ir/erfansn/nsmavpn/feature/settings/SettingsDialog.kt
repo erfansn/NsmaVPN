@@ -1,6 +1,4 @@
-@file:OptIn(ExperimentalLifecycleComposeApi::class)
-
-package ir.erfansn.nsmavpn.ui.feature.settings
+package ir.erfansn.nsmavpn.feature.settings
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -15,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.erfansn.nsmavpn.BuildConfig

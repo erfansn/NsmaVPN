@@ -1,4 +1,4 @@
-package ir.erfansn.nsmavpn.ui.feature.profile
+package ir.erfansn.nsmavpn.feature.profile
 
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel

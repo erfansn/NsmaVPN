@@ -1,4 +1,4 @@
-package ir.erfansn.nsmavpn.ui.feature.signin
+package ir.erfansn.nsmavpn.feature.signin
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,6 +22,10 @@ class SignInViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<SignInUiState>(SignInUiState.SignedOut)
     val uiState = _uiState.asStateFlow()
+
+    init {
+        serversRepository.stopVpnServersWorker()
+    }
 
     fun verifyVpnGateSubscription(userAccount: GoogleSignInAccount) {
         viewModelScope.launch {

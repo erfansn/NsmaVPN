@@ -1,4 +1,4 @@
-package ir.erfansn.nsmavpn.ui.feature.settings
+package ir.erfansn.nsmavpn.feature.settings
 
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
