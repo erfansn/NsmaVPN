@@ -53,7 +53,7 @@ class SignInViewModel @Inject constructor(
 }
 
 private fun GoogleSignInAccount.photoUrl(size: UInt) = photoUrl?.let {
-    toString().substringBeforeLast('=') + "=s$size"
+    it.toString().substringBeforeLast('=') + "=s$size"
 }
 
 sealed interface SignInUiState {
