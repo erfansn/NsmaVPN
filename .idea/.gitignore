@@ -1,3 +1,5 @@
-# Default ignored files
-/shelf/
-/workspace.xml
+shelf/
+inspectionProfiles/
+
+workspace.xml
+assetWizardSettings.xml
