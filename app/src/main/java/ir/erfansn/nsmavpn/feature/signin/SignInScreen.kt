@@ -33,7 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import ir.erfansn.nsmavpn.R
 import ir.erfansn.nsmavpn.feature.signin.google.*
-import ir.erfansn.nsmavpn.ui.ThemePreviews
+import ir.erfansn.nsmavpn.ui.util.preview.ThemeWithDevicesPreviews
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnBackground
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
 
@@ -253,7 +253,7 @@ fun GoogleSignInButton(
     }
 }
 
-@ThemePreviews
+@ThemeWithDevicesPreviews
 @Composable
 private fun SignInScreenPreview() {
     NsmaVpnTheme {

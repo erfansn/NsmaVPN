@@ -27,7 +27,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import ir.erfansn.nsmavpn.R
-import ir.erfansn.nsmavpn.ui.ThemePreviews
+import ir.erfansn.nsmavpn.ui.util.preview.ThemeWithDevicesPreviews
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnBackground
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
 import ir.erfansn.nsmavpn.ui.util.whenever
@@ -118,7 +118,7 @@ private fun UserInfoItem(
     )
 }
 
-@ThemePreviews
+@ThemeWithDevicesPreviews
 @Composable
 private fun ProfileScreenPreview() {
     NsmaVpnTheme {

@@ -1,4 +1,4 @@
-package ir.erfansn.nsmavpn.ui
+package ir.erfansn.nsmavpn.ui.util.preview
 
 import android.content.res.Configuration
 import androidx.compose.ui.tooling.preview.Devices
@@ -42,4 +42,4 @@ import androidx.compose.ui.tooling.preview.Preview
     device = Devices.TABLET,
     uiMode = Configuration.UI_MODE_NIGHT_YES
 )
-annotation class ThemePreviews
+annotation class ThemeWithDevicesPreviews
