@@ -19,7 +19,7 @@ import ir.erfansn.nsmavpn.BuildConfig
 import ir.erfansn.nsmavpn.R
 import ir.erfansn.nsmavpn.data.model.ThemeMode
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
-import ir.erfansn.nsmavpn.ui.util.preview.ThemeWithDevicesPreviews
+import ir.erfansn.nsmavpn.ui.util.preview.ThemePreviews
 
 @Composable
 fun SettingsDialog(
@@ -119,7 +119,7 @@ private fun SelectiveRow(
     }
 }
 
-@ThemeWithDevicesPreviews
+@ThemePreviews
 @Composable
 private fun SettingsDialogPreview() {
     NsmaVpnTheme {
