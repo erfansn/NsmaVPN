@@ -2,6 +2,7 @@
 
 package ir.erfansn.nsmavpn.feature.signin
 
+import android.content.res.Configuration
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -23,6 +24,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -39,6 +41,7 @@ import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
 
 @Composable
 fun SignInRoute(
+    modifier: Modifier = Modifier,
     viewModel: SignInViewModel = viewModel(),
     windowSize: WindowSizeClass,
     showErrorMessage: (Int) -> Unit,
@@ -47,6 +50,7 @@ fun SignInRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     SignInScreen(
+        modifier = modifier,
         uiState = uiState,
         windowSize = windowSize,
         showErrorMessage = showErrorMessage,
@@ -57,8 +61,9 @@ fun SignInRoute(
 }
 
 @Composable
-fun SignInScreen(
-    uiState: SignInUiState = SignInUiState.SignedOut,
+private fun SignInScreen(
+    modifier: Modifier = Modifier,
+    uiState: SignInUiState,
     windowSize: WindowSizeClass,
     showErrorMessage: (Int) -> Unit,
     verifyVpnGateSubscription: (GoogleSignInAccount) -> Unit,
@@ -81,130 +86,130 @@ fun SignInScreen(
         }
     }
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        SignInContent(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            windowSize = windowSize,
-            onErrorReceive = showErrorMessage,
-            verifyVpnGateSubscription = verifyVpnGateSubscription,
-            googleSignInState = googleSignInState
-        )
-    }
+    SignInContent(
+        modifier = modifier,
+        windowSize = windowSize,
+        showErrorMessage = showErrorMessage,
+        verifyVpnGateSubscription = verifyVpnGateSubscription,
+        googleSignInState = googleSignInState
+    )
 }
 
 @Composable
-fun SignInContent(
+private fun SignInContent(
     modifier: Modifier = Modifier,
     windowSize: WindowSizeClass,
-    onErrorReceive: (Int) -> Unit,
+    showErrorMessage: (Int) -> Unit,
     verifyVpnGateSubscription: (GoogleSignInAccount) -> Unit,
     googleSignInState: GoogleSignInState,
 ) {
-    val baseModifier = modifier then when {
-        windowSize.widthSizeClass == WindowWidthSizeClass.Compact &&
-                windowSize.heightSizeClass == WindowHeightSizeClass.Compact -> {
-            Modifier.fillMaxSize()
-        }
-        windowSize.heightSizeClass == WindowHeightSizeClass.Compact -> {
-            Modifier
-                .fillMaxWidth(0.7f)
-                .fillMaxHeight()
-        }
-        else -> {
-            Modifier
-                .fillMaxHeight(0.7f)
-                .fillMaxWidth()
-        }
-    }
-
-    ConstraintLayout(modifier = baseModifier) {
-        val guidelineFromTop50 = createGuidelineFromTop(0.5f)
-        val guidelineFromStart50 = createGuidelineFromStart(0.5f)
-
-        val (keyImage, signInLayout) = createRefs()
-
-        Image(
-            modifier = Modifier
-                .constrainAs(keyImage) {
-                    top.linkTo(parent.top)
-                    start.linkTo(parent.start)
-
-                    if (windowSize.heightSizeClass == WindowHeightSizeClass.Compact) {
-                        bottom.linkTo(parent.bottom)
-                        end.linkTo(guidelineFromStart50, margin = 4.dp)
-                    } else {
-                        bottom.linkTo(guidelineFromTop50)
-                        end.linkTo(parent.end)
-                    }
-
-                    val keyImageSize = 240.dp
-                    width = Dimension.fillToConstraints.atMost(keyImageSize)
-                    height = Dimension.fillToConstraints.atMost(keyImageSize)
-                },
-            colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.secondary),
-            painter = painterResource(id = R.drawable.ic_vpn_key),
-            contentDescription = null
-        )
-        Column(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
-                .constrainAs(signInLayout) {
-                    bottom.linkTo(parent.bottom)
-                    end.linkTo(parent.end)
-
-                    if (windowSize.heightSizeClass == WindowHeightSizeClass.Compact) {
-                        top.linkTo(parent.top)
-                        start.linkTo(guidelineFromStart50, margin = 4.dp)
-                    } else {
-                        top.linkTo(guidelineFromTop50)
-                        start.linkTo(parent.start)
-                    }
-
-                    val signInLayoutMaxWidth = 320.dp
-                    width = Dimension.fillToConstraints.atMost(signInLayoutMaxWidth)
-                },
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            val vpnUsageDescriptionTextId =
-                if (googleSignInState.signInIsIncomplete()) {
-                    R.string.permission_description
-                } else {
-                    R.string.sign_in_description
-                }
-            Text(
-                text = stringResource(id = vpnUsageDescriptionTextId),
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            GoogleSignInButton(
-                state = googleSignInState,
-                onSignInSuccess = verifyVpnGateSubscription,
-                onFailure = onErrorReceive
-            )
-            if (googleSignInState.signInIsIncomplete()) {
-                Button(
-                    onClick = { googleSignInState.signOut() }
-                ) {
-                    Text(text = stringResource(id = R.string.sign_out))
-                }
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        val contentModifier = when {
+            windowSize.widthSizeClass == WindowWidthSizeClass.Compact &&
+                    windowSize.heightSizeClass == WindowHeightSizeClass.Compact -> {
+                Modifier.fillMaxSize()
             }
+            windowSize.heightSizeClass == WindowHeightSizeClass.Compact -> {
+                Modifier
+                    .fillMaxWidth(0.7f)
+                    .fillMaxHeight()
+            }
+            else -> {
+                Modifier
+                    .fillMaxHeight(0.7f)
+                    .fillMaxWidth()
+            }
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
+        ConstraintLayout(modifier = contentModifier.padding(16.dp)) {
+            val guidelineFromTop50 = createGuidelineFromTop(0.5f)
+            val guidelineFromStart50 = createGuidelineFromStart(0.5f)
+
+            val (keyImage, signInLayout) = createRefs()
+
+            Image(
+                modifier = Modifier
+                    .constrainAs(keyImage) {
+                        top.linkTo(parent.top)
+                        start.linkTo(parent.start)
+
+                        if (windowSize.heightSizeClass == WindowHeightSizeClass.Compact) {
+                            bottom.linkTo(parent.bottom)
+                            end.linkTo(guidelineFromStart50, margin = 4.dp)
+                        } else {
+                            bottom.linkTo(guidelineFromTop50)
+                            end.linkTo(parent.end)
+                        }
+
+                        val keyImageSize = 240.dp
+                        width = Dimension.fillToConstraints.atMost(keyImageSize)
+                        height = Dimension.fillToConstraints.atMost(keyImageSize)
+                    },
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.secondary),
+                painter = painterResource(id = R.drawable.ic_vpn_key),
+                contentDescription = null
+            )
+            Column(
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .constrainAs(signInLayout) {
+                        bottom.linkTo(parent.bottom)
+                        end.linkTo(parent.end)
+
+                        if (windowSize.heightSizeClass == WindowHeightSizeClass.Compact) {
+                            top.linkTo(parent.top)
+                            start.linkTo(guidelineFromStart50, margin = 4.dp)
+                        } else {
+                            top.linkTo(guidelineFromTop50)
+                            start.linkTo(parent.start)
+                        }
+
+                        val signInLayoutMaxWidth = 320.dp
+                        width = Dimension.fillToConstraints.atMost(signInLayoutMaxWidth)
+                    },
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                val vpnUsageDescriptionTextId =
+                    if (googleSignInState.signInIsIncomplete()) {
+                        R.string.permission_description
+                    } else {
+                        R.string.sign_in_description
+                    }
+                Text(
+                    text = stringResource(id = vpnUsageDescriptionTextId),
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                GoogleSignInButton(
+                    state = googleSignInState,
+                    onSignInSuccess = verifyVpnGateSubscription,
+                    onFailure = showErrorMessage
+                )
+                if (googleSignInState.signInIsIncomplete()) {
+                    Button(
+                        onClick = { googleSignInState.signOut() }
+                    ) {
+                        Text(text = stringResource(id = R.string.sign_out))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
     }
 }
 
 @Composable
-fun GoogleSignInButton(
+private fun GoogleSignInButton(
     state: GoogleSignInState,
     onSignInSuccess: (GoogleSignInAccount) -> Unit = { },
     onFailure: (errorMessageId: Int) -> Unit = { },
@@ -256,8 +261,37 @@ fun GoogleSignInButton(
 @ThemeWithDevicesPreviews
 @Composable
 private fun SignInScreenPreview() {
-    NsmaVpnTheme {
-        BoxWithConstraints {
+    BoxWithConstraints {
+        NsmaVpnTheme {
+            NsmaVpnBackground {
+                SignInScreen(
+                    uiState = SignInUiState.SignedOut,
+                    showErrorMessage = { },
+                    verifyVpnGateSubscription = { },
+                    saveUserAccountInfo = { },
+                    navigateToHome = { },
+                    windowSize = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight))
+                )
+            }
+        }
+    }
+}
+
+@Preview(
+    group = "Light theme",
+    device = "spec:parent=pixel_5,orientation=landscape",
+    showBackground = true,
+)
+@Preview(
+    group = "Dark theme",
+    device = "spec:parent=pixel_5,orientation=landscape",
+    showBackground = true,
+    uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL,
+)
+@Composable
+private fun SignInScreenPhoneLandscapePreview() {
+    BoxWithConstraints {
+        NsmaVpnTheme {
             NsmaVpnBackground {
                 SignInScreen(
                     uiState = SignInUiState.SignedOut,
