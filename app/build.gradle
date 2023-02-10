@@ -78,7 +78,8 @@ dependencies {
 
     implementation 'com.google.accompanist:accompanist-systemuicontroller:0.28.0'
 
-    implementation 'com.google.protobuf:protobuf-javalite:3.8.0'
+    implementation 'com.google.protobuf:protobuf-javalite:3.21.12'
+    implementation 'com.google.protobuf:protobuf-kotlin-lite:3.21.12'
     implementation 'com.google.android.gms:play-services-auth:20.4.1'
 
     implementation 'com.google.api-client:google-api-client:2.0.0'
@@ -113,7 +114,7 @@ kapt {
 
 protobuf {
     protoc {
-        artifact = 'com.google.protobuf:protoc:3.8.0'
+        artifact = 'com.google.protobuf:protoc:3.21.12'
     }
 
     // Generates the java Protobuf-lite code for the Protobufs in this project. See
@@ -123,6 +124,9 @@ protobuf {
         all().each { task ->
             task.builtins {
                 java {
+                    option 'lite'
+                }
+                kotlin {
                     option 'lite'
                 }
             }
