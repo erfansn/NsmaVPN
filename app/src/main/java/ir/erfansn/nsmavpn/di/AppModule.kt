@@ -15,7 +15,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import ir.erfansn.nsmavpn.data.source.local.DefaultUserPreferencesLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.DefaultVpnProviderLocalDataSource
+import ir.erfansn.nsmavpn.data.source.local.UserPreferencesLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.VpnProviderLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.datastore.UserPreferencesSerializer
 import ir.erfansn.nsmavpn.data.source.local.datastore.VpnProviderSerializer
@@ -24,48 +26,46 @@ import ir.erfansn.nsmavpn.data.source.remote.VpnGateMessagesRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.remote.api.GmailApi
 import ir.erfansn.nsmavpn.data.source.remote.api.GoogleApi
 import ir.erfansn.nsmavpn.data.util.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
+/**
+ * To follow DRY principle we can use interface instead of abstract class
+ * and to prevent repeat `abstract fun` for binding is preferred to using `val` property
+ * extension that puts [Binds] to its `get` target
+ */
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class AppModule {
+interface AppModule {
 
-    @Binds
-    abstract fun bindsGmailApi(gmailApi: GmailApi): GoogleApi<Gmail>
+    @get:Binds
+    val GmailApi.bindsGoogleGmailApi: GoogleApi<Gmail>
 
-    @Binds
-    abstract fun bindsVpnGateMessagesRemoteDataSource(
-        defaultVpnGateMessagesRemoteDataSource: DefaultVpnGateMessagesRemoteDataSource,
-    ): VpnGateMessagesRemoteDataSource
+    @get:Binds
+    val DefaultVpnGateMessagesRemoteDataSource.bindsVpnGateMessagesRemoteDataSource: VpnGateMessagesRemoteDataSource
 
-    @Binds
-    abstract fun bindsVpnGateContentExtractor(
-        defaultVpnGateContentExtractor: DefaultVpnGateContentExtractor,
-    ): VpnGateContentExtractor
+    @get:Binds
+    val DefaultVpnProviderLocalDataSource.bindsVpnProviderLocalDataSource: VpnProviderLocalDataSource
 
-    @Binds
-    abstract fun bindsVpnProviderLocalDataSource(
-        defaultVpnProviderLocalDataSource: DefaultVpnProviderLocalDataSource,
-    ): VpnProviderLocalDataSource
+    @get:Binds
+    val DefaultVpnGateContentExtractor.bindsVpnGateContentExtractor: VpnGateContentExtractor
 
-    @Binds
-    abstract fun bindsPingChecker(
-        defaultPingChecker: DefaultPingChecker,
-    ): PingChecker
+    @get:Binds
+    val DefaultPingChecker.bindsPingChecker: PingChecker
 
     companion object {
 
-        @[Provides Singleton]
-        fun providesVpnProviderDataStore(@ApplicationContext context: Context) =
-            DataStoreFactory.create(
-                serializer = VpnProviderSerializer,
-                produceFile = { context.dataStoreFile("vpn_provider") }
-            )
+        @[IoDispatcher Provides]
+        fun providesIoDispatcher() = Dispatchers.IO
+
+        @Provides
+        fun providesExternalCoroutineScope(
+            @IoDispatcher ioDispatcher: CoroutineDispatcher,
+        ) = CoroutineScope(SupervisorJob() + ioDispatcher)
 
         @[Provides Singleton]
         fun providesUserPreferencesDataStore(@ApplicationContext context: Context) =
@@ -74,23 +74,22 @@ abstract class AppModule {
                 produceFile = { context.dataStoreFile("user_preferences") }
             )
 
-        @[IoDispatcher Provides]
-        fun providesIoDispatcher() = Dispatchers.IO
-
         @[Provides Singleton]
-        fun providesWorkManager(@ApplicationContext context: Context) =
-            WorkManager.getInstance(context)
+        fun providesVpnProviderDataStore(@ApplicationContext context: Context) =
+            DataStoreFactory.create(
+                serializer = VpnProviderSerializer,
+                produceFile = { context.dataStoreFile("vpn_provider") }
+            )
 
         @Provides
-        fun providesExternalCoroutineScope(
-            @IoDispatcher ioDispatcher: CoroutineDispatcher,
-        ) = CoroutineScope(SupervisorJob() + ioDispatcher)
+        fun providesWorkManager(@ApplicationContext context: Context) =
+            WorkManager.getInstance(context)
 
         @[Provides Singleton]
         fun providesGoogleAccountCredential(@ApplicationContext context: Context) =
             GoogleAccountCredential.usingOAuth2(
                 context,
-                listOf(GmailScopes.GMAIL_READONLY,)
+                listOf(GmailScopes.GMAIL_READONLY)
             )!!
 
         @[Provides Singleton]
