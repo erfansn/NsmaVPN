@@ -49,6 +49,9 @@ interface AppModule {
     val DefaultVpnGateMessagesRemoteDataSource.bindsVpnGateMessagesRemoteDataSource: VpnGateMessagesRemoteDataSource
 
     @get:Binds
+    val DefaultUserPreferencesLocalDataSource.bindsUserPreferencesLocalDataSource: UserPreferencesLocalDataSource
+
+    @get:Binds
     val DefaultVpnProviderLocalDataSource.bindsVpnProviderLocalDataSource: VpnProviderLocalDataSource
 
     @get:Binds
