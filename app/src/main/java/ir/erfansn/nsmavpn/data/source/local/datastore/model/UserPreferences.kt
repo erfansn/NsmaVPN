@@ -6,13 +6,13 @@ import ir.erfansn.nsmavpn.data.model.ThemeMode
 import ir.erfansn.nsmavpn.data.source.local.datastore.ThemeModeProto
 import ir.erfansn.nsmavpn.data.source.local.datastore.UserPreferences
 
-fun UserPreferences.asProfile() = Profile(
+fun UserPreferences.toProfile() = Profile(
     avatarUrl = profileProto.avatarUrl.ifEmpty { null },
     displayName = profileProto.displayName,
     emailAddress = profileProto.emailAddress
 )
 
-fun UserPreferences.asConfiguration() = Configurations(
+fun UserPreferences.toConfigurations() = Configurations(
     themeMode = when (themeModeProto) {
         null,
         ThemeModeProto.UNRECOGNIZED,
