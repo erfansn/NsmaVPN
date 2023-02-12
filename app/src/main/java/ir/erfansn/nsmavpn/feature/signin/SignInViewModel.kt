@@ -7,7 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.erfansn.nsmavpn.R
 import ir.erfansn.nsmavpn.data.model.Profile
 import ir.erfansn.nsmavpn.data.repository.ServersRepository
-import ir.erfansn.nsmavpn.data.repository.UserRepository
+import ir.erfansn.nsmavpn.data.repository.ProfileRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -17,7 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SignInViewModel @Inject constructor(
     private val serversRepository: ServersRepository,
-    private val userRepository: UserRepository,
+    private val profileRepository: ProfileRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<SignInUiState>(SignInUiState.SignedOut)
@@ -47,7 +47,7 @@ class SignInViewModel @Inject constructor(
                 emailAddress = account.email!!
             )
 
-            userRepository.saveUserProfile(profile)
+            profileRepository.saveUserProfile(profile)
         }
     }
 }

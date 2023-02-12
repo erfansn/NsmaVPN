@@ -4,19 +4,18 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import ir.erfansn.nsmavpn.data.repository.UserRepository
+import ir.erfansn.nsmavpn.data.repository.ProfileRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val userRepository: UserRepository,
+    profileRepository: ProfileRepository,
 ) : ViewModel() {
 
-    val uiState = userRepository.userProfile.map {
+    val uiState = profileRepository.userProfile.map {
         ProfileUiState(
             avatarUrl = it.avatarUrl,
             emailAddress = it.emailAddress,
@@ -27,12 +26,6 @@ class ProfileViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = ProfileUiState()
     )
-
-    fun signOut() {
-        viewModelScope.launch {
-            userRepository.saveUserProfile(null)
-        }
-    }
 }
 
 @Immutable

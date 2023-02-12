@@ -10,7 +10,7 @@ import ir.erfansn.nsmavpn.data.util.*
 import javax.inject.Inject
 
 class ServersRepository @Inject constructor(
-    private val userRepository: UserRepository,
+    private val profileRepository: ProfileRepository,
     private val vpnGateMessagesRemoteDataSource: VpnGateMessagesRemoteDataSource,
     private val vpnProviderLocalDataSource: VpnProviderLocalDataSource,
     private val serversTasksDataSource: ServersTasksDataSource,
@@ -36,7 +36,7 @@ class ServersRepository @Inject constructor(
         System.currentTimeMillis() - vpnServerSelectionTimeMs <= SELECTED_SERVER_TIMEOUT_MS
 
     suspend fun collectVpnServers() {
-        val userAccountEmail = userRepository.userProfile.first().emailAddress
+        val userAccountEmail = profileRepository.userProfile.first().emailAddress
         val vpnProviderAddress = obtainVpnProviderAddress(userAccountEmail)
 
         val (blackServers, availableServers) = vpnGateContentExtractor

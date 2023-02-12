@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class UserRepository @Inject constructor(
+class ProfileRepository @Inject constructor(
     private val userPreferencesLocalDataSource: UserPreferencesLocalDataSource,
     private val externalScope: CoroutineScope,
 ) {
