@@ -42,18 +42,14 @@ class SignInViewModel @Inject constructor(
     fun saveUserAccountInfo(account: GoogleSignInAccount) {
         viewModelScope.launch {
             val profile = Profile(
-                avatarUrl = account.photoUrl(size = 512u),
-                displayName = account.displayName!!,
-                emailAddress = account.email!!
+                avatarUrl = account.photoUrl.toString().substringBeforeLast('='),
+                displayName = account.displayName.toString(),
+                emailAddress = account.email.toString()
             )
 
             profileRepository.saveUserProfile(profile)
         }
     }
-}
-
-private fun GoogleSignInAccount.photoUrl(size: UInt) = photoUrl?.let {
-    it.toString().substringBeforeLast('=') + "=s$size"
 }
 
 sealed interface SignInUiState {

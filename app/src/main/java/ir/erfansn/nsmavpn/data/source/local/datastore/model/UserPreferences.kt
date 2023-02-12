@@ -7,7 +7,7 @@ import ir.erfansn.nsmavpn.data.source.local.datastore.ThemeModeProto
 import ir.erfansn.nsmavpn.data.source.local.datastore.UserPreferences
 
 fun UserPreferences.toProfile() = Profile(
-    avatarUrl = profileProto.avatarUrl.ifEmpty { null },
+    avatarUrl = profileProto.avatarUrl,
     displayName = profileProto.displayName,
     emailAddress = profileProto.emailAddress
 )
