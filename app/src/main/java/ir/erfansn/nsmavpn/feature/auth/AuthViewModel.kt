@@ -1,10 +1,11 @@
-package ir.erfansn.nsmavpn.feature.signin
+package ir.erfansn.nsmavpn.feature.auth
 
+import android.util.Log
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import dagger.hilt.android.lifecycle.HiltViewModel
-import ir.erfansn.nsmavpn.R
 import ir.erfansn.nsmavpn.data.model.Profile
 import ir.erfansn.nsmavpn.data.repository.ServersRepository
 import ir.erfansn.nsmavpn.data.repository.ProfileRepository
@@ -20,40 +21,45 @@ class SignInViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<SignInUiState>(SignInUiState.SignedOut)
+    private val _uiState = MutableStateFlow(AuthUiState())
     val uiState = _uiState.asStateFlow()
 
-    init {
-        serversRepository.stopVpnServersWorker()
-    }
-
-    fun verifyVpnGateSubscription(userAccount: GoogleSignInAccount) {
+    fun verifyVpnGateSubscription(account: GoogleSignInAccount) {
         viewModelScope.launch {
             _uiState.update {
-                if (serversRepository.isSubscribedToVpnGateDailyMail(userAccount.email!!)) {
-                    SignInUiState.SignIn(userAccount = userAccount)
-                } else {
-                    SignInUiState.Error(messageId = R.string.not_being_subscribed_to_vpngate)
-                }
+                it.copy(
+                    isSubscribedToVpnGate = serversRepository.isSubscribedToVpnGateDailyMail(account.email!!),
+                )
             }
         }
     }
 
-    fun saveUserAccountInfo(account: GoogleSignInAccount) {
+    fun saveUserProfile(account: GoogleSignInAccount) {
         viewModelScope.launch {
             val profile = Profile(
                 avatarUrl = account.photoUrl.toString().substringBeforeLast('='),
                 displayName = account.displayName.toString(),
                 emailAddress = account.email.toString()
             )
+            Log.v(TAG, profile.toString())
 
             profileRepository.saveUserProfile(profile)
+
+            _uiState.update {
+                it.copy(isUserProfileStored = true)
+            }
         }
+    }
+
+    companion object {
+        private const val TAG = "AuthViewModel"
     }
 }
 
-sealed interface SignInUiState {
-    object SignedOut : SignInUiState
-    data class SignIn(val userAccount: GoogleSignInAccount) : SignInUiState
-    data class Error(val messageId: Int) : SignInUiState
+@Immutable
+data class AuthUiState(
+    val isSubscribedToVpnGate: Boolean? = null,
+    val isUserProfileStored: Boolean = false,
+) {
+    val subscriptionChecked get() = isSubscribedToVpnGate != null
 }

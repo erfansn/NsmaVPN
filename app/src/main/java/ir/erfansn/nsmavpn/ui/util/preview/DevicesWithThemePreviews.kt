@@ -4,42 +4,42 @@ import android.content.res.Configuration
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 
-/** Suitable for showing compose screen preview without parameters. */
+/** Suitable for showing compose screen preview with parameters. */
 @Preview(
-    name = "Phone",
-    group = "Light theme",
+    name = "Light theme",
+    group = "Phone",
     showBackground = true
 )
 @Preview(
-    name = "Foldable",
-    group = "Light theme",
-    showBackground = true,
-    device = Devices.FOLDABLE
-)
-@Preview(
-    name = "Tablet",
-    group = "Light theme",
-    showBackground = true,
-    device = Devices.TABLET
-)
-@Preview(
-    name = "Phone",
-    group = "Dark theme",
+    name = "Dark theme",
+    group = "Phone",
     showBackground = true,
     uiMode = Configuration.UI_MODE_NIGHT_YES
 )
 @Preview(
-    name = "Foldable",
-    group = "Dark theme",
+    group = "Foldable",
+    name = "Light theme",
+    showBackground = true,
+    device = Devices.FOLDABLE
+)
+@Preview(
+    group = "Foldable",
+    name = "Dark theme",
     showBackground = true,
     device = Devices.FOLDABLE,
     uiMode = Configuration.UI_MODE_NIGHT_YES
 )
 @Preview(
-    name = "Tablet",
-    group = "Dark theme",
+    group = "Tablet",
+    name = "Light theme",
+    showBackground = true,
+    device = Devices.TABLET
+)
+@Preview(
+    group = "Tablet",
+    name = "Dark theme",
     showBackground = true,
     device = Devices.TABLET,
     uiMode = Configuration.UI_MODE_NIGHT_YES
 )
-annotation class ThemeWithDevicesPreviews
+annotation class DevicesWithThemePreviews
