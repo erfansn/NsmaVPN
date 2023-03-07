@@ -208,7 +208,7 @@ fun LayoutScope.AuthInsideLayoutContent(
                     stringResource(id = R.string.not_being_subscribed_to_vpngate)
                 }
                 else -> {
-                    stringResource(id = R.string.auth_description)
+                    stringResource(id = R.string.auth_explanation)
                 }
             },
             textAlign = TextAlign.Center,

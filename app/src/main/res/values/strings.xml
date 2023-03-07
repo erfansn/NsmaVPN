@@ -3,7 +3,7 @@
 
     <string name="web_client_id">870845865908\-4qde8iut5e3j76tmtn54rcthqjh4lcg8.apps.googleusercontent.com</string>
 
-    <string name="auth_description">To obtain and collect VPN servers this app uses your email messages that sent from VpnGate thus only way to use this app sign-in with email that subscribed to VpnGate daily mirror link</string>
+    <string name="auth_explanation">To obtain and collect VPN servers this app uses your email messages that sent from VpnGate thus only way to use this app sign-in with email that subscribed to VpnGate daily mirror link</string>
     <string name="sign_in">Sign in</string>
     <string name="permission_rationals">Only with access to read emails this app can do collect VPN servers</string>
     <string name="request">request</string>
