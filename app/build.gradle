@@ -85,7 +85,7 @@ dependencies {
 
     implementation 'com.google.api-client:google-api-client:2.0.0'
     implementation 'com.google.api-client:google-api-client-android:2.0.0'
-    implementation 'com.google.apis:google-api-services-gmail:v1-rev20220404-2.0.0'
+    implementation 'com.google.apis:google-api-services-gmail:v1-rev20230612-2.0.0'
 
     implementation 'it.skrape:skrapeit:1.2.2'
     implementation 'io.coil-kt:coil-compose:2.2.2'
