@@ -1,6 +1,55 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base"
+    "config:base",
+    "schedule:daily"
+  ],
+  "packageRules": [
+    {
+      "matchPackagePatterns": [
+        "androidx.lifecycle:lifecycle-runtime-compose",
+        "androidx.lifecycle:lifecycle-viewmodel-compose"
+      ],
+      "groupName": "lifecycle dependencies"
+    },
+    {
+      "matchPackagePatterns": [
+        "com.google.dagger:hilt-android",
+        "com.google.dagger:hilt-compiler",
+        "com.google.dagger.hilt.android"
+      ],
+      "groupName": "hilt dependencies"
+    },
+    {
+      "matchPackagePatterns": [
+        "com.google.protobuf:protobuf-javalite",
+        "com.google.protobuf:protobuf-kotlin-lite",
+        "com.google.protobuf:protoc"
+      ],
+      "groupName": "protobuf dependencies"
+    },
+    {
+      "matchPackagePatterns": [
+        "com.google.api-client:google-api-client",
+        "com.google.api-client:google-api-client-android",
+        "com.google.apis:google-api-services-gmail"
+      ],
+      "groupName": "google api dependencies"
+    },
+    {
+      "matchPackagePatterns": [
+        "com.android.application",
+        "com.android.library",
+        "gradle"
+      ],
+      "groupName": "gradle related stuffs"
+    },
+    {
+      "matchPackagePatterns": [
+        "org.jetbrains.kotlin.android",
+        "composeOptions"
+      ],
+      "groupName": "kotlin related stuffs"
+    }
   ]
 }
