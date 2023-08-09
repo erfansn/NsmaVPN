@@ -76,7 +76,7 @@ dependencies {
     implementation "com.google.dagger:hilt-android:$hilt_version"
     kapt "com.google.dagger:hilt-compiler:$hilt_version"
 
-    implementation 'com.google.accompanist:accompanist-systemuicontroller:0.28.0'
+    implementation 'com.google.accompanist:accompanist-systemuicontroller:0.30.1'
 
     implementation 'com.google.protobuf:protobuf-javalite:3.24.0'
     implementation 'com.google.protobuf:protobuf-kotlin-lite:3.24.0'
