@@ -81,7 +81,7 @@ dependencies {
     implementation 'com.google.protobuf:protobuf-javalite:3.21.12'
     implementation 'com.google.protobuf:protobuf-kotlin-lite:3.21.12'
 
-    implementation 'com.google.android.gms:play-services-auth:20.4.1'
+    implementation 'com.google.android.gms:play-services-auth:20.6.0'
 
     implementation 'com.google.api-client:google-api-client:2.0.0'
     implementation 'com.google.api-client:google-api-client-android:2.0.0'
