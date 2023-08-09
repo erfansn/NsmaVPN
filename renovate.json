@@ -6,14 +6,14 @@
   ],
   "packageRules": [
     {
-      "matchPackagePatterns": [
+      "matchPackageNames": [
         "androidx.lifecycle:lifecycle-runtime-compose",
         "androidx.lifecycle:lifecycle-viewmodel-compose"
       ],
       "groupName": "lifecycle dependencies"
     },
     {
-      "matchPackagePatterns": [
+      "matchPackageNames": [
         "com.google.dagger:hilt-android",
         "com.google.dagger:hilt-compiler",
         "com.google.dagger.hilt.android"
@@ -21,7 +21,7 @@
       "groupName": "hilt dependencies"
     },
     {
-      "matchPackagePatterns": [
+      "matchPackageNames": [
         "com.google.protobuf:protobuf-javalite",
         "com.google.protobuf:protobuf-kotlin-lite",
         "com.google.protobuf:protoc"
@@ -29,7 +29,7 @@
       "groupName": "protobuf dependencies"
     },
     {
-      "matchPackagePatterns": [
+      "matchPackageNames": [
         "com.google.api-client:google-api-client",
         "com.google.api-client:google-api-client-android",
         "com.google.apis:google-api-services-gmail"
@@ -37,7 +37,7 @@
       "groupName": "google api dependencies"
     },
     {
-      "matchPackagePatterns": [
+      "matchPackageNames": [
         "com.android.application",
         "com.android.library",
         "gradle"
@@ -45,7 +45,7 @@
       "groupName": "gradle related stuffs"
     },
     {
-      "matchPackagePatterns": [
+      "matchPackageNames": [
         "org.jetbrains.kotlin.android",
         "composeOptions"
       ],
