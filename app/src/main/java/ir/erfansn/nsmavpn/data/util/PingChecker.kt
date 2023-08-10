@@ -35,5 +35,5 @@ class DefaultPingChecker @Inject constructor(
 
 interface PingChecker {
     suspend fun measure(hostName: String): Double
-    suspend fun isReachable(hostName: String): Boolean
+    suspend fun isReachable(hostName: String = "vpngate.net"): Boolean
 }

@@ -6,14 +6,16 @@ import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import ir.erfansn.nsmavpn.R
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
 import ir.erfansn.nsmavpn.ui.util.preview.ThemePreviews
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NsmaVpnTopBar(
-    title: String,
+    title: @Composable () -> Unit,
     navigationIcon: @Composable () -> Unit,
     actions: @Composable RowScope.() -> Unit,
     modifier: Modifier = Modifier,
@@ -21,7 +23,7 @@ fun NsmaVpnTopBar(
 ) {
     CenterAlignedTopAppBar(
         modifier = modifier,
-        title = { Text(text = title) },
+        title = title,
         navigationIcon = navigationIcon,
         actions = actions,
         scrollBehavior = scrollBehavior,
@@ -42,7 +44,9 @@ fun NsmaVpnTopBar(
 fun NsmaVpnTopBarPreview() {
     NsmaVpnTheme {
         NsmaVpnTopBar(
-            title = "Test",
+            title = {
+                Text(text = "Test")
+            },
             navigationIcon = {
                 IconButton(onClick = { }) {
                     Icon(

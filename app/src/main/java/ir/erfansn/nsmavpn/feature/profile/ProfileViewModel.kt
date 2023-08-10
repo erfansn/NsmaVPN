@@ -33,4 +33,6 @@ data class ProfileUiState(
     val avatarUrl: String? = null,
     val emailAddress: String = "",
     val displayName: String = ""
-)
+) {
+    val isInfoLoaded: Boolean get() = emailAddress.isNotEmpty() && displayName.isNotEmpty()
+}

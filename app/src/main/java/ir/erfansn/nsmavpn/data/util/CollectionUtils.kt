@@ -1,36 +1,39 @@
 package ir.erfansn.nsmavpn.data.util
 
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
-suspend fun <T, R : Comparable<R>> Iterable<T>.asyncMinByOrNull(selector: suspend (T) -> R): T? =
-    coroutineScope {
-        val result = map {
-            async {
-                selector(it) to it
-            }
-        }.awaitAll()
-
-        result.minByOrNull(Pair<R, T>::first)?.second
-    }
-
-suspend fun <T> Iterable<T>.asyncPartition(selector: suspend (T) -> Boolean): Pair<List<T>, List<T>> =
-    coroutineScope {
-        val result = map {
-            async {
-                selector(it) to it
-            }
-        }.awaitAll()
-
-        val first = ArrayList<T>()
-        val second = ArrayList<T>()
-        for (element in result) {
-            if (element.first) {
-                first.add(element.second)
-            } else {
-                second.add(element.second)
-            }
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.asyncMinByOrNull(
+    context: CoroutineContext,
+    crossinline selector: suspend (T) -> R,
+): T? = withContext(context) {
+    val result = map {
+        async {
+            selector(it) to it
         }
-        Pair(first, second)
+    }.awaitAll()
+
+    result.minByOrNull(Pair<R, T>::first)?.second
+}
+
+suspend inline fun <T> Iterable<T>.asyncPartition(
+    context: CoroutineContext,
+    crossinline selector: suspend (T) -> Boolean,
+): Pair<List<T>, List<T>> = withContext(context) {
+    val result = map {
+        async {
+            selector(it) to it
+        }
+    }.awaitAll()
+
+    val first = ArrayList<T>()
+    val second = ArrayList<T>()
+    for (element in result) {
+        if (element.first) {
+            first.add(element.second)
+        } else {
+            second.add(element.second)
+        }
     }
+    Pair(first, second)
+}

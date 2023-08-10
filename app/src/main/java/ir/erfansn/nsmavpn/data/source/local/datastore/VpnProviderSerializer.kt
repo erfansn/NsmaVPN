@@ -18,6 +18,7 @@ object VpnProviderSerializer : Serializer<VpnProvider> {
         }
     }
 
+    // TODO: Use androidx secure file writer for provide securely
     override suspend fun writeTo(t: VpnProvider, output: OutputStream) {
         t.writeTo(output)
     }

@@ -35,30 +35,39 @@ import javax.inject.Singleton
 
 /**
  * To follow DRY principle we can use interface instead of abstract class
- * and to prevent repeat `abstract fun` for binding is preferred to using `val` property
- * extension that puts [Binds] to its `get` target
+ * to prevent repeat `abstract`
  */
 @Module
 @InstallIn(SingletonComponent::class)
 interface AppModule {
 
-    @get:Binds
-    val GmailApi.bindsGoogleGmailApi: GoogleApi<Gmail>
+    @Binds
+    fun bindsGoogleGmailApi(gmailApi: GmailApi): GoogleApi<Gmail>
 
-    @get:Binds
-    val DefaultVpnGateMessagesRemoteDataSource.bindsVpnGateMessagesRemoteDataSource: VpnGateMessagesRemoteDataSource
+    @Binds
+    fun bindsVpnGateMessagesRemoteDataSource(
+        defaultVpnGateMessagesRemoteDataSource: DefaultVpnGateMessagesRemoteDataSource
+    ): VpnGateMessagesRemoteDataSource
 
-    @get:Binds
-    val DefaultUserPreferencesLocalDataSource.bindsUserPreferencesLocalDataSource: UserPreferencesLocalDataSource
+    @Binds
+    fun bindsUserPreferencesLocalDataSource(
+        defaultUserPreferencesLocalDataSource: DefaultUserPreferencesLocalDataSource
+    ): UserPreferencesLocalDataSource
 
-    @get:Binds
-    val DefaultVpnProviderLocalDataSource.bindsVpnProviderLocalDataSource: VpnProviderLocalDataSource
+    @Binds
+    fun bindsVpnProviderLocalDataSource(
+        defaultVpnProviderLocalDataSource: DefaultVpnProviderLocalDataSource
+    ): VpnProviderLocalDataSource
 
-    @get:Binds
-    val DefaultVpnGateContentExtractor.bindsVpnGateContentExtractor: VpnGateContentExtractor
+    @Binds
+    fun bindsVpnGateContentExtractor(
+        defaultVpnGateContentExtractor: DefaultVpnGateContentExtractor
+    ): VpnGateContentExtractor
 
-    @get:Binds
-    val DefaultPingChecker.bindsPingChecker: PingChecker
+    @Binds
+    fun bindsPingChecker(
+        defaultPingChecker: DefaultPingChecker
+    ): PingChecker
 
     companion object {
 

@@ -5,6 +5,7 @@ import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import ir.erfansn.nsmavpn.feature.auth.AuthUiState
+import ir.erfansn.nsmavpn.feature.auth.VpnGateSubscriptionStatus
 import ir.erfansn.nsmavpn.feature.auth.google.AuthenticationStatus
 import ir.erfansn.nsmavpn.feature.auth.google.GoogleAuthState
 import kotlin.random.Random
@@ -13,49 +14,32 @@ class AuthScreenPreviewParameterProvider : PreviewParameterProvider<Pair<AuthUiS
     override val values
         get() = sequenceOf(
             Pair(
-                AuthUiState(
-                    isSubscribedToVpnGate = true,
-                    isUserProfileStored = true,
-                ),
-                FakeGoogleAuthState(
-                    authStatus = AuthenticationStatus.SignedIn,
-                ),
+                AuthUiState(subscriptionStatus = VpnGateSubscriptionStatus.Unknown),
+                FakeGoogleAuthState(authStatus = AuthenticationStatus.PreSignedIn),
             ),
             Pair(
-                AuthUiState(
-                    isSubscribedToVpnGate = false,
-                    isUserProfileStored = Random.nextBoolean(),
-                ),
-                FakeGoogleAuthState(
-                    authStatus = AuthenticationStatus.SignedIn,
-                ),
+                AuthUiState(subscriptionStatus = VpnGateSubscriptionStatus.Is),
+                FakeGoogleAuthState(authStatus = AuthenticationStatus.SignedIn),
             ),
             Pair(
-                AuthUiState(
-                    isSubscribedToVpnGate = Random.nextBoolean(),
-                    isUserProfileStored = Random.nextBoolean(),
-                ),
-                FakeGoogleAuthState(
-                    authStatus = AuthenticationStatus.SignedOut,
-                ),
+                AuthUiState(subscriptionStatus = VpnGateSubscriptionStatus.Not),
+                FakeGoogleAuthState(authStatus = AuthenticationStatus.SignedIn),
             ),
             Pair(
-                AuthUiState(
-                    isSubscribedToVpnGate = Random.nextBoolean(),
-                    isUserProfileStored = Random.nextBoolean(),
-                ),
-                FakeGoogleAuthState(
-                    authStatus = AuthenticationStatus.PermissionsRequest,
-                ),
+                AuthUiState(subscriptionStatus = VpnGateSubscriptionStatus.Unknown),
+                FakeGoogleAuthState(authStatus = AuthenticationStatus.SignedIn),
             ),
             Pair(
-                AuthUiState(
-                    isSubscribedToVpnGate = Random.nextBoolean(),
-                    isUserProfileStored = Random.nextBoolean(),
-                ),
-                FakeGoogleAuthState(
-                    authStatus = AuthenticationStatus.InProgress,
-                ),
+                AuthUiState(subscriptionStatus = VpnGateSubscriptionStatus.Unknown),
+                FakeGoogleAuthState(authStatus = AuthenticationStatus.SignedOut),
+            ),
+            Pair(
+                AuthUiState(subscriptionStatus = VpnGateSubscriptionStatus.Unknown),
+                FakeGoogleAuthState(authStatus = AuthenticationStatus.PermissionsNotGranted),
+            ),
+            Pair(
+                AuthUiState(subscriptionStatus = VpnGateSubscriptionStatus.Unknown),
+                FakeGoogleAuthState(authStatus = AuthenticationStatus.InProgress),
             ),
         )
 }
@@ -65,7 +49,7 @@ class FakeGoogleAuthState(
 ) : GoogleAuthState {
     override val currentAccount = null
     override fun getSignedInAccountData(data: Intent?) = null
-    override fun requestPermissions(resultReceiver: ManagedActivityResultLauncher<Intent, ActivityResult>) = Unit
-    override fun signIn(resultReceiver: ManagedActivityResultLauncher<Intent, ActivityResult>) = Unit
+    override fun obtainRequestPermissionsIntent() = Intent()
+    override fun obtainSignInIntent() = Intent()
     override fun signOut() = Unit
 }

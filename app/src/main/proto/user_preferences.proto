@@ -15,7 +15,7 @@ enum ThemeModeProto {
 }
 
 message ProfileProto {
-  string avatar_url = 1;
+  string avatar_url = 1; // avatar_link
   string display_name = 2;
   string email_address = 3;
 }

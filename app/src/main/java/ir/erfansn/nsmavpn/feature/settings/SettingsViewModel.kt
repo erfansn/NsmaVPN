@@ -1,12 +1,15 @@
 package ir.erfansn.nsmavpn.feature.settings
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.erfansn.nsmavpn.data.model.ThemeMode
 import ir.erfansn.nsmavpn.data.repository.ConfigurationsRepository
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -20,7 +23,7 @@ class SettingViewModel @Inject constructor(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = SettingsUiState()
+        initialValue = SettingsUiState(),
     )
 
     fun updateThemeMode(themeMode: ThemeMode) {
@@ -32,5 +35,5 @@ class SettingViewModel @Inject constructor(
 
 @Immutable
 data class SettingsUiState(
-    val themeMode: ThemeMode = ThemeMode.SYSTEM
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
 )

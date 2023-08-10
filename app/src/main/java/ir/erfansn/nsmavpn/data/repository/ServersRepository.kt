@@ -7,6 +7,11 @@ import ir.erfansn.nsmavpn.data.source.local.datastore.UrlLink
 import ir.erfansn.nsmavpn.data.source.remote.VpnGateMessagesRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.task.ServersTasksDataSource
 import ir.erfansn.nsmavpn.data.util.*
+import ir.erfansn.nsmavpn.di.IoDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
 class ServersRepository @Inject constructor(
@@ -16,6 +21,7 @@ class ServersRepository @Inject constructor(
     private val serversTasksDataSource: ServersTasksDataSource,
     private val vpnGateContentExtractor: VpnGateContentExtractor,
     private val pingChecker: PingChecker,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
     private lateinit var currentVpnServer: Server
     private var vpnServerSelectionTimeMs: Long = 0L
@@ -23,7 +29,7 @@ class ServersRepository @Inject constructor(
     suspend fun getFastestVpnServer(): Server {
         if (selectedVpnServerIsValid) return currentVpnServer
 
-        val vpnServer = vpnProviderLocalDataSource.getAvailableVpnServers().asyncMinByOrNull { server ->
+        val vpnServer = vpnProviderLocalDataSource.getAvailableVpnServers().asyncMinByOrNull(ioDispatcher) { server ->
             pingChecker.measure(server.address.hostName)
         } ?: throw VpnServersNotExistsException()
 
@@ -33,7 +39,7 @@ class ServersRepository @Inject constructor(
     }
 
     private val selectedVpnServerIsValid get() =
-        System.currentTimeMillis() - vpnServerSelectionTimeMs <= SELECTED_SERVER_TIMEOUT_MS
+        System.currentTimeMillis() - vpnServerSelectionTimeMs <= SERVER_VALIDATION_TIMEOUT_MS
 
     suspend fun collectVpnServers() {
         val userAccountEmail = profileRepository.userProfile.first().emailAddress
@@ -41,11 +47,11 @@ class ServersRepository @Inject constructor(
 
         val (blackServers, availableServers) = vpnGateContentExtractor
             .extractSstpVpnServers(vpnProviderAddress.toAbsoluteLink())
-            .asyncPartition {
+            .asyncPartition(ioDispatcher) {
                 pingChecker.measure(it.address.hostName).isNaN()
             }
 
-        vpnProviderLocalDataSource.blockVpnServers(blackServers)
+        vpnProviderLocalDataSource.blockVpnServers(*blackServers.toTypedArray())
         vpnProviderLocalDataSource.saveVpnServers(availableServers)
     }
 
@@ -55,11 +61,11 @@ class ServersRepository @Inject constructor(
 
         // TODO: if mirror links are unavailable check second email message
         val bodyText = vpnGateMessagesRemoteDataSource.fetchLatestMessageBodyText(userAccountEmail)
-        val mirrorLink = vpnGateContentExtractor.findVpnGateMirrorLinks(bodyText).asyncMinByOrNull {
+        val mirrorLink = vpnGateContentExtractor.findVpnGateMirrorLinks(bodyText).asyncMinByOrNull(ioDispatcher) {
             pingChecker.isReachable(it.hostName)
         } ?: throw NotFoundException()
 
-        vpnProviderLocalDataSource.updateVpnProviderAddress(mirrorLink.asUrlLink())
+        vpnProviderLocalDataSource.saveVpnProviderAddress(mirrorLink.asUrlLink())
         return vpnProviderLocalDataSource.getVpnProviderAddress()
     }
 
@@ -79,8 +85,22 @@ class ServersRepository @Inject constructor(
         serversTasksDataSource.removeAvailableVpnServerFromBlacklistPeriodically()
     }
 
+    fun stopVpnServersWorker() {
+        // serversTasksDataSource.cancelAllWorker()
+    }
+
+    fun isCollectingVpnServers(): Flow<Boolean> {
+        // Return as flow
+        // serversTasksDataSource.isCollectingServers()
+        return flowOf(true)
+    }
+
+    suspend fun blockVpnServer(server: Server) {
+        vpnProviderLocalDataSource.blockVpnServers(server)
+    }
+
     companion object {
-        private const val SELECTED_SERVER_TIMEOUT_MS = 30 * 60 * 1000
+        private const val SERVER_VALIDATION_TIMEOUT_MS = 30 * 60 * 1000L
     }
 }
 

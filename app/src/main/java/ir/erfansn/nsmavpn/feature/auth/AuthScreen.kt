@@ -3,22 +3,22 @@
 package ir.erfansn.nsmavpn.feature.auth
 
 import android.content.res.Configuration
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -37,18 +37,22 @@ import com.google.android.gms.common.api.Scope
 import com.google.api.services.gmail.GmailScopes
 import ir.erfansn.nsmavpn.R
 import ir.erfansn.nsmavpn.feature.auth.google.*
+import ir.erfansn.nsmavpn.feature.auth.google.contract.*
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnBackground
+import ir.erfansn.nsmavpn.ui.component.NsmaVpnScaffold
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
 import ir.erfansn.nsmavpn.ui.util.preview.DevicesWithThemePreviews
 import ir.erfansn.nsmavpn.ui.util.preview.parameter.AuthScreenPreviewParameterProvider
+import ir.erfansn.nsmavpn.ui.util.rememberErrorNotifier
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 @Composable
 fun AuthRoute(
+    windowSize: WindowSizeClass,
+    onNavigateToHome: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SignInViewModel = viewModel(),
-    windowSize: WindowSizeClass,
-    onOccurError: (stringId: Int) -> Unit,
-    onNavigateToHome: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -56,130 +60,111 @@ fun AuthRoute(
         modifier = modifier,
         uiState = uiState,
         windowSize = windowSize,
-        onSuccessfulSignIn = viewModel::verifyVpnGateSubscription,
-        onSaveUserProfile = viewModel::saveUserProfile,
-        onOccurError = onOccurError,
-        onNavigateToHome = onNavigateToHome
+        onSuccessfulSignIn = viewModel::verifyVpnGateSubscriptionAndSaveIt,
+        onNavigateToHome = onNavigateToHome,
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AuthScreen(
-    modifier: Modifier = Modifier,
+    windowSize: WindowSizeClass,
     uiState: AuthUiState,
+    modifier: Modifier = Modifier,
+    onSuccessfulSignIn: (GoogleSignInAccount) -> Unit = { },
+    onNavigateToHome: () -> Unit = { },
     googleAuthState: GoogleAuthState = rememberGoogleAuthState(
         clientId = R.string.web_client_id,
         Scope(GmailScopes.GMAIL_READONLY),
         Scope(Scopes.PROFILE),
         Scope(Scopes.EMAIL)
     ),
-    windowSize: WindowSizeClass,
-    onSuccessfulSignIn: (GoogleSignInAccount) -> Unit,
-    onSaveUserProfile: (GoogleSignInAccount) -> Unit,
-    onOccurError: (stringId: Int) -> Unit,
-    onNavigateToHome: () -> Unit,
 ) {
-    LaunchedEffect(true) {
-        if (googleAuthState.authStatus == AuthenticationStatus.PreSignedIn) {
-            googleAuthState.signOut()
-        }
-    }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val errorNotifier = rememberErrorNotifier(snackbarHostState)
 
-    googleAuthState.currentAccount?.let {
-        if (uiState.isSubscribedToVpnGate == true) {
-            if (!uiState.isUserProfileStored) {
-                onSaveUserProfile(it)
-            } else {
-                onNavigateToHome()
-            }
-        }
-    }
-
-    AuthContent(
+    NsmaVpnScaffold(
         modifier = modifier,
-        windowSize = windowSize,
-        onOccurError = onOccurError,
-        onSuccessfulSignIn = onSuccessfulSignIn,
-        isSubscribedToVpnGate = uiState.isSubscribedToVpnGate,
-        googleAuthState = googleAuthState,
-    )
-}
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { contentPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            val contentModifier = when {
+                windowSize.widthSizeClass == WindowWidthSizeClass.Compact &&
+                        windowSize.heightSizeClass == WindowHeightSizeClass.Compact -> {
+                    Modifier.fillMaxSize()
+                }
+                windowSize.heightSizeClass == WindowHeightSizeClass.Compact -> {
+                    Modifier.aspectRatio(10 / 7f)
+                }
+                else -> {
+                    Modifier.aspectRatio(7 / 10f)
+                }
+            }
+            val content: @Composable LayoutType.() -> Unit = {
+                AuthContent(
+                    contentPadding = contentPadding,
+                    subscriptionStatus = uiState.subscriptionStatus,
+                    onOccurError = errorNotifier::showErrorMessage,
+                    onSuccessfulSignIn = onSuccessfulSignIn,
+                    onNavigateToHome = onNavigateToHome,
+                    googleAuthState = googleAuthState,
+                )
+            }
 
-@Composable
-fun AuthContent(
-    modifier: Modifier = Modifier,
-    windowSize: WindowSizeClass,
-    onOccurError: (stringId: Int) -> Unit,
-    onSuccessfulSignIn: (GoogleSignInAccount) -> Unit,
-    isSubscribedToVpnGate: Boolean?,
-    googleAuthState: GoogleAuthState,
-) {
-    Box(
-        modifier = modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        val contentModifier = when {
-            windowSize.widthSizeClass == WindowWidthSizeClass.Compact &&
-                    windowSize.heightSizeClass == WindowHeightSizeClass.Compact -> {
-                Modifier.fillMaxSize()
-            }
-            windowSize.heightSizeClass == WindowHeightSizeClass.Compact -> {
-                Modifier.aspectRatio(10 / 7f)
-            }
-            else -> {
-                Modifier.aspectRatio(7 / 10f)
-            }
-        }
-        val content: @Composable LayoutScope.() -> Unit = {
-            AuthInsideLayoutContent(
-                onOccurError = onOccurError,
-                onSuccessfulSignIn = onSuccessfulSignIn,
-                isSubscribedToVpnGate = isSubscribedToVpnGate,
-                googleAuthState = googleAuthState,
-            )
-        }
-
-        if (windowSize.heightSizeClass == WindowHeightSizeClass.Compact) {
-            Row(
-                modifier = contentModifier
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                LayoutScope.Row(this).content()
-            }
-        } else {
-            Column(
-                modifier = contentModifier
-                    .padding(vertical = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                LayoutScope.Column(this).content()
+            if (windowSize.heightSizeClass == WindowHeightSizeClass.Compact) {
+                Row(
+                    modifier = contentModifier
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    LayoutType.Row(this).content()
+                }
+            } else {
+                Column(
+                    modifier = contentModifier
+                        .padding(vertical = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    LayoutType.Column(this).content()
+                }
             }
         }
     }
 }
 
 @Composable
-fun LayoutScope.AuthInsideLayoutContent(
+private fun LayoutType.AuthContent(
+    contentPadding: PaddingValues,
+    subscriptionStatus: VpnGateSubscriptionStatus,
     onOccurError: (stringId: Int) -> Unit,
     onSuccessfulSignIn: (GoogleSignInAccount) -> Unit,
-    isSubscribedToVpnGate: Boolean?,
+    onNavigateToHome: () -> Unit,
     googleAuthState: GoogleAuthState,
 ) {
-    val commonModifier = when (this) {
-        is LayoutScope.Column -> with(scope) {
-            Modifier
-                .weight(1.0f, false)
-                .padding(horizontal = 16.dp)
+    val connectToGoogleAccount =
+        rememberLauncherForActivityResult(ConnectToGoogleAccount(googleAuthState)) {
+            when (it) {
+                is ConnectToGoogleAccount.Result.Error -> onOccurError(it.messageId)
+                is ConnectToGoogleAccount.Result.Success -> it.googleSignInAccount?.run(
+                    onSuccessfulSignIn
+                )
+            }
         }
-        is LayoutScope.Row -> with(scope) {
-            Modifier
-                .weight(1.0f, false)
-                .padding(vertical = 16.dp)
-        }
+
+    val commonModifier = if (isColumn()) with(scope) {
+        Modifier
+            .weight(1.0f, false)
+            .padding(horizontal = 16.dp)
+    } else with(scope) {
+        Modifier
+            .weight(1.0f, false)
+            .padding(vertical = 16.dp)
     }
 
     Image(
@@ -189,98 +174,109 @@ fun LayoutScope.AuthInsideLayoutContent(
         painter = painterResource(id = R.drawable.ic_round_key),
         contentDescription = null
     )
+
     Spacer(modifier = Modifier.size(24.dp))
-    Column(
-        modifier = Modifier
-            .verticalScroll(rememberScrollState()) then commonModifier,
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        val isNotEligibleAccountSignedIn =
-            (isSubscribedToVpnGate != null && googleAuthState.authStatus == AuthenticationStatus.SignedIn && !isSubscribedToVpnGate)
-        Text(
-            modifier = Modifier.width(320.dp),
-            text = when {
-                googleAuthState.authStatus == AuthenticationStatus.PermissionsRequest -> {
-                    stringResource(id = R.string.permission_rationals)
+
+    AnimatedContent(googleAuthState.authStatus) {
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(contentPadding)
+                .then(commonModifier),
+            verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            when (it) {
+                AuthenticationStatus.InProgress -> {
+                    AuthDescriptionText(stringId = R.string.auth_explanation)
+                    Button(
+                        enabled = googleAuthState.authStatus != AuthenticationStatus.InProgress,
+                        onClick = {
+                            connectToGoogleAccount.launch(ConnectToGoogleAccount.RequestType.SignIn)
+                        },
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.sign_in)
+                        )
+                    }
                 }
-                isNotEligibleAccountSignedIn -> {
-                    stringResource(id = R.string.not_being_subscribed_to_vpngate)
+                AuthenticationStatus.SignedOut -> {
+                    AuthDescriptionText(stringId = R.string.auth_explanation)
+                    Button(
+                        onClick = {
+                            connectToGoogleAccount.launch(ConnectToGoogleAccount.RequestType.SignIn)
+                        }
+                    ) {
+                        Text(text = stringResource(id = R.string.sign_in))
+                    }
                 }
-                else -> {
-                    stringResource(id = R.string.auth_explanation)
+                AuthenticationStatus.PermissionsNotGranted -> {
+                    AuthDescriptionText(stringId = R.string.permission_rationals)
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = {
+                                connectToGoogleAccount.launch(ConnectToGoogleAccount.RequestType.RequestPermissions)
+                            },
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.request)
+                            )
+                        }
+                        Button(
+                            onClick = googleAuthState::signOut
+                        ) {
+                            Text(text = stringResource(id = R.string.sign_out))
+                        }
+                    }
                 }
-            },
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        Spacer(modifier = Modifier.size(24.dp))
-        if (isNotEligibleAccountSignedIn) {
-            Button(
-                onClick = googleAuthState::signOut
-            ) {
-                Text(text = stringResource(id = R.string.sign_out))
+                AuthenticationStatus.SignedIn -> when (subscriptionStatus) {
+                    VpnGateSubscriptionStatus.Unknown -> {
+                        CircularProgressIndicator()
+                    }
+                    VpnGateSubscriptionStatus.Is -> {
+                        onNavigateToHome()
+                    }
+                    VpnGateSubscriptionStatus.Not -> {
+                        AuthDescriptionText(stringId = R.string.not_being_subscribed_to_vpngate)
+                        Button(
+                            onClick = googleAuthState::signOut
+                        ) {
+                            Text(text = stringResource(id = R.string.sign_out))
+                        }
+                    }
+                }
+                AuthenticationStatus.PreSignedIn -> {
+                    googleAuthState.signOut()
+                }
             }
-        } else {
-            GoogleAuthButtons(
-                state = googleAuthState,
-                onSuccess = onSuccessfulSignIn,
-                onFailure = onOccurError,
-            )
         }
     }
-}
-
-
-sealed interface LayoutScope {
-    data class Column(val scope: ColumnScope) : LayoutScope
-    data class Row(val scope: RowScope) : LayoutScope
 }
 
 @Composable
-private fun GoogleAuthButtons(
-    state: GoogleAuthState,
-    onSuccess: (GoogleSignInAccount) -> Unit = { },
-    onFailure: (stringId: Int) -> Unit = { },
+private fun AuthDescriptionText(
+    @StringRes stringId: Int,
 ) {
-    val getAuthResult =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            try {
-                state.getSignedInAccountData(it.data)?.let { userAccount ->
-                    onSuccess(userAccount)
-                }
-            } catch (e: SignInIsFailedException) {
-                onFailure(R.string.sign_in_failed)
-            } catch (e: NoNetworkConnectionException) {
-                onFailure(R.string.network_problem)
-            }
-        }
+    Text(
+        modifier = Modifier.widthIn(max = 320.dp),
+        text = stringResource(id = stringId),
+        textAlign = TextAlign.Center,
+        color = MaterialTheme.colorScheme.onBackground
+    )
+}
 
-    when (state.authStatus) {
-        AuthenticationStatus.PermissionsRequest -> {
-            Button(onClick = { state.requestPermissions(getAuthResult) }) {
-                Text(
-                    text = stringResource(id = R.string.request)
-                )
-            }
-            Spacer(modifier = Modifier.size(8.dp))
-            Button(
-                onClick = state::signOut
-            ) {
-                Text(text = stringResource(id = R.string.sign_out))
-            }
-        }
-        else -> {
-            Button(
-                enabled = state.authStatus != AuthenticationStatus.InProgress,
-                onClick = { state.signIn(getAuthResult) },
-            ) {
-                Text(
-                    text = stringResource(id = R.string.sign_in)
-                )
-            }
-        }
+private sealed interface LayoutType {
+    data class Column(val scope: ColumnScope) : LayoutType
+    data class Row(val scope: RowScope) : LayoutType
+}
+
+@OptIn(ExperimentalContracts::class)
+private fun LayoutType.isColumn(): Boolean {
+    contract {
+        returns(true) implies (this@isColumn is LayoutType.Column)
+        returns(false) implies (this@isColumn is LayoutType.Row)
     }
+    return this is LayoutType.Column
 }
 
 @DevicesWithThemePreviews
@@ -289,17 +285,13 @@ private fun SignInScreenPreview(
     @PreviewParameter(AuthScreenPreviewParameterProvider::class) params: Pair<AuthUiState, GoogleAuthState>,
 ) {
     BoxWithConstraints {
-        val windowSize = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight))
         NsmaVpnTheme {
             NsmaVpnBackground {
+                val windowSize = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight))
                 AuthScreen(
                     uiState = params.first,
                     windowSize = windowSize,
                     googleAuthState = params.second,
-                    onSaveUserProfile = { },
-                    onOccurError = { },
-                    onSuccessfulSignIn = { },
-                    onNavigateToHome = { },
                 )
             }
         }
@@ -320,16 +312,12 @@ private fun SignInScreenPreview(
 @Composable
 private fun SignInScreenPhoneLandscapePreview() {
     BoxWithConstraints {
-        val windowSize = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight))
         NsmaVpnTheme {
             NsmaVpnBackground {
+                val windowSize = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight))
                 AuthScreen(
                     uiState = AuthUiState(),
                     windowSize = windowSize,
-                    onSaveUserProfile = { },
-                    onOccurError = { },
-                    onSuccessfulSignIn = { },
-                    onNavigateToHome = { },
                 )
             }
         }

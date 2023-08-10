@@ -34,7 +34,7 @@ class DefaultUserPreferencesLocalDataSource @Inject constructor(
                 }
 
                 profileProto = profileProto {
-                    avatarUrl = profile.avatarUrl.orEmpty()
+                    avatarUrl = profile.avatarUrl
                     emailAddress = profile.emailAddress
                     displayName = profile.displayName
                 }

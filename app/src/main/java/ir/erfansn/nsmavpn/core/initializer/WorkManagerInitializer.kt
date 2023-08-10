@@ -19,8 +19,9 @@ object WorkManagerInitializer : Initializer<WorkManager> {
     }
 
     override fun create(context: Context): WorkManager {
-        val workManagerInitializerEntryPoint = EntryPointAccessors.fromApplication(context,
-            WorkManagerInitializerEntryPoint::class.java)
+        val workManagerInitializerEntryPoint =
+            EntryPointAccessors.fromApplication<WorkManagerInitializerEntryPoint>(context)
+
         val configuration = Configuration.Builder()
             .setWorkerFactory(workManagerInitializerEntryPoint.workerFactory())
             .build()

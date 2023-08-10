@@ -7,8 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.erfansn.nsmavpn.data.model.Profile
-import ir.erfansn.nsmavpn.data.repository.ServersRepository
 import ir.erfansn.nsmavpn.data.repository.ProfileRepository
+import ir.erfansn.nsmavpn.data.repository.ServersRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -24,31 +24,38 @@ class SignInViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState = _uiState.asStateFlow()
 
-    fun verifyVpnGateSubscription(account: GoogleSignInAccount) {
+    init {
+        viewModelScope.launch {
+            serversRepository.stopVpnServersWorker()
+            // Clear profile in any conditions
+            profileRepository.saveUserProfile(null)
+        }
+    }
+
+    fun verifyVpnGateSubscriptionAndSaveIt(account: GoogleSignInAccount) {
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
-                    isSubscribedToVpnGate = serversRepository.isSubscribedToVpnGateDailyMail(account.email!!),
+                    subscriptionStatus = if (serversRepository.isSubscribedToVpnGateDailyMail(account.email!!)) {
+                        saveUserProfile(account)
+                        VpnGateSubscriptionStatus.Is
+                    } else {
+                        VpnGateSubscriptionStatus.Not
+                    },
                 )
             }
         }
     }
 
-    fun saveUserProfile(account: GoogleSignInAccount) {
-        viewModelScope.launch {
-            val profile = Profile(
-                avatarUrl = account.photoUrl.toString().substringBeforeLast('='),
-                displayName = account.displayName.toString(),
-                emailAddress = account.email.toString()
-            )
-            Log.v(TAG, profile.toString())
+    private suspend fun saveUserProfile(account: GoogleSignInAccount) {
+        val profile = Profile(
+            avatarUrl = account.photoUrl.toString().substringBeforeLast('='),
+            displayName = account.displayName.toString(),
+            emailAddress = account.email.toString()
+        )
+        Log.v(TAG, profile.toString())
 
-            profileRepository.saveUserProfile(profile)
-
-            _uiState.update {
-                it.copy(isUserProfileStored = true)
-            }
-        }
+        profileRepository.saveUserProfile(profile)
     }
 
     companion object {
@@ -58,8 +65,7 @@ class SignInViewModel @Inject constructor(
 
 @Immutable
 data class AuthUiState(
-    val isSubscribedToVpnGate: Boolean? = null,
-    val isUserProfileStored: Boolean = false,
-) {
-    val subscriptionChecked get() = isSubscribedToVpnGate != null
-}
+    val subscriptionStatus: VpnGateSubscriptionStatus = VpnGateSubscriptionStatus.Unknown,
+)
+
+enum class VpnGateSubscriptionStatus { Unknown, Is, Not }

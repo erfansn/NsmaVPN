@@ -2,40 +2,40 @@ package ir.erfansn.nsmavpn.feature.auth.google
 
 import android.content.Context
 import android.content.Intent
-import androidx.activity.compose.ManagedActivityResultLauncher
-import androidx.activity.result.ActivityResult
 import androidx.annotation.StringRes
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
-import com.google.android.gms.common.Scopes
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.common.api.Scope
-import com.google.api.services.gmail.GmailScopes
-
-interface GoogleAuthState {
-    val authStatus: AuthenticationStatus
-    val currentAccount: GoogleSignInAccount?
-    fun getSignedInAccountData(data: Intent?): GoogleSignInAccount?
-    fun requestPermissions(resultReceiver: ManagedActivityResultLauncher<Intent, ActivityResult>)
-    fun signIn(resultReceiver: ManagedActivityResultLauncher<Intent, ActivityResult>)
-    fun signOut()
-}
 
 @Stable
 class DefaultGoogleAuthState(
-    private val context: Context,
     @StringRes clientId: Int,
-    private val scopes: List<Scope>,
     initStatus: AuthenticationStatus? = null,
+    private val context: Context,
+    private val scopes: List<Scope>,
 ) : GoogleAuthState {
+
+    private val googleSignInOptions = GoogleSignInOptions.Builder()
+        .requestIdToken(context.getString(clientId))
+        .apply {
+            if (scopes.isEmpty()) return@apply
+
+            if (scopes.size == 1) {
+                requestScopes(scopes.single())
+            } else {
+                requestScopes(scopes.first(), *scopes.drop(1).toTypedArray())
+            }
+        }
+        .build()
+    private val googleSignIn = GoogleSignIn.getClient(context, googleSignInOptions)
 
     override var authStatus by mutableStateOf(AuthenticationStatus.InProgress)
         private set
@@ -51,7 +51,7 @@ class DefaultGoogleAuthState(
                 AuthenticationStatus.PreSignedIn
             }
             currentAccount != null -> {
-                AuthenticationStatus.PermissionsRequest
+                AuthenticationStatus.PermissionsNotGranted
             }
             else -> {
                 AuthenticationStatus.SignedOut
@@ -60,14 +60,15 @@ class DefaultGoogleAuthState(
     }
 
     override fun getSignedInAccountData(data: Intent?): GoogleSignInAccount? = try {
-        val result =
-            GoogleSignIn.getSignedInAccountFromIntent(data).getResult(ApiException::class.java)
-        if (result.allPermissionsGranted) {
+        val result = GoogleSignIn.getSignedInAccountFromIntent(data)
+            .getResult(ApiException::class.java)
+
+        if (!result.allPermissionsGranted) {
+            authStatus = AuthenticationStatus.PermissionsNotGranted
+            null
+        } else {
             authStatus = AuthenticationStatus.SignedIn
             result
-        } else {
-            authStatus = AuthenticationStatus.PermissionsRequest
-            null
         }
     } catch (e: ApiException) {
         when (e.statusCode) {
@@ -80,28 +81,9 @@ class DefaultGoogleAuthState(
     private val GoogleSignInAccount.allPermissionsGranted
         get() = GoogleSignIn.hasPermissions(this, *scopes.toTypedArray())
 
-    override fun requestPermissions(resultReceiver: ManagedActivityResultLauncher<Intent, ActivityResult>) {
-        signIn(resultReceiver)
-    }
+    override fun obtainRequestPermissionsIntent() = obtainSignInIntent()
 
-    private val googleSignInOptions = GoogleSignInOptions.Builder()
-        .requestIdToken(context.getString(clientId))
-        .apply {
-            if (scopes.isEmpty()) return@apply
-
-            if (scopes.size == 1) {
-                requestScopes(scopes.single())
-            } else {
-                requestScopes(scopes.first(), *scopes.drop(1).toTypedArray())
-            }
-        }
-        .build()
-
-    private val googleSignIn = GoogleSignIn.getClient(context, googleSignInOptions)
-
-    override fun signIn(resultReceiver: ManagedActivityResultLauncher<Intent, ActivityResult>) {
-        resultReceiver.launch(googleSignIn.signInIntent)
-    }
+    override fun obtainSignInIntent() = googleSignIn.signInIntent
 
     override fun signOut() {
         authStatus = AuthenticationStatus.InProgress
@@ -109,6 +91,26 @@ class DefaultGoogleAuthState(
             authStatus = AuthenticationStatus.SignedOut
         }
     }
+
+    companion object {
+        fun Saver(
+            @StringRes clientId: Int,
+            context: Context,
+            scopes: List<Scope>,
+        ) = Saver<GoogleAuthState, AuthenticationStatus>(
+            save = { it.authStatus },
+            restore = { DefaultGoogleAuthState(clientId, it, context, scopes) }
+        )
+    }
+}
+
+interface GoogleAuthState {
+    val authStatus: AuthenticationStatus
+    val currentAccount: GoogleSignInAccount?
+    fun getSignedInAccountData(data: Intent?): GoogleSignInAccount?
+    fun obtainRequestPermissionsIntent(): Intent
+    fun obtainSignInIntent(): Intent
+    fun signOut()
 }
 
 /**
@@ -116,7 +118,7 @@ class DefaultGoogleAuthState(
  * state. State is the actual condition of something, while status is a description of that condition.
  * For example, an object can have a state of "on" and a status of "active".
  */
-enum class AuthenticationStatus { PreSignedIn, SignedIn, InProgress, SignedOut, PermissionsRequest }
+enum class AuthenticationStatus { PreSignedIn, SignedIn, InProgress, SignedOut, PermissionsNotGranted }
 
 class SignInIsFailedException : Throwable()
 class NoNetworkConnectionException : Throwable()
@@ -129,15 +131,18 @@ fun rememberGoogleAuthState(
     val context = LocalContext.current
     return rememberSaveable(
         clientId,
-        saver = listSaver(
-            save = {
-                listOf(it.authStatus)
-            },
-            restore = {
-                DefaultGoogleAuthState(context, clientId, scopes.toList(), it.first())
-            }
+        saver = DefaultGoogleAuthState.Saver(
+            clientId,
+            context,
+            scopes.toList(),
         )
     ) {
-        DefaultGoogleAuthState(context, clientId, scopes.toList())
+        DefaultGoogleAuthState(
+            context = context,
+            clientId = clientId,
+            scopes = scopes.toList(),
+        )
     }
 }
+
+

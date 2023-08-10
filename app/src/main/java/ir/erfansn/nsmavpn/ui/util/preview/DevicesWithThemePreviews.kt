@@ -27,7 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
     name = "Dark theme",
     showBackground = true,
     device = Devices.FOLDABLE,
-    uiMode = Configuration.UI_MODE_NIGHT_YES
+    uiMode = Configuration.UI_MODE_NIGHT_NO or Configuration.UI_MODE_TYPE_NORMAL
 )
 @Preview(
     group = "Tablet",
@@ -40,6 +40,6 @@ import androidx.compose.ui.tooling.preview.Preview
     name = "Dark theme",
     showBackground = true,
     device = Devices.TABLET,
-    uiMode = Configuration.UI_MODE_NIGHT_YES
+    uiMode = Configuration.UI_MODE_NIGHT_NO or Configuration.UI_MODE_TYPE_NORMAL
 )
 annotation class DevicesWithThemePreviews

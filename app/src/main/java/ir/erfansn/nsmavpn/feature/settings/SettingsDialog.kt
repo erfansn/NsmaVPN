@@ -30,13 +30,15 @@ import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
 import ir.erfansn.nsmavpn.ui.util.preview.ThemePreviews
 
 @Composable
-fun SettingsDialog(
-    viewModel: SettingViewModel = viewModel(),
+fun SettingsRoute(
     onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: SettingViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     SettingsDialog(
+        modifier = modifier,
         uiState = uiState,
         onDismiss = onDismiss,
         onChangeThemeMode = viewModel::updateThemeMode
@@ -48,8 +50,10 @@ private fun SettingsDialog(
     uiState: SettingsUiState,
     onDismiss: () -> Unit,
     onChangeThemeMode: (ThemeMode) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     AlertDialog(
+        modifier = modifier,
         onDismissRequest = onDismiss,
         title = {
             Text(text = stringResource(id = R.string.title_settings))
@@ -63,11 +67,7 @@ private fun SettingsDialog(
                     .padding(top = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text(
-                    text = stringResource(R.string.theme_mode),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                ThemeModeConfig(
+                ThemeModeOptions(
                     themeMode = uiState.themeMode,
                     onChangeThemeMode = onChangeThemeMode
                 )
@@ -90,10 +90,25 @@ private fun SettingsDialog(
 }
 
 @Composable
+private fun ColumnScope.ThemeModeOptions(
+    themeMode: ThemeMode,
+    onChangeThemeMode: (ThemeMode) -> Unit,
+) {
+    Text(
+        text = stringResource(R.string.theme_mode),
+        style = MaterialTheme.typography.titleMedium,
+    )
+    ThemeModeConfig(
+        themeMode = themeMode,
+        onChangeThemeMode = onChangeThemeMode
+    )
+}
+
+@Composable
 private fun ThemeModeConfig(
-    modifier: Modifier = Modifier,
     themeMode: ThemeMode,
     onChangeThemeMode: (mode: ThemeMode) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.selectableGroup()) {
         SelectiveRow(
@@ -141,7 +156,7 @@ private fun SelectiveRow(
 }
 
 @Composable
-fun LinksPanel(
+private fun LinksPanel(
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -161,7 +176,7 @@ fun LinksPanel(
 }
 
 @Composable
-fun TextLink(text: String, url: String) {
+private fun TextLink(text: String, url: String) {
     val launchResourceIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
     val context = LocalContext.current
 

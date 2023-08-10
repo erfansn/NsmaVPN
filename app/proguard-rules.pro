@@ -19,3 +19,13 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-assumenosideeffects class android.util.Log {
+  static *** i(...);
+  static *** d(...);
+  static *** v(...);
+  static *** isLoggable(...);
+}
+
+# https://github.com/protocolbuffers/protobuf/blob/main/java/lite.md#r8-rule-to-make-production-app-builds-work
+-keep class * extends com.google.protobuf.GeneratedMessageLite { *; }
