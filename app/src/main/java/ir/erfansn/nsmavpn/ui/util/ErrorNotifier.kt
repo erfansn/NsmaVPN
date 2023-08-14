@@ -10,49 +10,44 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 
 class DefaultErrorNotifier(
     private val context: Context,
     private val snackbarHostState: SnackbarHostState,
-    coroutineScope: CoroutineScope,
-) : ErrorNotifier, CoroutineScope by coroutineScope {
+    private val coroutineScope: CoroutineScope,
+) : ErrorNotifier {
 
-    private var messageJob: Job? = null
+    private lateinit var currentSnackbar: Deferred<SnackbarResult>
 
-    override fun showErrorMessage(
+    override suspend fun showErrorMessage(
         @StringRes messageId: Int,
         @StringRes actionLabelId: Int?,
         duration: SnackbarDuration,
         priority: MessagePriority,
-        action: () -> Unit,
-    ) {
-        if (priority == MessagePriority.High) messageJob?.cancel()
-        messageJob = launch {
+    ): SnackbarResult {
+        if (priority == MessagePriority.High) currentSnackbar.cancel()
+        currentSnackbar = coroutineScope.async {
             snackbarHostState.showSnackbar(
                 message = context.getString(messageId),
                 actionLabel = actionLabelId?.let(context::getString),
                 duration = duration,
-            ).takeIf {
-                it == SnackbarResult.ActionPerformed
-            }?.run {
-                action()
-            }
+            )
         }
+        return currentSnackbar.await()
     }
 }
 
 enum class MessagePriority { High, Low }
 
 interface ErrorNotifier {
-    fun showErrorMessage(
+    suspend fun showErrorMessage(
         @StringRes messageId: Int,
         @StringRes actionLabelId: Int? = null,
-        duration: SnackbarDuration = SnackbarDuration.Long,
+        duration: SnackbarDuration = SnackbarDuration.Short,
         priority: MessagePriority = MessagePriority.Low,
-        action: () -> Unit = { },
-    )
+    ): SnackbarResult
 }
 
 @Composable
