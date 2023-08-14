@@ -1,14 +1,11 @@
 package ir.erfansn.nsmavpn.ui.util.preview.parameter
 
-import android.content.Intent
-import androidx.activity.compose.ManagedActivityResultLauncher
-import androidx.activity.result.ActivityResult
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import ir.erfansn.nsmavpn.feature.auth.AuthUiState
 import ir.erfansn.nsmavpn.feature.auth.VpnGateSubscriptionStatus
 import ir.erfansn.nsmavpn.feature.auth.google.AuthenticationStatus
+import ir.erfansn.nsmavpn.feature.auth.google.GoogleAccountSignInResult
 import ir.erfansn.nsmavpn.feature.auth.google.GoogleAuthState
-import kotlin.random.Random
 
 class AuthScreenPreviewParameterProvider : PreviewParameterProvider<Pair<AuthUiState, GoogleAuthState>> {
     override val values
@@ -47,9 +44,11 @@ class AuthScreenPreviewParameterProvider : PreviewParameterProvider<Pair<AuthUiS
 class FakeGoogleAuthState(
     override val authStatus: AuthenticationStatus,
 ) : GoogleAuthState {
-    override val currentAccount = null
-    override fun getSignedInAccountData(data: Intent?) = null
-    override fun obtainRequestPermissionsIntent() = Intent()
-    override fun obtainSignInIntent() = Intent()
+    override var onSignInResult: ((GoogleAccountSignInResult) -> Unit)? = null
+
+    override fun signIn() = Unit
+
+    override fun requestPermissions() = Unit
+
     override fun signOut() = Unit
 }
