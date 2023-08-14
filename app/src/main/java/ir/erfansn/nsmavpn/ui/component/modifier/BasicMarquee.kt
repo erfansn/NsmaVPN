@@ -353,6 +353,7 @@ private class MarqueeModifierNode(
             }.collectLatest { contentWithSpacingWidth ->
                 // Don't animate when the content fits.
                 if (contentWithSpacingWidth == null) return@collectLatest
+                if (contentWithSpacingWidth == 0.0f) return@collectLatest
 
                 val spec = createMarqueeAnimationSpec(
                     iterations,
@@ -384,7 +385,7 @@ private fun createMarqueeAnimationSpec(
 ): AnimationSpec<Float> {
     val pxPerSec = with(density) { velocity.toPx() }
     val singleSpec = velocityBasedTween(
-        velocity = pxPerSec.absoluteValue,
+        velocity = pxPerSec.absoluteValue.takeIf { it != 0f } ?: 1000f,
         targetValue = targetValue,
         delayMillis = delayMillis
     )
