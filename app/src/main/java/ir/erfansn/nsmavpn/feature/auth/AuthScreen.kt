@@ -34,8 +34,7 @@ import ir.erfansn.nsmavpn.feature.auth.google.*
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnBackground
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnScaffold
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
-import ir.erfansn.nsmavpn.ui.util.preview.DevicesWithThemePreviews
-import ir.erfansn.nsmavpn.ui.util.preview.parameter.AuthScreenPreviewParameterProvider
+import ir.erfansn.nsmavpn.ui.util.preview.LandscapeThemePreviews
 import ir.erfansn.nsmavpn.ui.util.rememberErrorNotifier
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -292,17 +291,8 @@ private fun SignInScreenPreview(
     }
 }
 
-@Preview(
-    group = "Phone",
-    device = "spec:parent=pixel_5,orientation=landscape",
-    showBackground = true,
-)
-@Preview(
-    group = "Phone",
-    device = "spec:parent=pixel_5,orientation=landscape",
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL,
-)
+@LandscapeThemePreviews
+@Preview
 @Composable
 private fun SignInScreenPhoneLandscapePreview() {
     BoxWithConstraints {
