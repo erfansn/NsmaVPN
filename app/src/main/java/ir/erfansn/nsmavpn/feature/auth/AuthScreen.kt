@@ -36,6 +36,7 @@ import ir.erfansn.nsmavpn.ui.component.NsmaVpnScaffold
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
 import ir.erfansn.nsmavpn.ui.util.preview.LandscapeThemePreviews
 import ir.erfansn.nsmavpn.ui.util.rememberErrorNotifier
+import kotlinx.coroutines.launch
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -53,6 +54,7 @@ fun AuthRoute(
         uiState = uiState,
         windowSize = windowSize,
         onSuccessfulSignIn = viewModel::verifyVpnGateSubscriptionAndSaveIt,
+        onErrorShown = viewModel::notifyMessageShown,
         onNavigateToHome = onNavigateToHome,
     )
 }
@@ -64,6 +66,7 @@ private fun AuthScreen(
     uiState: AuthUiState,
     modifier: Modifier = Modifier,
     onSuccessfulSignIn: (GoogleSignInAccount) -> Unit = { },
+    onErrorShown: () -> Unit = { },
     onNavigateToHome: () -> Unit = { },
     googleAuthState: GoogleAuthState = rememberGoogleAuthState(
         clientId = R.string.web_client_id,
@@ -72,18 +75,38 @@ private fun AuthScreen(
         Scope(Scopes.EMAIL)
     ),
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val errorNotifier = rememberErrorNotifier(snackbarHostState)
+    val errorNotifier = rememberErrorNotifier(snackbarHostState, coroutineScope)
 
     DisposableEffect(googleAuthState) {
         googleAuthState.onSignInResult = {
             when (it) {
-                is GoogleAccountSignInResult.Error -> errorNotifier.showErrorMessage(it.messageId)
-                is GoogleAccountSignInResult.Success -> it.googleSignInAccount?.run(onSuccessfulSignIn)
+                is GoogleAccountSignInResult.Error -> coroutineScope.launch {
+                    errorNotifier.showErrorMessage(
+                        messageId = it.messageId,
+                        actionLabelId = R.string.ok
+                    )
+                }
+
+                is GoogleAccountSignInResult.Success -> {
+                    it.googleSignInAccount?.run(onSuccessfulSignIn)
+                }
             }
         }
         onDispose {
             googleAuthState.onSignInResult = null
+        }
+    }
+
+    LaunchedEffect(googleAuthState, uiState.errorMessage, onErrorShown) {
+        if (uiState.errorMessage != null) {
+            googleAuthState.signOut()
+            errorNotifier.showErrorMessage(
+                messageId = uiState.errorMessage,
+                actionLabelId = R.string.ok
+            )
+            onErrorShown()
         }
     }
 
@@ -92,11 +115,10 @@ private fun AuthScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { contentPadding ->
         Box(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) {
-            val contentModifier = when {
+            val contentLayoutModifier = when {
                 windowSize.widthSizeClass == WindowWidthSizeClass.Compact &&
                         windowSize.heightSizeClass == WindowHeightSizeClass.Compact -> {
                     Modifier.fillMaxSize()
@@ -119,7 +141,7 @@ private fun AuthScreen(
 
             if (windowSize.heightSizeClass == WindowHeightSizeClass.Compact) {
                 Row(
-                    modifier = contentModifier
+                    modifier = contentLayoutModifier
                         .padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
@@ -128,7 +150,7 @@ private fun AuthScreen(
                 }
             } else {
                 Column(
-                    modifier = contentModifier
+                    modifier = contentLayoutModifier
                         .padding(vertical = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
@@ -216,7 +238,9 @@ private fun LayoutType.AuthContent(
                     ) {
                         when (it) {
                             VpnGateSubscriptionStatus.Unknown -> {
-                                CircularProgressIndicator()
+                                CircularProgressIndicator(
+                                    modifier = Modifier.padding(32.dp)
+                                )
                             }
 
                             VpnGateSubscriptionStatus.Is -> {
