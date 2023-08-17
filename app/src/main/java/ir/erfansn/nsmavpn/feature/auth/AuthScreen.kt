@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalAnimationApi::class)
+@file:OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 
 package ir.erfansn.nsmavpn.feature.auth
 
@@ -34,7 +34,7 @@ import ir.erfansn.nsmavpn.feature.auth.google.*
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnBackground
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnScaffold
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
-import ir.erfansn.nsmavpn.ui.util.preview.LandscapeThemePreviews
+import ir.erfansn.nsmavpn.ui.util.preview.PreviewLightDarkLandscape
 import ir.erfansn.nsmavpn.ui.util.rememberErrorNotifier
 import kotlinx.coroutines.launch
 import kotlin.contracts.ExperimentalContracts
@@ -315,8 +315,7 @@ private fun SignInScreenPreview(
     }
 }
 
-@LandscapeThemePreviews
-@Preview
+@PreviewLightDarkLandscape
 @Composable
 private fun SignInScreenPhoneLandscapePreview() {
     BoxWithConstraints {
