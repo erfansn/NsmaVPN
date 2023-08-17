@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -34,7 +34,9 @@ import ir.erfansn.nsmavpn.feature.auth.google.*
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnBackground
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnScaffold
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
+import ir.erfansn.nsmavpn.ui.util.preview.AuthPreviews
 import ir.erfansn.nsmavpn.ui.util.preview.PreviewLightDarkLandscape
+import ir.erfansn.nsmavpn.ui.util.preview.parameter.VpnGateSubscriptionStatusParameterProvider
 import ir.erfansn.nsmavpn.ui.util.rememberErrorNotifier
 import kotlinx.coroutines.launch
 import kotlin.contracts.ExperimentalContracts
@@ -204,7 +206,7 @@ private fun LayoutType.AuthContent(
         ) {
             when (it) {
                 AuthenticationStatus.InProgress, AuthenticationStatus.SignedOut -> {
-                    AuthDescriptionText(stringId = R.string.auth_explanation)
+                    DescriptionText(stringId = R.string.auth_explanation)
                     Button(
                         enabled = googleAuthState.authStatus != AuthenticationStatus.InProgress,
                         onClick = googleAuthState::signIn,
@@ -215,7 +217,7 @@ private fun LayoutType.AuthContent(
                     }
                 }
                 AuthenticationStatus.PermissionsNotGranted -> {
-                    AuthDescriptionText(stringId = R.string.permission_rationals)
+                    DescriptionText(stringId = R.string.permission_rationals)
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
                             onClick = googleAuthState::requestPermissions,
@@ -231,35 +233,11 @@ private fun LayoutType.AuthContent(
                         }
                     }
                 }
-                AuthenticationStatus.SignedIn -> AnimatedContent(subscriptionStatus, label = "signed-in") {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        when (it) {
-                            VpnGateSubscriptionStatus.Unknown -> {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.padding(32.dp)
-                                )
-                            }
-
-                            VpnGateSubscriptionStatus.Is -> {
-                                LaunchedEffect(Unit) {
-                                    onNavigateToHome()
-                                }
-                            }
-
-                            VpnGateSubscriptionStatus.Not -> {
-                                AuthDescriptionText(stringId = R.string.not_being_subscribed_to_vpngate)
-                                Button(
-                                    onClick = googleAuthState::signOut
-                                ) {
-                                    Text(text = stringResource(id = R.string.sign_out))
-                                }
-                            }
-                        }
-                    }
-                }
+                AuthenticationStatus.SignedIn -> SignedInSubContent(
+                    onNavigateToHome = onNavigateToHome,
+                    onSignOut = googleAuthState::signOut,
+                    subscriptionStatus = subscriptionStatus,
+                )
                 AuthenticationStatus.PreSignedIn -> {
                     LaunchedEffect(Unit) {
                         googleAuthState.signOut()
@@ -271,7 +249,44 @@ private fun LayoutType.AuthContent(
 }
 
 @Composable
-private fun AuthDescriptionText(
+private fun SignedInSubContent(
+    onNavigateToHome: () -> Unit,
+    onSignOut: () -> Unit,
+    subscriptionStatus: VpnGateSubscriptionStatus,
+) {
+    AnimatedContent(subscriptionStatus, label = "signed-in") {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            when (it) {
+                VpnGateSubscriptionStatus.Unknown -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.padding(32.dp)
+                    )
+                }
+
+                VpnGateSubscriptionStatus.Is -> {
+                    LaunchedEffect(Unit) {
+                        onNavigateToHome()
+                    }
+                }
+
+                VpnGateSubscriptionStatus.Not -> {
+                    DescriptionText(stringId = R.string.not_being_subscribed_to_vpngate)
+                    Button(
+                        onClick = onSignOut
+                    ) {
+                        Text(text = stringResource(id = R.string.sign_out))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DescriptionText(
     @StringRes stringId: Int,
 ) {
     Text(
@@ -296,35 +311,82 @@ private fun LayoutType.isColumn(): Boolean {
     return this is LayoutType.Column
 }
 
-@DevicesWithThemePreviews
+@AuthPreviews.PreSignedIn
 @Composable
-private fun SignInScreenPreview(
-    @PreviewParameter(AuthScreenPreviewParameterProvider::class) params: Pair<AuthUiState, GoogleAuthState>,
+private fun SignInScreenPreview_PreSignedIn() {
+    SignInScreenPreview(
+        uiState = AuthUiState(subscriptionStatus = VpnGateSubscriptionStatus.entries.random()),
+        authenticationStatus = AuthenticationStatus.PreSignedIn,
+    )
+}
+
+@AuthPreviews.SignedOut
+@Composable
+private fun SignInScreenPreview_SignedOut() {
+    SignInScreenPreview(
+        uiState = AuthUiState(subscriptionStatus = VpnGateSubscriptionStatus.entries.random()),
+        authenticationStatus = AuthenticationStatus.SignedOut,
+    )
+}
+
+@AuthPreviews.InProgress
+@Composable
+private fun SignInScreenPreview_InProgress() {
+    SignInScreenPreview(
+        uiState = AuthUiState(subscriptionStatus = VpnGateSubscriptionStatus.entries.random()),
+        authenticationStatus = AuthenticationStatus.InProgress,
+    )
+}
+
+@AuthPreviews.PermissionsNotGranted
+@Composable
+private fun SignInScreenPreview_PermissionsNotGranted() {
+    SignInScreenPreview(
+        uiState = AuthUiState(subscriptionStatus = VpnGateSubscriptionStatus.entries.random()),
+        authenticationStatus = AuthenticationStatus.PermissionsNotGranted,
+    )
+}
+
+@AuthPreviews.SignedIn
+@Composable
+private fun SignInScreenPreview_SignedIn(
+    @PreviewParameter(VpnGateSubscriptionStatusParameterProvider::class) params: VpnGateSubscriptionStatus
 ) {
-    BoxWithConstraints {
-        NsmaVpnTheme {
-            NsmaVpnBackground {
-                val windowSize = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight))
-                AuthScreen(
-                    uiState = params.first,
-                    windowSize = windowSize,
-                    googleAuthState = params.second,
-                )
-            }
-        }
-    }
+    SignInScreenPreview(
+        uiState = AuthUiState(subscriptionStatus = params),
+        authenticationStatus = AuthenticationStatus.SignedIn,
+    )
 }
 
 @PreviewLightDarkLandscape
 @Composable
-private fun SignInScreenPhoneLandscapePreview() {
+private fun SignInScreenPreview_Landscape() {
+    SignInScreenPreview(
+        uiState = AuthUiState(subscriptionStatus = VpnGateSubscriptionStatus.entries.random()),
+        authenticationStatus = AuthenticationStatus.SignedOut,
+    )
+}
+
+@Composable
+private fun SignInScreenPreview(uiState: AuthUiState, authenticationStatus: AuthenticationStatus) {
     BoxWithConstraints {
         NsmaVpnTheme {
             NsmaVpnBackground {
                 val windowSize = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight))
                 AuthScreen(
-                    uiState = AuthUiState(),
+                    uiState = uiState,
                     windowSize = windowSize,
+                    googleAuthState = object : GoogleAuthState {
+                        override val authStatus: AuthenticationStatus = authenticationStatus
+
+                        override var onSignInResult: ((GoogleAccountSignInResult) -> Unit)? = null
+
+                        override fun signIn() = Unit
+
+                        override fun requestPermissions() = Unit
+
+                        override fun signOut() = Unit
+                    },
                 )
             }
         }
