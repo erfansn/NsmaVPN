@@ -9,12 +9,12 @@ plugins {
 
 android {
     namespace 'ir.erfansn.nsmavpn'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId 'ir.erfansn.nsmavpn'
         minSdk 21
-        targetSdk 33
+        targetSdk 34
         versionCode 1
         // TODO: Change to Calender versioning
         versionName '1.0'
@@ -54,11 +54,13 @@ android {
 }
 
 dependencies {
-    def composeBom = platform('androidx.compose:compose-bom:2023.06.01')
+    def composeBom = platform('androidx.compose:compose-bom:2023.08.00')
     implementation composeBom
     implementation 'androidx.compose.material3:material3'
-    implementation 'androidx.compose.material3:material3-window-size-class:1.1.1'
-    implementation 'androidx.compose.ui:ui-tooling-preview'
+    implementation 'androidx.compose.material3:material3-window-size-class'
+    implementation 'androidx.compose.foundation:foundation:1.6.0-alpha03'
+    implementation 'androidx.compose.ui:ui-tooling-preview:1.6.0-alpha03'
+    debugImplementation 'androidx.compose.ui:ui-tooling'
 
     implementation 'androidx.core:core-ktx:1.10.1'
     implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.6.1'
@@ -76,13 +78,12 @@ dependencies {
     implementation "com.google.dagger:hilt-android:$hilt_version"
     kapt "com.google.dagger:hilt-compiler:$hilt_version"
 
-    implementation 'com.google.accompanist:accompanist-systemuicontroller:0.30.1'
+    implementation 'com.google.accompanist:accompanist-systemuicontroller:0.33.0-alpha'
 
     implementation 'com.google.protobuf:protobuf-javalite:3.24.0'
     implementation 'com.google.protobuf:protobuf-kotlin-lite:3.24.0'
 
     implementation 'com.google.android.gms:play-services-auth:20.6.0'
-
     implementation 'com.google.api-client:google-api-client:2.2.0'
     implementation 'com.google.api-client:google-api-client-android:2.2.0'
     implementation 'com.google.apis:google-api-services-gmail:v1-rev20230612-2.0.0'
@@ -94,15 +95,15 @@ dependencies {
     testImplementation "com.google.truth:truth:1.1.5"
     testImplementation 'com.squareup.okhttp3:mockwebserver:4.11.0'
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3'
+    testImplementation 'org.robolectric:robolectric:4.10.3'
+    testImplementation 'androidx.compose.ui:ui-test-junit4'
 
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     androidTestImplementation composeBom
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
-    androidTestImplementation 'com.google.truth:truth:1.1.5'
-
-    debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
+    androidTestImplementation 'com.google.truth:truth:1.1.5'
 
     // TODO: Add twitter compose detekt lint
     // detekt 'io.gitlab.arturbosch.detekt:detekt-cli:1.22.0'

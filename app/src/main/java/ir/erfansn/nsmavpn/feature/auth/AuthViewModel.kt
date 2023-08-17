@@ -1,11 +1,13 @@
 package ir.erfansn.nsmavpn.feature.auth
 
 import android.util.Log
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import dagger.hilt.android.lifecycle.HiltViewModel
+import ir.erfansn.nsmavpn.R
 import ir.erfansn.nsmavpn.data.model.Profile
 import ir.erfansn.nsmavpn.data.repository.ProfileRepository
 import ir.erfansn.nsmavpn.data.repository.ServersRepository
@@ -34,15 +36,26 @@ class SignInViewModel @Inject constructor(
 
     fun verifyVpnGateSubscriptionAndSaveIt(account: GoogleSignInAccount) {
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    subscriptionStatus = if (serversRepository.isSubscribedToVpnGateDailyMail(account.email!!)) {
-                        saveUserProfile(account)
-                        VpnGateSubscriptionStatus.Is
-                    } else {
-                        VpnGateSubscriptionStatus.Not
-                    },
-                )
+            _uiState.update { it.copy(subscriptionStatus = VpnGateSubscriptionStatus.Unknown) }
+
+            try {
+                val isSubscribed = serversRepository.isSubscribedToVpnGateDailyMail(account.email!!)
+                if (isSubscribed) {
+                    saveUserProfile(account)
+                }
+
+                _uiState.update {
+                    it.copy(
+                        subscriptionStatus = if (isSubscribed) VpnGateSubscriptionStatus.Is else VpnGateSubscriptionStatus.Not
+                    )
+                }
+            // Change to specific one
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        errorMessage = R.string.network_problem
+                    )
+                }
             }
         }
     }
@@ -58,6 +71,10 @@ class SignInViewModel @Inject constructor(
         profileRepository.saveUserProfile(profile)
     }
 
+    fun notifyMessageShown() {
+        _uiState.update { it.copy(errorMessage = null) }
+    }
+
     companion object {
         private const val TAG = "AuthViewModel"
     }
@@ -66,6 +83,7 @@ class SignInViewModel @Inject constructor(
 @Immutable
 data class AuthUiState(
     val subscriptionStatus: VpnGateSubscriptionStatus = VpnGateSubscriptionStatus.Unknown,
+    @StringRes val errorMessage: Int? = null,
 )
 
 enum class VpnGateSubscriptionStatus { Unknown, Is, Not }

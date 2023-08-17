@@ -2,6 +2,10 @@ package ir.erfansn.nsmavpn.feature.auth.google
 
 import android.content.Context
 import android.content.Intent
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.Saver
@@ -14,9 +18,18 @@ import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.common.api.Scope
+import ir.erfansn.nsmavpn.R
 
 @Stable
-class DefaultGoogleAuthState(
+interface GoogleAuthState {
+    val authStatus: AuthenticationStatus
+    var onSignInResult: ((GoogleAccountSignInResult) -> Unit)?
+    fun signIn()
+    fun requestPermissions()
+    fun signOut()
+}
+
+class MutableGoogleAuthState(
     @StringRes clientId: Int,
     initStatus: AuthenticationStatus? = null,
     private val context: Context,
@@ -37,57 +50,65 @@ class DefaultGoogleAuthState(
         .build()
     private val googleSignIn = GoogleSignIn.getClient(context, googleSignInOptions)
 
-    override var authStatus by mutableStateOf(AuthenticationStatus.InProgress)
+    override var authStatus by mutableStateOf(initStatus ?: AuthenticationStatus.InProgress)
         private set
 
-    override val currentAccount get() = GoogleSignIn.getLastSignedInAccount(context)
+    private val currentAccount get() = GoogleSignIn.getLastSignedInAccount(context)
+
+    override var onSignInResult: ((GoogleAccountSignInResult) -> Unit)? = null
 
     init {
-        authStatus = when {
-            initStatus != null -> {
-                initStatus
-            }
-            currentAccount != null && currentAccount!!.allPermissionsGranted -> {
-                AuthenticationStatus.PreSignedIn
-            }
-            currentAccount != null -> {
-                AuthenticationStatus.PermissionsNotGranted
-            }
-            else -> {
-                AuthenticationStatus.SignedOut
+        if (initStatus == null) {
+            authStatus = when {
+                currentAccount?.allPermissionsGranted == true -> {
+                    AuthenticationStatus.PreSignedIn
+                }
+
+                currentAccount != null -> {
+                    AuthenticationStatus.PermissionsNotGranted
+                }
+
+                else -> {
+                    AuthenticationStatus.SignedOut
+                }
             }
         }
     }
 
-    override fun getSignedInAccountData(data: Intent?): GoogleSignInAccount? = try {
-        val result = GoogleSignIn.getSignedInAccountFromIntent(data)
-            .getResult(ApiException::class.java)
+    fun handleSigningToAccount(data: Intent?) {
+        try {
+            val result = GoogleSignIn.getSignedInAccountFromIntent(data).getResult(ApiException::class.java)
 
-        if (!result.allPermissionsGranted) {
-            authStatus = AuthenticationStatus.PermissionsNotGranted
-            null
-        } else {
-            authStatus = AuthenticationStatus.SignedIn
-            result
-        }
-    } catch (e: ApiException) {
-        when (e.statusCode) {
-            GoogleSignInStatusCodes.SIGN_IN_FAILED -> throw SignInIsFailedException()
-            CommonStatusCodes.NETWORK_ERROR -> throw NoNetworkConnectionException()
-            else -> null
+            val account = if (!result.allPermissionsGranted) {
+                authStatus = AuthenticationStatus.PermissionsNotGranted
+                null
+            } else {
+                authStatus = AuthenticationStatus.SignedIn
+                result
+            }
+            onSignInResult?.invoke(GoogleAccountSignInResult.Success(account))
+        } catch (e: ApiException) {
+            when (e.statusCode) {
+                GoogleSignInStatusCodes.SIGN_IN_FAILED -> onSignInResult?.invoke(GoogleAccountSignInResult.Error(R.string.sign_in_failed))
+                CommonStatusCodes.NETWORK_ERROR -> onSignInResult?.invoke(GoogleAccountSignInResult.Error(R.string.network_problem))
+            }
         }
     }
 
     private val GoogleSignInAccount.allPermissionsGranted
         get() = GoogleSignIn.hasPermissions(this, *scopes.toTypedArray())
 
-    override fun obtainRequestPermissionsIntent() = obtainSignInIntent()
+    var launcher: ManagedActivityResultLauncher<Intent, ActivityResult>? = null
 
-    override fun obtainSignInIntent() = googleSignIn.signInIntent
+    override fun signIn() {
+        launcher?.launch(googleSignIn.signInIntent)
+    }
+
+    override fun requestPermissions() = signIn()
 
     override fun signOut() {
         authStatus = AuthenticationStatus.InProgress
-        googleSignIn.signOut().addOnSuccessListener {
+        googleSignIn.signOut().addOnCompleteListener {
             authStatus = AuthenticationStatus.SignedOut
         }
     }
@@ -97,20 +118,37 @@ class DefaultGoogleAuthState(
             @StringRes clientId: Int,
             context: Context,
             scopes: List<Scope>,
-        ) = Saver<GoogleAuthState, AuthenticationStatus>(
+        ) = Saver<MutableGoogleAuthState, AuthenticationStatus>(
             save = { it.authStatus },
-            restore = { DefaultGoogleAuthState(clientId, it, context, scopes) }
+            restore = { MutableGoogleAuthState(clientId, it, context, scopes) }
         )
     }
 }
 
-interface GoogleAuthState {
-    val authStatus: AuthenticationStatus
-    val currentAccount: GoogleSignInAccount?
-    fun getSignedInAccountData(data: Intent?): GoogleSignInAccount?
-    fun obtainRequestPermissionsIntent(): Intent
-    fun obtainSignInIntent(): Intent
-    fun signOut()
+@Composable
+fun rememberGoogleAuthState(
+    @StringRes clientId: Int,
+    vararg scopes: Scope,
+): MutableGoogleAuthState {
+    val context = LocalContext.current
+    val googleAuthState = rememberSaveable(clientId, saver = MutableGoogleAuthState.Saver(clientId, context, scopes.toList())) {
+        MutableGoogleAuthState(
+            context = context,
+            clientId = clientId,
+            scopes = scopes.toList(),
+        )
+    }
+
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        googleAuthState.handleSigningToAccount(it.data)
+    }
+    DisposableEffect(clientId) {
+        googleAuthState.launcher = launcher
+        onDispose {
+            googleAuthState.launcher = null
+        }
+    }
+    return googleAuthState
 }
 
 /**
@@ -120,29 +158,7 @@ interface GoogleAuthState {
  */
 enum class AuthenticationStatus { PreSignedIn, SignedIn, InProgress, SignedOut, PermissionsNotGranted }
 
-class SignInIsFailedException : Throwable()
-class NoNetworkConnectionException : Throwable()
-
-@Composable
-fun rememberGoogleAuthState(
-    @StringRes clientId: Int,
-    vararg scopes: Scope,
-): GoogleAuthState {
-    val context = LocalContext.current
-    return rememberSaveable(
-        clientId,
-        saver = DefaultGoogleAuthState.Saver(
-            clientId,
-            context,
-            scopes.toList(),
-        )
-    ) {
-        DefaultGoogleAuthState(
-            context = context,
-            clientId = clientId,
-            scopes = scopes.toList(),
-        )
-    }
+sealed class GoogleAccountSignInResult {
+    data class Error(@StringRes val messageId: Int) : GoogleAccountSignInResult()
+    data class Success(val googleSignInAccount: GoogleSignInAccount?) : GoogleAccountSignInResult()
 }
-
-
