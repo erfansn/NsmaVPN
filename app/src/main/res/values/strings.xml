@@ -8,6 +8,7 @@
     <string name="ok">OK</string>
     <string name="go">GO</string>
     <string name="runtime_permissions_rationale_shown_state">runtime_permissions_rationale_shown_state</string>
+    <string name="cd_back">Go to back</string>
 
     <!--Auth feature-->
     <string name="auth_explanation">To obtain and collect VPN servers this app uses your email messages that sent from VpnGate thus only way to use this app sign-in with email that subscribed to VpnGate daily mirror link</string>
@@ -35,7 +36,13 @@
     <string name="licences">Licences</string>
     <string name="link_licences">https://github.com/ErfanSn/NsmaVPN/Licenses.md</string>
     <string name="link_feedback">https://github.com/ErfanSn/NsmaVPN/issues</string>
-    <string name="app_version">App version: %s</string>
+    <string name="app_version">App version</string>
+    <string name="title_split_tunneling">Split tunneling</string>
+    <string name="desc_split_tunneling">Specify allowed apps use VPN traffic</string>
+    <string name="title_bug_reports">Bug Reports</string>
+    <string name="title_licence">Licence</string>
+    <string name="title_tunnel_splitting">Tunnel splitting</string>
+    <string name="cd_more">More</string>
 
     <!--Home feature-->
     <string name="title_home">Home</string>
