@@ -18,17 +18,22 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 @Composable
 fun NsmaVpnScaffold(
     modifier: Modifier = Modifier,
-    topBar: @Composable (TopAppBarScrollBehavior) -> Unit = { },
+    scrollBehavior: TopAppBarScrollBehavior? = null,
+    topBar: @Composable () -> Unit = { },
     snackbarHost: @Composable () -> Unit = { },
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-
     Scaffold(
         modifier = modifier
             .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = { topBar(scrollBehavior) },
+            .run {
+                if (scrollBehavior != null) {
+                    nestedScroll(scrollBehavior.nestedScrollConnection)
+                } else {
+                    this
+                }
+            },
+        topBar = topBar,
         snackbarHost = snackbarHost,
         contentWindowInsets = WindowInsets.safeContent,
         containerColor = Color.Transparent,

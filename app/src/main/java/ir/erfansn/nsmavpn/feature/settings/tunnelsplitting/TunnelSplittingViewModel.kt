@@ -1,40 +1,87 @@
 package ir.erfansn.nsmavpn.feature.settings.tunnelsplitting
 
-import android.graphics.drawable.Drawable
 import androidx.compose.runtime.Immutable
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.StateFlow
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import ir.erfansn.nsmavpn.data.model.AppInfo
+import ir.erfansn.nsmavpn.data.repository.ConfigurationsRepository
+import ir.erfansn.nsmavpn.data.source.InstalledAppsListProvider
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class TunnelSplittingViewModel : ViewModel() {
+@HiltViewModel
+class TunnelSplittingViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
+    private val configurationsRepository: ConfigurationsRepository,
+    private val installedAppsListProvider: InstalledAppsListProvider,
+) : ViewModel() {
 
-    lateinit var uiState: StateFlow<TunnelSplittingUiState>
+    private val searchQuery = savedStateHandle.getStateFlow(KEY_SEARCH_QUERY, "")
+    val uiState = combine(
+        installedAppsListProvider.installedApps,
+        searchQuery,
+        configurationsRepository.configurations,
+    ) { installedApps, searchQuery, configurations ->
+        TunnelSplittingUiState(
+            searchQuery = searchQuery,
+            appItems = installedApps.filter {
+                it.name.contains(searchQuery, ignoreCase = true)
+            }.map {
+                AppItemUiState(
+                    appInfo = it,
+                    allowed = it.id !in configurations.splitTunnelingAppIds
+                )
+            },
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000L),
+        initialValue = TunnelSplittingUiState(),
+    )
 
-    fun updateFilter(s: String) {
-        TODO("Not yet implemented")
+    fun onSearchQueryChange(query: String) {
+        savedStateHandle[KEY_SEARCH_QUERY] = query
     }
 
-    fun toggleAllowedApp(b: Boolean) {
-        TODO("Not yet implemented")
+    fun toggleAllowedApp(appInfo: AppInfo, allow: Boolean) {
+        viewModelScope.launch {
+            if (allow) {
+                configurationsRepository.removeAppFromSplitTunnelingList(appInfo)
+            } else {
+                configurationsRepository.addAppToSplitTunnelingList(appInfo)
+            }
+        }
     }
 
-    fun changeAllAppsTrafficUsingStatus(b: Boolean) {
-        TODO("Not yet implemented")
+    fun changeAllAppsSplitTunnelingStatus(allow: Boolean) {
+        viewModelScope.launch {
+            if (allow) {
+                configurationsRepository.removeAllAppsFromSplitTunnelingList()
+            } else {
+                val installedApps = installedAppsListProvider.installedApps.first().toTypedArray()
+                configurationsRepository.addAppToSplitTunnelingList(*installedApps)
+            }
+        }
+    }
+
+    companion object {
+        private const val KEY_SEARCH_QUERY = "search_query"
     }
 }
 
 @Immutable
 data class TunnelSplittingUiState(
-    val filterText: String = "",
-    val appItems: List<AppItemUiState> = emptyList()
+    val searchQuery: String = "",
+    val appItems: List<AppItemUiState>? = null
 )
 
-data class AppItemUiState(
+class AppItemUiState(
     val appInfo: AppInfo,
     val allowed: Boolean,
-)
-
-data class AppInfo(
-    val id: String,
-    val name: String,
-    val icon: Drawable,
 )

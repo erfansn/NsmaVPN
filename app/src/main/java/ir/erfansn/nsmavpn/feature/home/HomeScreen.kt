@@ -107,7 +107,9 @@ fun HomeScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val errorNotifier = rememberErrorNotifier(snackbarHostState)
 
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     NsmaVpnScaffold(
+        scrollBehavior = scrollBehavior,
         modifier = modifier,
         topBar = {
             NsmaVpnTopBar(
@@ -141,7 +143,7 @@ fun HomeScreen(
                         )
                     }
                 },
-                scrollBehavior = it,
+                scrollBehavior = scrollBehavior,
             )
         }
     ) {

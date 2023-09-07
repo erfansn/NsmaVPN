@@ -57,7 +57,9 @@ private fun ProfileScreen(
     onNavigateToBack: () -> Unit = { },
     onSignOut: () -> Unit = { },
 ) {
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     NsmaVpnScaffold(
+        scrollBehavior = scrollBehavior,
         modifier = modifier,
         topBar = {
             NsmaVpnTopBar(
@@ -81,7 +83,7 @@ private fun ProfileScreen(
                         )
                     }
                 },
-                scrollBehavior = it,
+                scrollBehavior = scrollBehavior,
             )
         },
     ) {

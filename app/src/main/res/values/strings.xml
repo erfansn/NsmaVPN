@@ -28,10 +28,10 @@
 
     <!--Settings feature-->
     <string name="title_settings">Settings</string>
-    <string name="theme_mode">Theme mode</string>
-    <string name="theme_mode_default">System default</string>
-    <string name="theme_mode_light">Light</string>
-    <string name="theme_mode_dark">Dark</string>
+    <string name="item_title_theme_mode">Theme mode</string>
+    <string name="option_title_theme_mode_default">System default</string>
+    <string name="option_title_theme_mode_light">Light</string>
+    <string name="option_title_theme_mode_dark">Dark</string>
     <string name="feedback">Feedback</string>
     <string name="licences">Licences</string>
     <string name="link_licences">https://github.com/ErfanSn/NsmaVPN/Licenses.md</string>
@@ -39,9 +39,10 @@
     <string name="app_version">App version</string>
     <string name="title_split_tunneling">Split tunneling</string>
     <string name="desc_split_tunneling">Specify allowed apps use VPN traffic</string>
-    <string name="title_bug_reports">Bug Reports</string>
-    <string name="title_licence">Licence</string>
-    <string name="title_tunnel_splitting">Tunnel splitting</string>
+    <string name="item_title_report_bug">Report bug</string>
+    <string name="item_title_licence">Licence</string>
+    <string name="item_title_tunnel_splitting">Tunnel splitting</string>
+    <string name="item_title_use_dynamic_scheme">Use Dynamic scheme</string>
     <string name="cd_more">More</string>
 
     <!--Home feature-->
