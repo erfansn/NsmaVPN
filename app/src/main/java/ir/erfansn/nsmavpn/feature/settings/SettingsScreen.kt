@@ -7,7 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,17 +18,19 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.lerp
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.erfansn.nsmavpn.BuildConfig
 import ir.erfansn.nsmavpn.R
-import ir.erfansn.nsmavpn.data.model.ThemeMode
+import ir.erfansn.nsmavpn.data.model.Configurations
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnBackground
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnLargeTopBar
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnScaffold
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
-import ir.erfansn.nsmavpn.ui.util.preview.ThemePreviews
+import ir.erfansn.nsmavpn.ui.theme.isSupportDynamicScheme
+import kotlin.random.Random
 
 @Composable
 fun SettingsRoute(
@@ -43,6 +45,7 @@ fun SettingsRoute(
         modifier = modifier,
         uiState = uiState,
         onChangeThemeMode = viewModel::updateThemeMode,
+        onCheckDynamicScheme = viewModel::toggleDynamicScheme,
         onNavigateToBack = onNavigateToBack,
         onNavigateToTunnelSplitting = onNavigateToTunnelSplitting,
     )
@@ -51,7 +54,8 @@ fun SettingsRoute(
 @Composable
 private fun SettingsScreen(
     uiState: SettingsUiState,
-    onChangeThemeMode: (ThemeMode) -> Unit,
+    onChangeThemeMode: (Configurations.ThemeMode) -> Unit,
+    onCheckDynamicScheme: () -> Unit,
     onNavigateToBack: () -> Unit,
     onNavigateToTunnelSplitting: () -> Unit,
     modifier: Modifier = Modifier,
@@ -74,7 +78,7 @@ private fun SettingsScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateToBack) {
                         Icon(
-                            imageVector = Icons.Rounded.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = stringResource(id = R.string.cd_back)
                         )
                     }
@@ -102,6 +106,19 @@ private fun SettingsScreen(
                     onChangeThemeMode = onChangeThemeMode
                 )
             }
+            if (isSupportDynamicScheme()) {
+                item {
+                    SettingsItem(
+                        title = stringResource(R.string.item_title_use_dynamic_scheme),
+                        onClick = onCheckDynamicScheme
+                    ) {
+                        Switch(
+                            checked = uiState.isEnableDynamicScheme,
+                            onCheckedChange = null
+                        )
+                    }
+                }
+            }
             item {
                 SettingsItem(
                     title = stringResource(R.string.title_split_tunneling),
@@ -117,7 +134,7 @@ private fun SettingsScreen(
             }
             item {
                 SettingsItem(
-                    title = stringResource(R.string.title_bug_reports),
+                    title = stringResource(R.string.item_title_report_bug),
                     onClick = {
                         uriHandler.openUri(context.getString(R.string.link_feedback))
                     }
@@ -125,7 +142,7 @@ private fun SettingsScreen(
             }
             item {
                 SettingsItem(
-                    title = stringResource(R.string.title_licence),
+                    title = stringResource(R.string.item_title_licence),
                     onClick = {
                         uriHandler.openUri(context.getString(R.string.link_licences))
                     }
@@ -150,8 +167,8 @@ private fun SettingsScreen(
 
 @Composable
 private fun ThemeModeItem(
-    themeMode: ThemeMode,
-    onChangeThemeMode: (ThemeMode) -> Unit,
+    themeMode: Configurations.ThemeMode,
+    onChangeThemeMode: (Configurations.ThemeMode) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -165,7 +182,7 @@ private fun ThemeModeItem(
             contentAlignment = Alignment.CenterStart,
         ) {
             Text(
-                text = stringResource(id = R.string.theme_mode),
+                text = stringResource(id = R.string.item_title_theme_mode),
                 style = MaterialTheme.typography.bodyLarge.copy(
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -183,8 +200,8 @@ private fun ThemeModeItem(
 
 @Composable
 private fun ThemeModeOptions(
-    themeMode: ThemeMode,
-    onChangeThemeMode: (mode: ThemeMode) -> Unit,
+    themeMode: Configurations.ThemeMode,
+    onChangeThemeMode: (Configurations.ThemeMode) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -193,19 +210,19 @@ private fun ThemeModeOptions(
             .padding(vertical = 8.dp)
     ) {
         SelectiveRow(
-            text = stringResource(R.string.theme_mode_default),
-            selected = themeMode == ThemeMode.SYSTEM,
-            onSelect = { onChangeThemeMode(ThemeMode.SYSTEM) }
+            text = stringResource(R.string.option_title_theme_mode_default),
+            selected = themeMode == Configurations.ThemeMode.System,
+            onSelect = { onChangeThemeMode(Configurations.ThemeMode.System) }
         )
         SelectiveRow(
-            text = stringResource(R.string.theme_mode_light),
-            selected = themeMode == ThemeMode.LIGHT,
-            onSelect = { onChangeThemeMode(ThemeMode.LIGHT) }
+            text = stringResource(R.string.option_title_theme_mode_light),
+            selected = themeMode == Configurations.ThemeMode.Light,
+            onSelect = { onChangeThemeMode(Configurations.ThemeMode.Light) }
         )
         SelectiveRow(
-            text = stringResource(R.string.theme_mode_dark),
-            selected = themeMode == ThemeMode.DARK,
-            onSelect = { onChangeThemeMode(ThemeMode.DARK) }
+            text = stringResource(R.string.option_title_theme_mode_dark),
+            selected = themeMode == Configurations.ThemeMode.Dark,
+            onSelect = { onChangeThemeMode(Configurations.ThemeMode.Dark) }
         )
     }
 }
@@ -247,47 +264,58 @@ private fun SettingsItem(
     supporting: String? = null,
     onClick: () -> Unit = { },
     enabled: Boolean = true,
+    trailingContent: (@Composable () -> Unit)? = null
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
         onClick = onClick,
         enabled = enabled,
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .heightIn(min = 56.dp)
                 .padding(vertical = 8.dp)
                 .padding(start = 16.dp, end = 24.dp),
-            verticalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            )
-            supporting?.let {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center,
+            ) {
                 Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
+                supporting?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+                }
+            }
+            Box {
+                trailingContent?.invoke()
             }
         }
     }
 }
 
-@ThemePreviews
+@PreviewLightDark
 @Composable
 private fun SettingsDialogPreview() {
     NsmaVpnTheme {
         NsmaVpnBackground {
             SettingsScreen(
                 uiState = SettingsUiState(
-                    themeMode = ThemeMode.SYSTEM,
+                    themeMode = Configurations.ThemeMode.entries.random(),
+                    isEnableDynamicScheme = Random.nextBoolean(),
                 ),
                 onChangeThemeMode = { },
+                onCheckDynamicScheme = { },
                 onNavigateToBack = { },
                 onNavigateToTunnelSplitting = { }
             )
