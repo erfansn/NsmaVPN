@@ -1,6 +1,7 @@
 package ir.erfansn.nsmavpn.data.source.local
 
 import androidx.datastore.core.DataStore
+import ir.erfansn.nsmavpn.data.model.AppInfo
 import ir.erfansn.nsmavpn.data.model.Configurations
 import ir.erfansn.nsmavpn.data.model.Profile
 import ir.erfansn.nsmavpn.data.source.local.datastore.*
@@ -21,6 +22,44 @@ class DefaultUserPreferencesLocalDataSource @Inject constructor(
                     Configurations.ThemeMode.Dark -> ThemeModeProto.DARK
                     Configurations.ThemeMode.System -> ThemeModeProto.SYSTEM
                 }
+            }
+        }
+    }
+
+    override suspend fun setDynamicSchemeEnable(enable: Boolean) {
+        dataStore.updateData {
+            it.copy {
+                enableDynamicScheme = enable
+            }
+        }
+    }
+
+    override suspend fun addAppsToSplitTunnelingList(apps: List<AppInfo>) {
+        dataStore.updateData {
+            it.copy {
+                splitTunnelingAppId.addAll(apps.map(AppInfo::id))
+            }
+        }
+    }
+
+    override suspend fun removeAppFromSplitTunnelingList(app: AppInfo) {
+        dataStore.updateData {
+            it.copy {
+                splitTunnelingAppId.filter { id ->
+                    id != app.id
+                }.also {
+                    splitTunnelingAppId.clear()
+                }.let { appsId ->
+                    splitTunnelingAppId.addAll(appsId)
+                }
+            }
+        }
+    }
+
+    override suspend fun clearSplitTunnelingList() {
+        dataStore.updateData {
+            it.copy {
+                splitTunnelingAppId.clear()
             }
         }
     }
@@ -46,5 +85,9 @@ class DefaultUserPreferencesLocalDataSource @Inject constructor(
 interface UserPreferencesLocalDataSource {
     val userPreferences: Flow<UserPreferences>
     suspend fun setThemeMode(mode: Configurations.ThemeMode)
+    suspend fun setDynamicSchemeEnable(enable: Boolean)
+    suspend fun addAppsToSplitTunnelingList(apps: List<AppInfo>)
+    suspend fun removeAppFromSplitTunnelingList(app: AppInfo)
+    suspend fun clearSplitTunnelingList()
     suspend fun saveUserProfile(profile: Profile?)
 }
