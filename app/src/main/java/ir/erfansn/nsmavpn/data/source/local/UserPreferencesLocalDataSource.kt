@@ -1,8 +1,8 @@
 package ir.erfansn.nsmavpn.data.source.local
 
 import androidx.datastore.core.DataStore
+import ir.erfansn.nsmavpn.data.model.Configurations
 import ir.erfansn.nsmavpn.data.model.Profile
-import ir.erfansn.nsmavpn.data.model.ThemeMode
 import ir.erfansn.nsmavpn.data.source.local.datastore.*
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -13,13 +13,13 @@ class DefaultUserPreferencesLocalDataSource @Inject constructor(
 
     override val userPreferences = dataStore.data
 
-    override suspend fun setThemeMode(mode: ThemeMode) {
+    override suspend fun setThemeMode(mode: Configurations.ThemeMode) {
         dataStore.updateData {
             it.copy {
                 themeModeProto = when (mode) {
-                    ThemeMode.LIGHT -> ThemeModeProto.LIGHT
-                    ThemeMode.DARK -> ThemeModeProto.DARK
-                    ThemeMode.SYSTEM -> ThemeModeProto.SYSTEM
+                    Configurations.ThemeMode.Light -> ThemeModeProto.LIGHT
+                    Configurations.ThemeMode.Dark -> ThemeModeProto.DARK
+                    Configurations.ThemeMode.System -> ThemeModeProto.SYSTEM
                 }
             }
         }
@@ -45,6 +45,6 @@ class DefaultUserPreferencesLocalDataSource @Inject constructor(
 
 interface UserPreferencesLocalDataSource {
     val userPreferences: Flow<UserPreferences>
-    suspend fun setThemeMode(mode: ThemeMode)
+    suspend fun setThemeMode(mode: Configurations.ThemeMode)
     suspend fun saveUserProfile(profile: Profile?)
 }
