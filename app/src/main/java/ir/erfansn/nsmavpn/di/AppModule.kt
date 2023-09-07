@@ -15,6 +15,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import ir.erfansn.nsmavpn.data.source.DefaultInstalledAppsListProvider
+import ir.erfansn.nsmavpn.data.source.InstalledAppsListProvider
 import ir.erfansn.nsmavpn.data.source.local.DefaultUserPreferencesLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.DefaultVpnProviderLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.UserPreferencesLocalDataSource
@@ -69,10 +71,18 @@ interface AppModule {
         defaultPingChecker: DefaultPingChecker
     ): PingChecker
 
+    @Binds
+    fun bindsInstalledAppsListProvider(
+        defaultInstalledAppsListProvider: DefaultInstalledAppsListProvider,
+    ): InstalledAppsListProvider
+
     companion object {
 
         @[IoDispatcher Provides]
         fun providesIoDispatcher() = Dispatchers.IO
+
+        @[DefaultDispatcher Provides]
+        fun providesDefaultDispatcher() = Dispatchers.Default
 
         @Provides
         fun providesExternalCoroutineScope(
@@ -115,3 +125,7 @@ interface AppModule {
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class IoDispatcher
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class DefaultDispatcher
