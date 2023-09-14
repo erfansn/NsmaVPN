@@ -47,7 +47,7 @@ fun AuthRoute(
     windowSize: WindowSizeClass,
     onNavigateToHome: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: SignInViewModel = viewModel(),
+    viewModel: AuthViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -233,11 +233,13 @@ private fun LayoutType.AuthContent(
                         }
                     }
                 }
-                AuthenticationStatus.SignedIn -> SignedInSubContent(
-                    onNavigateToHome = onNavigateToHome,
-                    onSignOut = googleAuthState::signOut,
-                    subscriptionStatus = subscriptionStatus,
-                )
+                AuthenticationStatus.SignedIn -> {
+                    SignedInSubContent(
+                        onNavigateToHome = onNavigateToHome,
+                        onSignOut = googleAuthState::signOut,
+                        subscriptionStatus = subscriptionStatus,
+                    )
+                }
                 AuthenticationStatus.PreSignedIn -> {
                     LaunchedEffect(Unit) {
                         googleAuthState.signOut()
@@ -272,7 +274,7 @@ private fun SignedInSubContent(
                     }
                 }
 
-                VpnGateSubscriptionStatus.Not -> {
+                VpnGateSubscriptionStatus.IsNot -> {
                     DescriptionText(stringId = R.string.not_being_subscribed_to_vpngate)
                     Button(
                         onClick = onSignOut
