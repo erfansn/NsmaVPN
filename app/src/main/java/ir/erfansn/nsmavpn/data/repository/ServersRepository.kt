@@ -6,7 +6,11 @@ import ir.erfansn.nsmavpn.data.source.local.datastore.Server
 import ir.erfansn.nsmavpn.data.source.local.datastore.UrlLink
 import ir.erfansn.nsmavpn.data.source.remote.VpnGateMessagesRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.task.ServersTasksDataSource
-import ir.erfansn.nsmavpn.data.util.*
+import ir.erfansn.nsmavpn.data.util.PingChecker
+import ir.erfansn.nsmavpn.data.util.VpnGateContentExtractor
+import ir.erfansn.nsmavpn.data.util.asUrlLink
+import ir.erfansn.nsmavpn.data.util.asyncMinByOrNull
+import ir.erfansn.nsmavpn.data.util.asyncPartition
 import ir.erfansn.nsmavpn.di.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -60,7 +64,13 @@ class ServersRepository @Inject constructor(
         if (pingChecker.isReachable(vpnProvider.hostName)) return vpnProvider
 
         // TODO: if mirror links are unavailable check second email message
-        val bodyText = vpnGateMessagesRemoteDataSource.fetchLatestMessageBodyText(userAccountEmail)
+        val messageIds = vpnGateMessagesRemoteDataSource.fetchMessageIdList(userAccountEmail) ?: throw NoVpnGateSubscribed()
+        val bodyText = messageIds.map {
+            vpnGateMessagesRemoteDataSource.fetchMessageBodyText(
+                emailAddress = userAccountEmail,
+                messageId = it,
+            )
+        }.joinToString(separator = "\n")
         val mirrorLink = vpnGateContentExtractor.findVpnGateMirrorLinks(bodyText).asyncMinByOrNull(ioDispatcher) {
             pingChecker.isReachable(it.hostName)
         } ?: throw NotFoundException()
@@ -78,7 +88,7 @@ class ServersRepository @Inject constructor(
     }
 
     suspend fun isSubscribedToVpnGateDailyMail(emailAddress: String) =
-        vpnGateMessagesRemoteDataSource.isSubscribedToDailyMail(emailAddress)
+        false
 
     fun beginVpnServersWorker() {
         serversTasksDataSource.collectVpnServerPeriodically()
@@ -109,3 +119,5 @@ private fun UrlLink.toAbsoluteLink(): String {
 }
 
 class VpnServersNotExistsException : Exception("Vpn servers list is empty")
+class NoVpnGateSubscribed :
+    Exception("Your email don't have subscribe to VpnGate daily mirror links")

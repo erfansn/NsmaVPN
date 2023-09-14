@@ -10,7 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.erfansn.nsmavpn.R
 import ir.erfansn.nsmavpn.data.model.Profile
 import ir.erfansn.nsmavpn.data.repository.ProfileRepository
-import ir.erfansn.nsmavpn.data.repository.ServersRepository
+import ir.erfansn.nsmavpn.data.repository.VpnGateMailRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -18,35 +18,27 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SignInViewModel @Inject constructor(
-    private val serversRepository: ServersRepository,
+class AuthViewModel @Inject constructor(
+    private val vpnGateMailRepository: VpnGateMailRepository,
     private val profileRepository: ProfileRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState = _uiState.asStateFlow()
 
-    init {
-        viewModelScope.launch {
-            serversRepository.stopVpnServersWorker()
-            // Clear profile in any conditions
-            profileRepository.saveUserProfile(null)
-        }
-    }
-
     fun verifyVpnGateSubscriptionAndSaveIt(account: GoogleSignInAccount) {
         viewModelScope.launch {
             _uiState.update { it.copy(subscriptionStatus = VpnGateSubscriptionStatus.Unknown) }
 
             try {
-                val isSubscribed = serversRepository.isSubscribedToVpnGateDailyMail(account.email!!)
+                val isSubscribed = vpnGateMailRepository.isSubscribedToDailyMail(account.email!!)
                 if (isSubscribed) {
                     saveUserProfile(account)
                 }
 
                 _uiState.update {
                     it.copy(
-                        subscriptionStatus = if (isSubscribed) VpnGateSubscriptionStatus.Is else VpnGateSubscriptionStatus.Not
+                        subscriptionStatus = if (isSubscribed) VpnGateSubscriptionStatus.Is else VpnGateSubscriptionStatus.IsNot
                     )
                 }
             // Change to specific one
@@ -86,4 +78,4 @@ data class AuthUiState(
     @StringRes val errorMessage: Int? = null,
 )
 
-enum class VpnGateSubscriptionStatus { Unknown, Is, Not }
+enum class VpnGateSubscriptionStatus { Unknown, IsNot, Is }
