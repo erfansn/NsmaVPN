@@ -15,6 +15,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import ir.erfansn.nsmavpn.data.repository.DefaultVpnGateMailRepository
+import ir.erfansn.nsmavpn.data.repository.VpnGateMailRepository
 import ir.erfansn.nsmavpn.data.source.DefaultInstalledAppsListProvider
 import ir.erfansn.nsmavpn.data.source.InstalledAppsListProvider
 import ir.erfansn.nsmavpn.data.source.local.DefaultUserPreferencesLocalDataSource
@@ -35,10 +37,6 @@ import kotlinx.coroutines.SupervisorJob
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
-/**
- * To follow DRY principle we can use interface instead of abstract class
- * to prevent repeat `abstract`
- */
 @Module
 @InstallIn(SingletonComponent::class)
 interface AppModule {
@@ -75,6 +73,11 @@ interface AppModule {
     fun bindsInstalledAppsListProvider(
         defaultInstalledAppsListProvider: DefaultInstalledAppsListProvider,
     ): InstalledAppsListProvider
+
+    @Binds
+    fun bindsVpnGateMailRepository(
+        defaultVpnGateMailRepository: DefaultVpnGateMailRepository
+    ): VpnGateMailRepository
 
     companion object {
 
