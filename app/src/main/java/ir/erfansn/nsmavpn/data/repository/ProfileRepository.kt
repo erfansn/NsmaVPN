@@ -10,15 +10,19 @@ import javax.inject.Inject
 
 class ProfileRepository @Inject constructor(
     private val userPreferencesLocalDataSource: UserPreferencesLocalDataSource,
-    private val externalScope: CoroutineScope,
+    private val applicationScope: CoroutineScope,
 ) {
     val userProfile = userPreferencesLocalDataSource.userPreferences.map {
         it.toProfile()
     }
 
-    suspend fun saveUserProfile(profile: Profile?) {
-        externalScope.launch {
-            userPreferencesLocalDataSource.saveUserProfile(profile)
-        }.join()
+    suspend fun saveUserProfile(profile: Profile) {
+        userPreferencesLocalDataSource.saveUserProfile(profile)
+    }
+
+    fun clearUserProfile() {
+        applicationScope.launch {
+            userPreferencesLocalDataSource.clearUserProfile()
+        }
     }
 }

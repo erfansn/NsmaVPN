@@ -64,19 +64,22 @@ class DefaultUserPreferencesLocalDataSource @Inject constructor(
         }
     }
 
-    override suspend fun saveUserProfile(profile: Profile?) {
+    override suspend fun saveUserProfile(profile: Profile) {
         dataStore.updateData {
             it.copy {
-                if (profile == null) {
-                    clearProfileProto()
-                    return@copy
-                }
-
                 profileProto = profileProto {
                     avatarUrl = profile.avatarUrl
                     emailAddress = profile.emailAddress
                     displayName = profile.displayName
                 }
+            }
+        }
+    }
+
+    override suspend fun clearUserProfile() {
+        dataStore.updateData {
+            it.copy {
+                clearProfileProto()
             }
         }
     }
@@ -89,5 +92,6 @@ interface UserPreferencesLocalDataSource {
     suspend fun addAppsToSplitTunnelingList(apps: List<AppInfo>)
     suspend fun removeAppFromSplitTunnelingList(app: AppInfo)
     suspend fun clearSplitTunnelingList()
-    suspend fun saveUserProfile(profile: Profile?)
+    suspend fun saveUserProfile(profile: Profile)
+    suspend fun clearUserProfile()
 }
