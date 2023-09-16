@@ -107,9 +107,8 @@ fun HomeScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val errorNotifier = rememberErrorNotifier(snackbarHostState)
 
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val scrollState = rememberScrollState()
     NsmaVpnScaffold(
-        scrollBehavior = scrollBehavior,
         modifier = modifier,
         topBar = {
             NsmaVpnTopBar(
@@ -143,14 +142,20 @@ fun HomeScreen(
                         )
                     }
                 },
-                scrollBehavior = scrollBehavior,
+                overlappedWithContent = {
+                    scrollState.value > 0f
+                }
             )
         }
     ) {
         HomeContent(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(vertical = 32.dp)
+                .padding(it),
             uiState = uiState,
             windowSize = windowSize,
-            contentPadding = it,
             errorNotifier = errorNotifier,
         )
     }
@@ -159,17 +164,12 @@ fun HomeScreen(
 @Composable
 fun HomeContent(
     uiState: HomeUiState,
-    contentPadding: PaddingValues,
     windowSize: WindowSizeClass,
     errorNotifier: ErrorNotifier,
     modifier: Modifier = Modifier,
 ) {
     ConstraintLayout(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(vertical = 32.dp)
-            .padding(contentPadding),
+        modifier = modifier,
         constraintSet = windowSize.createConstraintSet,
     ) {
         var state by remember { mutableStateOf(VpnSwitchState.Off) }

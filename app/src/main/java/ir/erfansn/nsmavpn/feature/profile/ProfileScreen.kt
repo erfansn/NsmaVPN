@@ -3,13 +3,28 @@
 package ir.erfansn.nsmavpn.feature.profile
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ExitToApp
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -20,7 +35,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
@@ -34,6 +48,7 @@ import ir.erfansn.nsmavpn.ui.component.NsmaVpnTopBar
 import ir.erfansn.nsmavpn.ui.component.UserAvatar
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
 import ir.erfansn.nsmavpn.ui.util.preview.ThemeWithDevicesPreviews
+import kotlin.random.Random
 
 @Composable
 fun ProfileRoute(
@@ -90,16 +105,7 @@ private fun ProfileScreen(
         )
     }
 
-    val topAppBarState = remember(LocalConfiguration.current.orientation) {
-        TopAppBarState(
-            initialHeightOffsetLimit = -Float.MAX_VALUE,
-            initialHeightOffset = 0f,
-            initialContentOffset = 0f
-        )
-    }
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
-        state = topAppBarState
-    )
+    val scrollState = rememberScrollState()
     NsmaVpnScaffold(
         modifier = modifier,
         topBar = {
@@ -123,14 +129,16 @@ private fun ProfileScreen(
                         )
                     }
                 },
-                scrollBehavior = scrollBehavior,
+                overlappedWithContent = { scrollState.value > 0f }
             )
         },
-        scrollBehavior = scrollBehavior,
     ) {
         ProfileContent(
+            modifier = Modifier.fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(16.dp)
+                .padding(it),
             uiState = uiState,
-            contentPadding = it,
             windowSize = windowSize
         )
     }
@@ -139,16 +147,11 @@ private fun ProfileScreen(
 @Composable
 private fun ProfileContent(
     uiState: ProfileUiState,
-    contentPadding: PaddingValues,
     windowSize: WindowSizeClass,
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
-            .padding(contentPadding),
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = if (windowSize.widthSizeClass != WindowWidthSizeClass.Compact) {
             Arrangement.Center
@@ -244,7 +247,8 @@ private fun ProfileScreenPreview() {
                 ProfileScreen(
                     uiState = ProfileUiState(
                         displayName = "Erfan Sn",
-                        emailAddress = "erfansn.es@gmail.com"
+                        emailAddress = "erfansn.es@gmail.com",
+                        vpnGateSubscriptionStatus = VpnGateSubscriptionStatus(Random.nextBoolean())
                     ),
                     windowSize = windowSize,
                     onSignOut = { },
