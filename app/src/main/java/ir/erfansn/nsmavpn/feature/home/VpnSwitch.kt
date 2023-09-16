@@ -14,7 +14,6 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,14 +48,17 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import ir.erfansn.nsmavpn.R
 import ir.erfansn.nsmavpn.ui.component.modifier.FractionalThreshold
+import ir.erfansn.nsmavpn.ui.component.modifier.SwipeableDefaults
 import ir.erfansn.nsmavpn.ui.component.modifier.rememberSwipeableStateFor
 import ir.erfansn.nsmavpn.ui.component.modifier.swipeable
 import ir.erfansn.nsmavpn.ui.theme.Gray
@@ -64,12 +66,12 @@ import ir.erfansn.nsmavpn.ui.theme.Green
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
 import ir.erfansn.nsmavpn.ui.theme.Red
 import ir.erfansn.nsmavpn.ui.theme.Yellow
-import ir.erfansn.nsmavpn.ui.util.preview.ThemePreviews
 import ir.erfansn.nsmavpn.ui.util.whenever
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class)
+@ExperimentalMaterial3Api
 @Composable
 fun VpnSwitch(
     state: VpnSwitchState,
@@ -87,34 +89,35 @@ fun VpnSwitch(
         previousEnabledValue = enabled
     }
 
-    val prepareVpnService = rememberLauncherForActivityResult(PrepareVpnService()) { isPrepared ->
-        if (isPrepared) onStateChange(VpnSwitchState.On)
-    }
     val isInspectionMode = LocalInspectionMode.current
+    val prepareVpnService = rememberLauncherForActivityResult(PrepareVpnService()) { isPrepared ->
+        onStateChange(if (isPrepared) VpnSwitchState.On else VpnSwitchState.Off)
+    }
     val swipeableState = rememberSwipeableStateFor(
         value = state,
         onValueChange = {
-            if (isInspectionMode) {
-                onStateChange(it)
+            if (!isInspectionMode && it == VpnSwitchState.On) {
+                prepareVpnService.launch()
                 return@rememberSwipeableStateFor
             }
 
-            if (it == VpnSwitchState.On) {
-                prepareVpnService.launch()
-            } else {
-                onStateChange(VpnSwitchState.Off)
-            }
+            onStateChange(it)
         }
     )
-    val swipeableAnchors = mapOf(
-        0f to VpnSwitchState.On,
-        (VpnSwitchHeightDp.value * (1f - 0.6f)) to VpnSwitchState.Off,
-    )
+
+    val density = LocalDensity.current
+    val vpnSwitchAnchors = remember(density) {
+        val anchorsDelta = VpnSwitchDefaults.VpnSwitchHeightDp - VpnSwitchDefaults.VpnSwitchThumbHeight
+        mapOf(
+            0f to VpnSwitchState.On,
+            with(density) { anchorsDelta.toPx() } to VpnSwitchState.Off,
+        )
+    }
     Box(
         modifier = modifier
             .requiredSize(
-                width = VpnSwitchWidthDp,
-                height = VpnSwitchHeightDp,
+                width = VpnSwitchDefaults.VpnSwitchWidthDp,
+                height = VpnSwitchDefaults.VpnSwitchHeightDp,
             )
             .clip(CircleShape)
             .background(
@@ -124,9 +127,13 @@ fun VpnSwitch(
             .swipeable(
                 enabled = enabled,
                 state = swipeableState,
-                anchors = swipeableAnchors,
+                anchors = vpnSwitchAnchors,
                 orientation = Orientation.Vertical,
-                resistance = null,
+                resistance = SwipeableDefaults.resistanceConfig(
+                    anchors = vpnSwitchAnchors.keys,
+                    factorAtMin = VpnSwitchDefaults.StandardResistanceFactor,
+                    factorAtMax = VpnSwitchDefaults.StandardResistanceFactor
+                ),
                 thresholds = { _, _ -> FractionalThreshold(0.5f) }
             ),
     ) {
@@ -141,98 +148,114 @@ fun VpnSwitch(
             }
 
             val scope = rememberCoroutineScope()
-            Column(
+            VpnSwitchThumb(
+                enabled = enabled,
+                state = state,
+                connected = connected,
+                yOffset = {
+                    swipeableState.offset.value.roundToInt()
+                },
+                onClick = {
+                    scope.launch { swipeableState.animateTo(!state) }
+                }
+            )
+        }
+    }
+}
+
+@ExperimentalMaterial3Api
+@Composable
+private fun VpnSwitchThumb(
+    onClick: () -> Unit,
+    yOffset: () -> Int,
+    state: VpnSwitchState,
+    enabled: Boolean,
+    connected: Boolean,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(VpnSwitchDefaults.VpnSwitchThumbHeight)
+            .padding(VpnSwitchDefaults.VpnSwitchAroundPadding)
+            .offset { IntOffset(x = 0, y = yOffset()) }
+            .clip(CircleShape)
+            .background(
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shape = CircleShape,
+            )
+            .clickable(
+                enabled = enabled,
+                role = Role.Switch,
+                onClickLabel = "Start vpn",
+                onClick = onClick,
+            )
+            .padding(vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceEvenly,
+    ) {
+        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onPrimaryContainer) {
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.6f)
-                    .padding(8.dp)
-                    .offset { IntOffset(x = 0, y = swipeableState.offset.value.dp.roundToPx()) }
-                    .clip(CircleShape)
+                    .width(16.dp)
+                    .height(4.dp)
                     .background(
-                        color = MaterialTheme.colorScheme.primaryContainer,
+                        color = when {
+                            enabled && state == VpnSwitchState.On -> if (connected) Green else Yellow
+                            state == VpnSwitchState.Off && enabled -> Gray
+                            else -> Red
+                        },
                         shape = CircleShape,
                     )
-                    .clickable(
-                        enabled = enabled,
-                        role = Role.Switch,
-                        onClickLabel = "Start vpn"
-                    ) {
-                        scope.launch {
-                            swipeableState.animateTo(!swipeableState.currentValue)
-                        }
-                    }
-                    .padding(vertical = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceEvenly,
-            ) {
-                CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onPrimaryContainer) {
-                    Box(
-                        modifier = Modifier
-                            .width(16.dp)
-                            .height(4.dp)
-                            .background(
-                                color = when {
+                    .whenever(!enabled || state == VpnSwitchState.On) {
+                        drawBehind {
+                            drawIntoCanvas {
+                                val paint = Paint()
+
+                                val color = when {
                                     enabled && state == VpnSwitchState.On -> {
                                         if (connected) Green else Yellow
                                     }
 
-                                    enabled && state == VpnSwitchState.Off -> Gray
                                     else -> Red
-                                },
-                                shape = CircleShape,
-                            )
-                            .whenever(!enabled || state == VpnSwitchState.On) {
-                                drawBehind {
-                                    drawIntoCanvas {
-                                        val paint = Paint()
-
-                                        val color = when {
-                                            enabled && state == VpnSwitchState.On -> {
-                                                if (connected) Green else Yellow
-                                            }
-
-                                            else -> Red
-                                        }
-
-                                        val frameworkPaint = paint.asFrameworkPaint()
-                                        frameworkPaint.color = Color.TRANSPARENT
-                                        frameworkPaint.setShadowLayer(
-                                            20f,
-                                            0f,
-                                            0f,
-                                            color
-                                                .copy(0.5f)
-                                                .toArgb(),
-                                        )
-
-                                        val spreetShadowDp = 2.dp.toPx()
-                                        it.drawRoundRect(
-                                            left = -spreetShadowDp,
-                                            top = -spreetShadowDp,
-                                            right = size.width + spreetShadowDp,
-                                            bottom = size.height + spreetShadowDp,
-                                            radiusX = (size.height + spreetShadowDp) / 2f,
-                                            radiusY = (size.height + spreetShadowDp) / 2f,
-                                            paint = paint,
-                                        )
-                                    }
                                 }
+
+                                val frameworkPaint = paint.asFrameworkPaint()
+                                frameworkPaint.color = Color.TRANSPARENT
+                                frameworkPaint.setShadowLayer(
+                                    20f,
+                                    0f,
+                                    0f,
+                                    color
+                                        .copy(0.5f)
+                                        .toArgb(),
+                                )
+
+                                val spreetShadowDp = 2.dp.toPx()
+                                it.drawRoundRect(
+                                    left = -spreetShadowDp,
+                                    top = -spreetShadowDp,
+                                    right = size.width + spreetShadowDp,
+                                    bottom = size.height + spreetShadowDp,
+                                    radiusX = (size.height + spreetShadowDp) / 2f,
+                                    radiusY = (size.height + spreetShadowDp) / 2f,
+                                    paint = paint,
+                                )
                             }
-                    )
-                    val stateIndicatorText =
-                        if (swipeableState.currentValue == VpnSwitchState.Off) {
-                            "Start"
-                        } else {
-                            "Stop"
                         }
-                    Text(stateIndicatorText.uppercase())
-                    Icon(
-                        modifier = Modifier.size(48.dp),
-                        painter = painterResource(id = R.drawable.ic_round_power),
-                        contentDescription = null,
-                    )
+                    }
+            )
+            val stateIndicatorText =
+                if (state == VpnSwitchState.Off) {
+                    "Start"
+                } else {
+                    "Stop"
                 }
-            }
+            Text(stateIndicatorText.uppercase())
+            Icon(
+                modifier = Modifier.size(48.dp),
+                painter = painterResource(id = R.drawable.ic_round_power),
+                contentDescription = null,
+            )
         }
     }
 }
@@ -259,6 +282,15 @@ private fun DownSideArrows(
     }
 }
 
+object VpnSwitchDefaults {
+    val VpnSwitchWidthDp = 124.dp
+    val VpnSwitchHeightDp = 288.dp
+    val VpnSwitchAroundPadding = 8.dp
+    val VpnSwitchThumbHeight = (VpnSwitchHeightDp * 0.65f) - (VpnSwitchAroundPadding * 2)
+
+    const val StandardResistanceFactor = 55f
+}
+
 private class PrepareVpnService : ActivityResultContract<Unit, Boolean>() {
 
     override fun createIntent(context: Context, input: Unit): Intent {
@@ -274,10 +306,14 @@ private class PrepareVpnService : ActivityResultContract<Unit, Boolean>() {
     }
 }
 
-private val VpnSwitchWidthDp = 124.dp
-private val VpnSwitchHeightDp = 288.dp
+enum class VpnSwitchState { On, Off }
 
-@ThemePreviews
+private operator fun VpnSwitchState.not(): VpnSwitchState {
+    return if (this == VpnSwitchState.On) VpnSwitchState.Off else VpnSwitchState.On
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@PreviewLightDark
 @Composable
 fun VpnSwitchPreview() {
     NsmaVpnTheme {
@@ -296,7 +332,6 @@ fun VpnSwitchPreview() {
         }
 
         VpnSwitch(
-            modifier = Modifier.padding(16.dp),
             state = state,
             onStateChange = { state = it },
             enabled = enabled,
