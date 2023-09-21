@@ -17,12 +17,13 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import ir.erfansn.nsmavpn.data.repository.DefaultVpnGateMailRepository
 import ir.erfansn.nsmavpn.data.repository.VpnGateMailRepository
-import ir.erfansn.nsmavpn.data.source.DefaultInstalledAppsListProvider
-import ir.erfansn.nsmavpn.data.source.InstalledAppsListProvider
+import ir.erfansn.nsmavpn.data.util.DefaultInstalledAppsListProvider
+import ir.erfansn.nsmavpn.data.util.InstalledAppsListProvider
 import ir.erfansn.nsmavpn.data.source.local.DefaultUserPreferencesLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.DefaultVpnProviderLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.UserPreferencesLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.VpnProviderLocalDataSource
+import ir.erfansn.nsmavpn.data.source.local.datastore.LastVpnConnectionSerializer
 import ir.erfansn.nsmavpn.data.source.local.datastore.UserPreferencesSerializer
 import ir.erfansn.nsmavpn.data.source.local.datastore.VpnProviderSerializer
 import ir.erfansn.nsmavpn.data.source.remote.DefaultVpnGateMessagesRemoteDataSource
@@ -104,6 +105,13 @@ interface AppModule {
             DataStoreFactory.create(
                 serializer = VpnProviderSerializer,
                 produceFile = { context.dataStoreFile("vpn_provider") }
+            )
+
+        @[Provides Singleton]
+        fun providesLastVpnConnectionDataStore(@ApplicationContext context: Context) =
+            DataStoreFactory.create(
+                serializer = LastVpnConnectionSerializer,
+                produceFile = { context.dataStoreFile("last_vpn_connection") }
             )
 
         @Provides
