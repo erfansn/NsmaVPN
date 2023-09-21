@@ -20,52 +20,59 @@ class DefaultVpnProviderLocalDataSource @Inject constructor(
     override suspend fun getVpnProviderAddress(): UrlLink =
         dataStore.data.first().address
 
-    override suspend fun saveVpnProviderAddress(address: UrlLink) {
+    override suspend fun saveVpnProviderAddress(providerAddress: UrlLink) {
         dataStore.updateData {
             it.copy {
-                this.address = address
+                address = providerAddress
             }
         }
     }
 
     override suspend fun getAvailableVpnServers(): List<Server> =
         dataStore.data.first().let { vpnProvider ->
-            vpnProvider.serversList.filter { it !in vpnProvider.blackServersList }
+            vpnProvider.serversList.filter { it !in vpnProvider.blacklistedServersList }
         }
 
     override suspend fun saveVpnServers(servers: List<Server>) {
         dataStore.updateData { vpnProvider ->
-            vpnProvider.toBuilder().apply {
-                val newServers = servers.filter { it !in vpnProvider.serversList }
-                addAllServers(newServers)
-            }.build()
+            vpnProvider.copy {
+                val newServers = servers.filter { it !in this.servers }
+                this.servers.addAll(newServers)
+            }
         }
     }
 
     override suspend fun getBlockedVpnServers(): List<Server> {
-        return dataStore.data.first().blackServersList
+        return dataStore.data.first().blacklistedServersList
     }
 
     override suspend fun blockVpnServers(vararg servers: Server) {
         dataStore.updateData { vpnProvider ->
-            val newServers = servers.filter { it !in vpnProvider.blackServersList }
-            vpnProvider.toBuilder().addAllBlackServers(newServers).build()
+            vpnProvider.copy {
+                val newServers = servers.filter { it !in blacklistedServers }
+                blacklistedServers.addAll(newServers)
+            }
         }
     }
 
     override suspend fun unblockVpnServer(server: Server) {
-        dataStore.updateData {
-            check(server in it.blackServersList)
-
-            val serverIndex = it.blackServersList.indexOf(server)
-            it.toBuilder().removeBlackServers(serverIndex).build()
+        dataStore.updateData { vpnProvider ->
+            vpnProvider.copy {
+                blacklistedServers.filter {
+                    it != server
+                }.also {
+                    blacklistedServers.clear()
+                }.let {
+                    blacklistedServers.addAll(it)
+                }
+            }
         }
     }
 }
 
 interface VpnProviderLocalDataSource {
     suspend fun getVpnProviderAddress(): UrlLink
-    suspend fun saveVpnProviderAddress(address: UrlLink)
+    suspend fun saveVpnProviderAddress(providerAddress: UrlLink)
     suspend fun getAvailableVpnServers(): List<Server>
     suspend fun saveVpnServers(servers: List<Server>)
     suspend fun getBlockedVpnServers(): List<Server>

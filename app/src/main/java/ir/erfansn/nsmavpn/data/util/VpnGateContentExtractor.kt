@@ -45,7 +45,7 @@ class DefaultVpnGateContentExtractor @Inject constructor(
                     countrySelector.zip(serverSelector).filterNot { it.second.isEmpty() }
                         .map { (country, url) ->
                             Server.newBuilder()
-                                .setCountry(country)
+                                .setCountryCode(country)
                                 .setAddress(url.toUrlLink())
                                 .build()
                         }

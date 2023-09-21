@@ -3,15 +3,15 @@ syntax = "proto3";
 option java_package = "ir.erfansn.nsmavpn.data.source.local.datastore";
 option java_multiple_files = true;
 
-message Server {
-  string country = 1;
-  UrlLink address = 2;
-}
-
 message VpnProvider {
   UrlLink address = 1;
   repeated Server servers = 2;
-  repeated Server black_servers = 3;
+  repeated Server blacklisted_servers = 3;
+}
+
+message Server {
+  string country_code = 1;
+  UrlLink address = 2;
 }
 
 message UrlLink {
