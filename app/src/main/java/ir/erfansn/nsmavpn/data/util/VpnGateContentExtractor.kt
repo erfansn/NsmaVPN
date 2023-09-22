@@ -3,7 +3,7 @@ package ir.erfansn.nsmavpn.data.util
 import ir.erfansn.nsmavpn.data.source.local.datastore.Protocol
 import ir.erfansn.nsmavpn.data.source.local.datastore.Server
 import ir.erfansn.nsmavpn.data.source.local.datastore.server
-import ir.erfansn.nsmavpn.data.source.local.datastore.urlLink
+import ir.erfansn.nsmavpn.data.source.local.datastore.urlParts
 import ir.erfansn.nsmavpn.di.IoDispatcher
 import it.skrape.core.htmlDocument
 import it.skrape.fetcher.AsyncFetcher
@@ -37,7 +37,7 @@ class DefaultVpnGateContentExtractor @Inject constructor(
 
                             server {
                                 countryCode = countryFlagUrl.substringAfterLast("/").split(".")[0]
-                                address = urlLink {
+                                address = urlParts {
                                     protocol = Protocol.HTTPS
                                     hostName = urlParts.first()
                                     portNumber = urlParts.getOrNull(1)?.toInt() ?: 443
