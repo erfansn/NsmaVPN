@@ -87,6 +87,11 @@ interface AppModule {
         defaultLastVpnConnectionLocalDataSource: DefaultLastVpnConnectionLocalDataSource
     ): LastVpnConnectionLocalDataSource
 
+    @Binds
+    fun bindsNetworkUsageTracker(
+        defaultNetworkUsageTracker: DefaultNetworkUsageTracker,
+    ): NetworkUsageTracker
+
     companion object {
 
         @[IoDispatcher Provides]
