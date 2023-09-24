@@ -1,5 +1,6 @@
 package ir.erfansn.nsmavpn.data.util
 
+import ir.erfansn.nsmavpn.data.model.MirrorLink
 import ir.erfansn.nsmavpn.data.source.local.datastore.Protocol
 import ir.erfansn.nsmavpn.data.source.local.datastore.Server
 import ir.erfansn.nsmavpn.data.source.local.datastore.server
@@ -90,14 +91,4 @@ class DefaultVpnGateContentExtractor @Inject constructor(
 interface VpnGateContentExtractor {
     suspend fun extractSstpVpnServers(vpnGateUrl: String): List<Server>
     fun findVpnGateMirrorLinks(content: String): List<MirrorLink>
-}
-
-data class MirrorLink(
-    val protocol: String,
-    val hostName: String,
-    val port: String,
-) {
-    override fun toString(): String {
-        return "$protocol://$hostName:$port"
-    }
 }
