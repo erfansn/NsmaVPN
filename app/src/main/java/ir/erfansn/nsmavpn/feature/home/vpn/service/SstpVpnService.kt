@@ -17,13 +17,15 @@ import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
 import ir.erfansn.nsmavpn.R
-import ir.erfansn.nsmavpn.data.model.DataUsage
+import ir.erfansn.nsmavpn.data.model.NetworkUsage
+import ir.erfansn.nsmavpn.data.util.NetworkUsageTracker
 import ir.erfansn.nsmavpn.data.util.monitor.VpnConnectionStatus
 import ir.erfansn.nsmavpn.data.util.monitor.VpnNetworkMonitor
-import ir.erfansn.nsmavpn.data.util.totalDataUsage
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ClientBridge
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.control.ControlClient
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -34,6 +36,9 @@ class SstpVpnService : VpnService() {
 
     @Inject
     lateinit var scope: CoroutineScope
+
+    @Inject
+    lateinit var networkUsageTracker: NetworkUsageTracker
 
     private var controlClient: ControlClient? = null
     private val vpnStateExposer = VpnStateExposer()
@@ -51,7 +56,7 @@ class SstpVpnService : VpnService() {
                 when (it) {
                     VpnConnectionStatus.Established -> {
                         dataUsageTrackerJob = launch {
-                            totalDataUsage.collect { data ->
+                            networkUsageTracker.trackUsage(0).collect { data ->
                                 vpnStateExposer.onEstablishment?.invoke(data)
                             }
                         }
@@ -96,7 +101,7 @@ class SstpVpnService : VpnService() {
     }
 
     inner class VpnStateExposer : Binder() {
-        var onEstablishment: ((DataUsage) -> Unit)? = null
+        var onEstablishment: ((NetworkUsage) -> Unit)? = null
         var onInvalid: (() -> Unit)? = null
 
         override fun onTransact(code: Int, data: Parcel, reply: Parcel?, flags: Int): Boolean {
