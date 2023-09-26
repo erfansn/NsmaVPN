@@ -1,4 +1,4 @@
-package ir.erfansn.nsmavpn.data.worker
+package ir.erfansn.nsmavpn.data.sync.worker
 
 import android.content.Context
 import androidx.hilt.work.HiltWorker
@@ -9,7 +9,7 @@ import ir.erfansn.nsmavpn.data.repository.ServersRepository
 import java.util.concurrent.TimeUnit
 
 @HiltWorker
-class ServerCollectorWorker @AssistedInject constructor(
+class ServerUnblockingWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val serversRepository: ServersRepository,
@@ -17,31 +17,26 @@ class ServerCollectorWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         return try {
-            serversRepository.collectVpnServers()
+            serversRepository.unblockReachableVpnServerFromBlacklistRandomly()
             Result.success()
         } catch (e: Exception) {
-            Result.retry()
+            Result.failure()
         }
     }
 
     companion object {
-        const val SERVER_COLLECTOR_WORKER = "server_collector"
+        const val SERVER_UNBLOCKING_WORKER = "server_blocking"
 
-        private const val COLLECTOR_TIME_INTERVAL = 12L
-        private val collectorWorkerConstraints = Constraints.Builder()
+        private const val UNBLOCKING_TIME_INTERVAL = 1L
+        private val unblockingWorkerConstraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        val workRequest = PeriodicWorkRequestBuilder<ServerCollectorWorker>(
-            repeatInterval = COLLECTOR_TIME_INTERVAL,
+        val workRequest = PeriodicWorkRequestBuilder<ServerUnblockingWorker>(
+            repeatInterval = UNBLOCKING_TIME_INTERVAL,
             repeatIntervalTimeUnit = TimeUnit.HOURS,
         )
-            .setBackoffCriteria(
-                BackoffPolicy.LINEAR,
-                WorkRequest.MIN_BACKOFF_MILLIS,
-                TimeUnit.MILLISECONDS
-            )
-            .setConstraints(collectorWorkerConstraints)
+            .setConstraints(unblockingWorkerConstraints)
             .build()
     }
 }

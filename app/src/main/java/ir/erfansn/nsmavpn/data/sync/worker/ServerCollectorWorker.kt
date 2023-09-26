@@ -1,4 +1,4 @@
-package ir.erfansn.nsmavpn.data.worker
+package ir.erfansn.nsmavpn.data.sync.worker
 
 import android.content.Context
 import androidx.hilt.work.HiltWorker
@@ -9,7 +9,7 @@ import ir.erfansn.nsmavpn.data.repository.ServersRepository
 import java.util.concurrent.TimeUnit
 
 @HiltWorker
-class ServerUnblockingWorker @AssistedInject constructor(
+class ServerCollectorWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val serversRepository: ServersRepository,
@@ -17,26 +17,31 @@ class ServerUnblockingWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         return try {
-            serversRepository.unblockAvailableVpnServerFromBlacklistRandomly()
+            serversRepository.collectVpnServers()
             Result.success()
         } catch (e: Exception) {
-            Result.failure()
+            Result.retry()
         }
     }
 
     companion object {
-        const val SERVER_UNBLOCKING_WORKER = "server_blocking"
+        const val SERVER_COLLECTOR_WORKER = "server_collector"
 
-        private const val UNBLOCKING_TIME_INTERVAL = 24L
-        private val unblockingWorkerConstraints = Constraints.Builder()
+        private const val COLLECTOR_TIME_INTERVAL = 12L
+        private val collectorWorkerConstraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        val workRequest = PeriodicWorkRequestBuilder<ServerUnblockingWorker>(
-            repeatInterval = UNBLOCKING_TIME_INTERVAL,
+        val workRequest = PeriodicWorkRequestBuilder<ServerCollectorWorker>(
+            repeatInterval = COLLECTOR_TIME_INTERVAL,
             repeatIntervalTimeUnit = TimeUnit.HOURS,
         )
-            .setConstraints(unblockingWorkerConstraints)
+            .setBackoffCriteria(
+                BackoffPolicy.LINEAR,
+                WorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS
+            )
+            .setConstraints(collectorWorkerConstraints)
             .build()
     }
 }
