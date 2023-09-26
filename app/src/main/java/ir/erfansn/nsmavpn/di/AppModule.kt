@@ -15,7 +15,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import ir.erfansn.nsmavpn.data.repository.DefaultLastVpnConnectionRepository
 import ir.erfansn.nsmavpn.data.repository.DefaultVpnGateMailRepository
+import ir.erfansn.nsmavpn.data.repository.LastVpnConnectionRepository
 import ir.erfansn.nsmavpn.data.repository.VpnGateMailRepository
 import ir.erfansn.nsmavpn.data.source.local.DefaultLastVpnConnectionLocalDataSource
 import ir.erfansn.nsmavpn.data.util.DefaultInstalledAppsListProvider
@@ -91,6 +93,11 @@ interface AppModule {
     fun bindsNetworkUsageTracker(
         defaultNetworkUsageTracker: DefaultNetworkUsageTracker,
     ): NetworkUsageTracker
+
+    @Binds
+    fun bindsLastVpnConnectionRepository(
+        defaultLastVpnConnectionRepository: DefaultLastVpnConnectionRepository
+    ): LastVpnConnectionRepository
 
     companion object {
 
