@@ -1,13 +1,13 @@
 package ir.erfansn.nsmavpn.data.source.local
 
 import androidx.datastore.core.DataStore
+import ir.erfansn.nsmavpn.data.model.MirrorLink
 import ir.erfansn.nsmavpn.data.source.local.datastore.Protocol
 import ir.erfansn.nsmavpn.data.source.local.datastore.Server
 import ir.erfansn.nsmavpn.data.source.local.datastore.UrlParts
 import ir.erfansn.nsmavpn.data.source.local.datastore.VpnProvider
 import ir.erfansn.nsmavpn.data.source.local.datastore.copy
 import ir.erfansn.nsmavpn.data.source.local.datastore.urlParts
-import ir.erfansn.nsmavpn.data.util.MirrorLink
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
