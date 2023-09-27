@@ -1,10 +1,10 @@
-package ir.erfansn.nsmavpn.data.sync
+package ir.erfansn.nsmavpn.sync
 
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import ir.erfansn.nsmavpn.data.sync.worker.CollectVpnServersWorker
-import ir.erfansn.nsmavpn.data.sync.worker.ReviseVpnServersWorker
+import ir.erfansn.nsmavpn.sync.worker.CollectVpnServersWorker
+import ir.erfansn.nsmavpn.sync.worker.ReviseVpnServersWorker
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.filter

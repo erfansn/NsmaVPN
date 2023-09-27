@@ -1,4 +1,4 @@
-package ir.erfansn.nsmavpn.data.sync.worker
+package ir.erfansn.nsmavpn.sync.worker
 
 import android.content.Context
 import androidx.hilt.work.HiltWorker
