@@ -3,10 +3,13 @@ package ir.erfansn.nsmavpn.data.util
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
+suspend fun <T, R> T.runWithContext(coroutineContext: CoroutineContext, block: suspend T.() -> R): R {
+    return withContext(coroutineContext) { block() }
+}
+
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.asyncMinByOrNull(
-    context: CoroutineContext,
     crossinline selector: suspend (T) -> R,
-): T? = withContext(context) {
+): T? = coroutineScope {
     val result = map {
         async {
             selector(it) to it
@@ -17,9 +20,8 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.asyncMinByOrNull(
 }
 
 suspend inline fun <T> Iterable<T>.asyncPartition(
-    context: CoroutineContext,
     crossinline selector: suspend (T) -> Boolean,
-): Pair<List<T>, List<T>> = withContext(context) {
+): Pair<List<T>, List<T>> = coroutineScope {
     val result = map {
         async {
             selector(it) to it
