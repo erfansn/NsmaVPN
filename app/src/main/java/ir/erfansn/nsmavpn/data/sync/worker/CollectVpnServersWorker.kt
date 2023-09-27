@@ -9,7 +9,7 @@ import ir.erfansn.nsmavpn.data.repository.ServersRepository
 import java.util.concurrent.TimeUnit
 
 @HiltWorker
-class ServerCollectorWorker @AssistedInject constructor(
+class CollectVpnServersWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val serversRepository: ServersRepository,
@@ -32,14 +32,10 @@ class ServerCollectorWorker @AssistedInject constructor(
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        val workRequest = PeriodicWorkRequestBuilder<ServerCollectorWorker>(
-            repeatInterval = COLLECTOR_TIME_INTERVAL,
-            repeatIntervalTimeUnit = TimeUnit.HOURS,
-        )
-            .setBackoffCriteria(
-                BackoffPolicy.LINEAR,
-                WorkRequest.MIN_BACKOFF_MILLIS,
-                TimeUnit.MILLISECONDS
+        val WorkRequest =
+            PeriodicWorkRequestBuilder<CollectVpnServersWorker>(
+                repeatInterval = COLLECTOR_TIME_INTERVAL,
+                repeatIntervalTimeUnit = TimeUnit.HOURS,
             )
             .setConstraints(collectorWorkerConstraints)
             .build()
