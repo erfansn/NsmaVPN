@@ -9,7 +9,7 @@ import ir.erfansn.nsmavpn.data.repository.ServersRepository
 import java.util.concurrent.TimeUnit
 
 @HiltWorker
-class ServerUnblockingWorker @AssistedInject constructor(
+class ReviseVpnServersWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val serversRepository: ServersRepository,
@@ -17,7 +17,8 @@ class ServerUnblockingWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         return try {
-            serversRepository.unblockReachableVpnServerFromBlacklistRandomly()
+            serversRepository.unblockAvailableVpnServerFromBlacklistRandomly()
+            serversRepository.blockUnreachableVpnServers()
             Result.success()
         } catch (e: Exception) {
             Result.failure()
@@ -25,17 +26,18 @@ class ServerUnblockingWorker @AssistedInject constructor(
     }
 
     companion object {
-        const val SERVER_UNBLOCKING_WORKER = "server_blocking"
+        const val SERVERS_REVISION_WORKER = "servers_revision"
 
         private const val UNBLOCKING_TIME_INTERVAL = 1L
         private val unblockingWorkerConstraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        val workRequest = PeriodicWorkRequestBuilder<ServerUnblockingWorker>(
-            repeatInterval = UNBLOCKING_TIME_INTERVAL,
-            repeatIntervalTimeUnit = TimeUnit.HOURS,
-        )
+        val WorkRequest =
+            PeriodicWorkRequestBuilder<ReviseVpnServersWorker>(
+                repeatInterval = UNBLOCKING_TIME_INTERVAL,
+                repeatIntervalTimeUnit = TimeUnit.HOURS,
+            )
             .setConstraints(unblockingWorkerConstraints)
             .build()
     }
