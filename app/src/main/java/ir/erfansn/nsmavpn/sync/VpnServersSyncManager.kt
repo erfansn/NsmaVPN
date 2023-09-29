@@ -19,12 +19,12 @@ class DefaultVpnServersSyncManager @Inject constructor(
         workManager.getWorkInfosForUniqueWorkFlow(CollectVpnServersWorker.SERVER_COLLECTOR_WORKER)
             .filter { !it.isNullOrEmpty() }
             .map(List<WorkInfo>::first)
-            .map { !it.state.isFinished }
+            .map { it.state == WorkInfo.State.RUNNING }
             .conflate()
 
     override fun beginVpnServersSyncTasks() {
         collectVpnServerPeriodically()
-        reviseAvailableVpnServersPeriodically()
+        reviseVpnServersPeriodically()
     }
 
     private fun collectVpnServerPeriodically() {
@@ -35,7 +35,7 @@ class DefaultVpnServersSyncManager @Inject constructor(
         )
     }
 
-    private fun reviseAvailableVpnServersPeriodically() {
+    private fun reviseVpnServersPeriodically() {
         workManager.enqueueUniquePeriodicWork(
             ReviseVpnServersWorker.SERVERS_REVISION_WORKER,
             ExistingPeriodicWorkPolicy.KEEP,
