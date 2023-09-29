@@ -41,6 +41,7 @@ class ReviseVpnServersWorker @AssistedInject constructor(
                 repeatInterval = 2,
                 repeatIntervalTimeUnit = TimeUnit.HOURS,
             )
+            .setInitialDelay(1, TimeUnit.HOURS)
             .setConstraints(unblockingWorkerConstraints)
             .build()
     }
