@@ -16,7 +16,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.asyncMinByOrNull(
         }
     }.awaitAll()
 
-    result.minByOrNull(Pair<R, T>::first)?.second
+    result.minByOrNull { it.first }?.second
 }
 
 suspend inline fun <T> Iterable<T>.asyncPartition(
@@ -38,4 +38,28 @@ suspend inline fun <T> Iterable<T>.asyncPartition(
         }
     }
     Pair(first, second)
+}
+
+suspend inline fun <T> Iterable<T>.asyncFilterNotTo(
+    crossinline predicate: suspend (T) -> Boolean
+) = coroutineScope {
+    val result = map {
+        async {
+            predicate(it) to it
+        }
+    }.awaitAll()
+
+    result.filterNot { it.first }.map { it.second }
+}
+
+suspend inline fun <T> Iterable<T>.asyncFirstOrNull(
+    crossinline predicate: suspend (T) -> Boolean
+): T? = coroutineScope {
+    val result = map {
+        async {
+            predicate(it) to it
+        }
+    }.awaitAll()
+
+    result.firstOrNull { it.first }?.second
 }
