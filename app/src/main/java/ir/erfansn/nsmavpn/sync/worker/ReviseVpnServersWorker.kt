@@ -2,7 +2,11 @@ package ir.erfansn.nsmavpn.sync.worker
 
 import android.content.Context
 import androidx.hilt.work.HiltWorker
-import androidx.work.*
+import androidx.work.Constraints
+import androidx.work.CoroutineWorker
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import ir.erfansn.nsmavpn.data.repository.ServersRepository
@@ -17,7 +21,7 @@ class ReviseVpnServersWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         return try {
-            serversRepository.unblockAvailableVpnServerFromBlacklistRandomly()
+            serversRepository.unblockFirstAvailableVpnServerFromBlacklist()
             serversRepository.blockUnreachableVpnServers()
             Result.success()
         } catch (e: Exception) {
@@ -28,14 +32,13 @@ class ReviseVpnServersWorker @AssistedInject constructor(
     companion object {
         const val SERVERS_REVISION_WORKER = "servers_revision"
 
-        private const val UNBLOCKING_TIME_INTERVAL = 1L
         private val unblockingWorkerConstraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
         val WorkRequest =
             PeriodicWorkRequestBuilder<ReviseVpnServersWorker>(
-                repeatInterval = UNBLOCKING_TIME_INTERVAL,
+                repeatInterval = 2,
                 repeatIntervalTimeUnit = TimeUnit.HOURS,
             )
             .setConstraints(unblockingWorkerConstraints)

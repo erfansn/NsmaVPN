@@ -9,6 +9,8 @@ import ir.erfansn.nsmavpn.data.source.local.datastore.UrlParts
 import ir.erfansn.nsmavpn.data.source.remote.VpnGateMessagesRemoteDataSource
 import ir.erfansn.nsmavpn.data.util.PingChecker
 import ir.erfansn.nsmavpn.data.util.VpnGateContentExtractor
+import ir.erfansn.nsmavpn.data.util.asyncFilterNotTo
+import ir.erfansn.nsmavpn.data.util.asyncFirstOrNull
 import ir.erfansn.nsmavpn.data.util.asyncMinByOrNull
 import ir.erfansn.nsmavpn.data.util.asyncPartition
 import ir.erfansn.nsmavpn.data.util.runWithContext
@@ -87,16 +89,19 @@ class ServersRepository @Inject constructor(
     suspend fun blockUnreachableVpnServers() {
         val unreachableVpnServers = vpnProviderLocalDataSource
             .getAvailableVpnServers()
-            .filterNot { pingChecker.isReachable(it.address.hostName) }
-            .toTypedArray()
+            .runWithContext(ioDispatcher) {
+                asyncFilterNotTo { pingChecker.isReachable(it.address.hostName) }
+            }.toTypedArray()
 
         vpnProviderLocalDataSource.blockVpnServers(*unreachableVpnServers)
     }
 
-    suspend fun unblockAvailableVpnServerFromBlacklistRandomly() {
+    suspend fun unblockFirstAvailableVpnServerFromBlacklist() {
         val firstReachableServer = vpnProviderLocalDataSource
             .getBlockedVpnServers()
-            .firstOrNull { pingChecker.isReachable(it.address.hostName) }
+            .runWithContext(ioDispatcher) {
+                asyncFirstOrNull { pingChecker.isReachable(it.address.hostName) }
+            }
 
         if (firstReachableServer != null) {
             vpnProviderLocalDataSource.unblockVpnServer(firstReachableServer)
