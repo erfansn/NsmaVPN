@@ -34,8 +34,8 @@ import ir.erfansn.nsmavpn.data.source.remote.DefaultVpnGateMessagesRemoteDataSou
 import ir.erfansn.nsmavpn.data.source.remote.VpnGateMessagesRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.remote.api.GmailApi
 import ir.erfansn.nsmavpn.data.source.remote.api.GoogleApi
-import ir.erfansn.nsmavpn.data.sync.DefaultVpnServersSyncManager
-import ir.erfansn.nsmavpn.data.sync.VpnServersSyncManager
+import ir.erfansn.nsmavpn.sync.DefaultVpnServersSyncManager
+import ir.erfansn.nsmavpn.sync.VpnServersSyncManager
 import ir.erfansn.nsmavpn.data.util.*
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -105,6 +105,11 @@ interface AppModule {
     fun bindsVpnServersSyncManager(
         defaultVpnServersSyncManager: DefaultVpnServersSyncManager
     ): VpnServersSyncManager
+
+    @Binds
+    fun bindsNetworkMonitor(
+        connectivityNetworkMonitor: ConnectivityNetworkMonitor,
+    ): NetworkMonitor
 
     companion object {
 
