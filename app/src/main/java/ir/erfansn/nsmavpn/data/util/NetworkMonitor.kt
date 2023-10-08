@@ -1,4 +1,4 @@
-package ir.erfansn.nsmavpn.data.util.monitor
+package ir.erfansn.nsmavpn.data.util
 
 import android.content.Context
 import android.net.ConnectivityManager
@@ -6,23 +6,26 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import androidx.core.content.getSystemService
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import javax.inject.Inject
 
-class InternetNetworkMonitor(
-    context: Context,
-) : NetworkMonitor<InternetConnectionStatus> {
+class ConnectivityNetworkMonitor @Inject constructor(
+    @ApplicationContext context: Context,
+) : NetworkMonitor {
 
-    override val status = callbackFlow {
+    override val isOnline = callbackFlow {
         val connectivityManager = context.getSystemService<ConnectivityManager>()
 
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
-                trySend(InternetConnectionStatus.Online)
+                trySend(true)
             }
 
             override fun onLost(network: Network) {
-                trySend(InternetConnectionStatus.Offline)
+                trySend(false)
             }
         }
 
@@ -34,7 +37,7 @@ class InternetNetworkMonitor(
             callback,
         )
 
-        trySend(if (connectivityManager.isCurrentlyConnected()) InternetConnectionStatus.Online else InternetConnectionStatus.Offline)
+        trySend(connectivityManager.isCurrentlyConnected())
 
         awaitClose {
             connectivityManager?.unregisterNetworkCallback(callback)
@@ -44,13 +47,14 @@ class InternetNetworkMonitor(
     private fun ConnectivityManager?.isCurrentlyConnected() = when (this) {
         null -> false
         else -> activeNetwork
-            ?.let(::getNetworkCapabilities)
+            .let(::getNetworkCapabilities)
             ?.let {
                 it.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                         && it.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-            }
-            ?: false
+            } ?: false
     }
 }
 
-enum class InternetConnectionStatus { Online, Offline }
+interface NetworkMonitor {
+    val isOnline: Flow<Boolean>
+}
