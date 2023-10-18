@@ -8,7 +8,10 @@ import ir.erfansn.nsmavpn.data.source.local.datastore.UrlParts
 import ir.erfansn.nsmavpn.data.source.local.datastore.VpnProvider
 import ir.erfansn.nsmavpn.data.source.local.datastore.copy
 import ir.erfansn.nsmavpn.data.source.local.datastore.urlParts
+import ir.erfansn.nsmavpn.di.DefaultDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
@@ -18,6 +21,7 @@ import javax.inject.Inject
  */
 class DefaultVpnProviderLocalDataSource @Inject constructor(
     private val dataStore: DataStore<VpnProvider>,
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher
 ) : VpnProviderLocalDataSource {
 
     override suspend fun getVpnProviderAddress(): UrlParts =
@@ -35,10 +39,11 @@ class DefaultVpnProviderLocalDataSource @Inject constructor(
         }
     }
 
-    override suspend fun getAvailableVpnServers(): List<Server> =
+    override suspend fun getAvailableVpnServers(): List<Server> = withContext(defaultDispatcher) {
         dataStore.data.first().let { vpnProvider ->
             vpnProvider.serversList.filter { it !in vpnProvider.blacklistedServersList }
         }
+    }
 
     override suspend fun saveVpnServers(servers: List<Server>) {
         dataStore.updateData { vpnProvider ->
