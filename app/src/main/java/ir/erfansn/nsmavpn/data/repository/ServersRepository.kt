@@ -13,9 +13,7 @@ import ir.erfansn.nsmavpn.data.util.VpnGateContentExtractor
 import ir.erfansn.nsmavpn.data.util.asyncFilter
 import ir.erfansn.nsmavpn.data.util.asyncMinByOrNull
 import ir.erfansn.nsmavpn.data.util.asyncPartition
-import ir.erfansn.nsmavpn.data.util.runWithContext
-import ir.erfansn.nsmavpn.di.IoDispatcher
-import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
@@ -26,7 +24,6 @@ class ServersRepository @Inject constructor(
     private val lastVpnConnectionLocalDataSource: LastVpnConnectionLocalDataSource,
     private val vpnGateContentExtractor: VpnGateContentExtractor,
     private val pingChecker: PingChecker,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
     suspend fun obtainFastestVpnServer(): Server {
         val lastVpnConnection = lastVpnConnectionLocalDataSource.lastVpnConnection.first()
@@ -54,9 +51,7 @@ class ServersRepository @Inject constructor(
 
         val (availableServers, unavailableServers) = vpnGateContentExtractor
             .extractSstpVpnServers(vpnProviderAddress)
-            .runWithContext(ioDispatcher) {
-                asyncPartition { pingChecker.isReachable(it.address.hostName) }
-            }
+            .asyncPartition { pingChecker.isReachable(it.address.hostName) }
 
         vpnProviderLocalDataSource.saveVpnServers(availableServers)
         vpnProviderLocalDataSource.blockVpnServers(*unavailableServers.toTypedArray())
@@ -75,8 +70,8 @@ class ServersRepository @Inject constructor(
             )
         }.flatMap { messageBodyText ->
             vpnGateContentExtractor.findVpnGateMirrorLinks(messageBodyText)
-        }.runWithContext(ioDispatcher) {
-            asyncMinByOrNull { pingChecker.measure(it.hostName) }
+        }.asyncMinByOrNull { mirrorLink ->
+            pingChecker.measure(mirrorLink.hostName).takeIf { it != NOT_AVAILABLE } ?: Double.MAX_VALUE
         } ?: throw NotFoundException()
 
         vpnProviderLocalDataSource.saveVpnProviderAddress(mirrorLink)

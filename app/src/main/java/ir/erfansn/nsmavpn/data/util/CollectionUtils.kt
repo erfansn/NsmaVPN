@@ -3,17 +3,8 @@ package ir.erfansn.nsmavpn.data.util
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withContext
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
-import kotlin.coroutines.CoroutineContext
-
-suspend fun <T, R> T.runWithContext(
-    coroutineContext: CoroutineContext,
-    block: suspend T.() -> R,
-): R {
-    return withContext(coroutineContext) { block() }
-}
 
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.asyncMinByOrNull(crossinline selector: suspend (T) -> R) =
     asyncMap {
