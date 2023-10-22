@@ -34,9 +34,9 @@ class ServersRepository @Inject constructor(
 
         return vpnProviderLocalDataSource
             .getAvailableVpnServers()
-            .runWithContext(ioDispatcher) {
-                asyncMinByOrNull { pingChecker.measure(it.address.hostName) }
-            } ?: throw VpnServersNotExistsException()
+            .asyncMinByOrNull { server ->
+                pingChecker.measure(server.address.hostName).takeIf { it != NOT_AVAILABLE } ?: Double.MAX_VALUE
+            } ?: throw NoAvailableVpnServerException()
     }
 
     private fun LastVpnConnection.isConnectionValidYet(): Boolean {
@@ -117,6 +117,6 @@ private fun UrlLink.toAbsoluteLink(): String {
     return "${protocol.name.lowercase()}://$hostName:$portNumber"
 }
 
-class VpnServersNotExistsException : Exception("Vpn servers list is empty")
+class NoAvailableVpnServerException : Exception("Available servers list is empty")
 class NoVpnGateSubscribed :
     Exception("Your email don't have subscribe to VpnGate daily mirror links")
