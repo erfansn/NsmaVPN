@@ -52,7 +52,7 @@ inline fun <T> List<T>.fastForEach(action: (T) -> Unit) {
     for (index in indices) action(this[index])
 }
 
-suspend inline fun <T> Iterable<T>.asyncFilterNotTo(crossinline predicate: suspend (T) -> Boolean) =
+suspend inline fun <T> Iterable<T>.asyncFilter(crossinline predicate: suspend (T) -> Boolean) =
     asyncMap {
         predicate(it) to it
     }.filter {
@@ -60,13 +60,6 @@ suspend inline fun <T> Iterable<T>.asyncFilterNotTo(crossinline predicate: suspe
     }.map {
         it.second
     }
-
-suspend inline fun <T> Iterable<T>.asyncFirstOrNull(crossinline predicate: suspend (T) -> Boolean) =
-    asyncMap {
-        predicate(it) to it
-    }.firstOrNull {
-        it.first
-    }?.second
 
 suspend inline fun <T, R> Iterable<T>.asyncMap(
     crossinline block: suspend (T) -> R,
