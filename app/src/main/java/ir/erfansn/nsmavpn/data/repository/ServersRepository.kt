@@ -39,8 +39,9 @@ class ServersRepository @Inject constructor(
             } ?: throw NoAvailableVpnServerException()
     }
 
-    private fun LastVpnConnection.isConnectionValidYet(): Boolean {
-        return System.currentTimeMillis() - epochTime <= SERVER_VALIDATION_TIMEOUT_MS
+    private suspend fun LastVpnConnection.isConnectionValidYet(): Boolean {
+        return System.currentTimeMillis() - epochTime <= SERVER_VALIDATION_TIMEOUT_MS &&
+            server !in vpnProviderLocalDataSource.getBlockedVpnServers()
     }
 
     suspend fun collectVpnServers() {
