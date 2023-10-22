@@ -120,7 +120,7 @@ interface AppModule {
         fun providesDefaultDispatcher() = Dispatchers.Default
 
         @Provides
-        fun providesExternalCoroutineScope(
+        fun providesApplicationCoroutineScope(
             @IoDispatcher ioDispatcher: CoroutineDispatcher,
         ) = CoroutineScope(SupervisorJob() + ioDispatcher)
 
