@@ -13,8 +13,11 @@ import ir.erfansn.nsmavpn.data.util.VpnGateContentExtractor
 import ir.erfansn.nsmavpn.data.util.asyncFilter
 import ir.erfansn.nsmavpn.data.util.asyncMinByOrNull
 import ir.erfansn.nsmavpn.data.util.asyncPartition
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class ServersRepository @Inject constructor(
@@ -24,7 +27,11 @@ class ServersRepository @Inject constructor(
     private val lastVpnConnectionLocalDataSource: LastVpnConnectionLocalDataSource,
     private val vpnGateContentExtractor: VpnGateContentExtractor,
     private val pingChecker: PingChecker,
+    private val applicationScope: CoroutineScope
 ) {
+
+    private var serversUnblockingJob: Job? = null
+
     suspend fun obtainFastestVpnServer(): Server {
         val lastVpnConnection = lastVpnConnectionLocalDataSource.lastVpnConnection.first()
         if (lastVpnConnection.isConnectionValidYet()) return lastVpnConnection.server
@@ -92,11 +99,15 @@ class ServersRepository @Inject constructor(
     }
 
     suspend fun unblockReachableVpnServers() {
-        val reachableServers = vpnProviderLocalDataSource
-            .getBlockedVpnServers()
-            .asyncFilter { pingChecker.isReachable(it.address.hostName) }
+        serversUnblockingJob?.cancelAndJoin()
+        serversUnblockingJob = applicationScope.launch {
+            val reachableServers = vpnProviderLocalDataSource
+                .getBlockedVpnServers()
+                .asyncFilter { pingChecker.isReachable(it.address.hostName) }
 
-        vpnProviderLocalDataSource.unblockVpnServers(reachableServers)
+            vpnProviderLocalDataSource.unblockVpnServers(reachableServers)
+        }
+        serversUnblockingJob?.join()
     }
 
     companion object {
