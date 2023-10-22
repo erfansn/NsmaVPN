@@ -67,11 +67,11 @@ class DefaultVpnProviderLocalDataSource @Inject constructor(
         }
     }
 
-    override suspend fun unblockVpnServer(server: Server) {
+    override suspend fun unblockVpnServers(servers: List<Server>) {
         dataStore.updateData { vpnProvider ->
             vpnProvider.copy {
                 blacklistedServers.filter {
-                    it != server
+                    it !in servers
                 }.also {
                     blacklistedServers.clear()
                 }.let {
@@ -89,5 +89,5 @@ interface VpnProviderLocalDataSource {
     suspend fun saveVpnServers(servers: List<Server>)
     suspend fun getBlockedVpnServers(): List<Server>
     suspend fun blockVpnServers(vararg servers: Server)
-    suspend fun unblockVpnServer(server: Server)
+    suspend fun unblockVpnServers(servers: List<Server>)
 }

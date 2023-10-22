@@ -97,15 +97,11 @@ class ServersRepository @Inject constructor(
     }
 
     suspend fun unblockFirstAvailableVpnServerFromBlacklist() {
-        val firstReachableServer = vpnProviderLocalDataSource
+        val reachableServers = vpnProviderLocalDataSource
             .getBlockedVpnServers()
-            .runWithContext(ioDispatcher) {
-                asyncFirstOrNull { pingChecker.isReachable(it.address.hostName) }
-            }
+            .asyncFilterNotTo { !pingChecker.isReachable(it.address.hostName) }
 
-        if (firstReachableServer != null) {
-            vpnProviderLocalDataSource.unblockVpnServer(firstReachableServer)
-        }
+        vpnProviderLocalDataSource.unblockVpnServers(reachableServers)
     }
 
     companion object {
