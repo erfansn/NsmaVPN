@@ -21,7 +21,7 @@ class ReviseVpnServersWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         return try {
-            serversRepository.unblockFirstAvailableVpnServerFromBlacklist()
+            serversRepository.unblockReachableVpnServers()
             serversRepository.blockUnreachableVpnServers()
             Result.success()
         } catch (e: Exception) {

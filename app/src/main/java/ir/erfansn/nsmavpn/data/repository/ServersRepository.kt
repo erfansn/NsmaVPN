@@ -95,7 +95,7 @@ class ServersRepository @Inject constructor(
         vpnProviderLocalDataSource.blockVpnServers(*unreachableVpnServers)
     }
 
-    suspend fun unblockFirstAvailableVpnServerFromBlacklist() {
+    suspend fun unblockReachableVpnServers() {
         val reachableServers = vpnProviderLocalDataSource
             .getBlockedVpnServers()
             .asyncFilter { pingChecker.isReachable(it.address.hostName) }
