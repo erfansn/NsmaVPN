@@ -24,9 +24,11 @@ import ir.erfansn.nsmavpn.data.util.DefaultInstalledAppsListProvider
 import ir.erfansn.nsmavpn.data.util.InstalledAppsListProvider
 import ir.erfansn.nsmavpn.data.source.local.DefaultUserPreferencesLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.DefaultVpnProviderLocalDataSource
+import ir.erfansn.nsmavpn.data.source.local.DefaultVpnServiceStateLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.LastVpnConnectionLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.UserPreferencesLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.VpnProviderLocalDataSource
+import ir.erfansn.nsmavpn.data.source.local.VpnServiceStateLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.datastore.LastVpnConnectionSerializer
 import ir.erfansn.nsmavpn.data.source.local.datastore.UserPreferencesSerializer
 import ir.erfansn.nsmavpn.data.source.local.datastore.VpnProviderSerializer
@@ -111,6 +113,11 @@ interface AppModule {
     fun bindsNetworkMonitor(
         connectivityNetworkMonitor: ConnectivityNetworkMonitor,
     ): NetworkMonitor
+
+    @Binds
+    fun bindsVpnServiceStateLocalDataSource(
+        defaultVpnServiceStateLocalDataSource: DefaultVpnServiceStateLocalDataSource
+    ): VpnServiceStateLocalDataSource
 
     companion object {
 
