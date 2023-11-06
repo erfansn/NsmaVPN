@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+import "vpn_provider.proto";
+
+option java_package = "ir.erfansn.nsmavpn.data.source.local.datastore";
+option java_multiple_files = true;
+
+message VpnServiceState {
+  Server server = 1;
+  bool is_valid_connection = 2;
+  bool is_started = 3;
+}
