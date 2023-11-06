@@ -30,6 +30,7 @@ import ir.erfansn.nsmavpn.data.source.local.VpnProviderLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.datastore.LastVpnConnectionSerializer
 import ir.erfansn.nsmavpn.data.source.local.datastore.UserPreferencesSerializer
 import ir.erfansn.nsmavpn.data.source.local.datastore.VpnProviderSerializer
+import ir.erfansn.nsmavpn.data.source.local.datastore.VpnServiceStateSerializer
 import ir.erfansn.nsmavpn.data.source.remote.DefaultVpnGateMessagesRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.remote.VpnGateMessagesRemoteDataSource
 import ir.erfansn.nsmavpn.data.source.remote.api.GmailApi
@@ -143,6 +144,13 @@ interface AppModule {
             DataStoreFactory.create(
                 serializer = LastVpnConnectionSerializer,
                 produceFile = { context.dataStoreFile("last_vpn_connection") }
+            )
+
+        @[Provides Singleton]
+        fun providesVpnServiceStateDataStore(@ApplicationContext context: Context) =
+            DataStoreFactory.create(
+                serializer = VpnServiceStateSerializer,
+                produceFile = { context.dataStoreFile("vpn_service_state") }
             )
 
         @Provides
