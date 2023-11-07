@@ -17,8 +17,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import ir.erfansn.nsmavpn.data.repository.DefaultLastVpnConnectionRepository
 import ir.erfansn.nsmavpn.data.repository.DefaultVpnGateMailRepository
+import ir.erfansn.nsmavpn.data.repository.DefaultVpnServiceStateRepository
 import ir.erfansn.nsmavpn.data.repository.LastVpnConnectionRepository
 import ir.erfansn.nsmavpn.data.repository.VpnGateMailRepository
+import ir.erfansn.nsmavpn.data.repository.VpnServiceStateRepository
 import ir.erfansn.nsmavpn.data.source.local.DefaultLastVpnConnectionLocalDataSource
 import ir.erfansn.nsmavpn.data.util.DefaultInstalledAppsListProvider
 import ir.erfansn.nsmavpn.data.util.InstalledAppsListProvider
@@ -118,6 +120,11 @@ interface AppModule {
     fun bindsVpnServiceStateLocalDataSource(
         defaultVpnServiceStateLocalDataSource: DefaultVpnServiceStateLocalDataSource
     ): VpnServiceStateLocalDataSource
+
+    @Binds
+    fun bindsVpnServiceStateRepository(
+        defaultVpnServiceStateRepository: DefaultVpnServiceStateRepository
+    ): VpnServiceStateRepository
 
     companion object {
 
