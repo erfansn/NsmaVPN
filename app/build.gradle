@@ -68,6 +68,7 @@ dependencies {
     implementation 'androidx.startup:startup-runtime:1.1.1'
     implementation 'androidx.core:core-splashscreen:1.0.1'
     implementation 'androidx.constraintlayout:constraintlayout-compose:1.0.1'
+    implementation 'androidx.documentfile:documentfile:1.0.1'
 
     implementation 'androidx.work:work-runtime-ktx:2.9.0-beta01'
     implementation 'androidx.hilt:hilt-work:1.0.0'
