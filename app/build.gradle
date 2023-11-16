@@ -86,7 +86,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:20.7.0'
     implementation 'com.google.api-client:google-api-client:2.2.0'
     implementation 'com.google.api-client:google-api-client-android:2.2.0'
-    implementation 'com.google.apis:google-api-services-gmail:v1-rev20230612-2.0.0'
+    implementation 'com.google.apis:google-api-services-gmail:v1-rev20231106-2.0.0'
 
     implementation 'it.skrape:skrapeit:1.2.2'
     implementation 'io.coil-kt:coil-compose:2.4.0'
