@@ -46,6 +46,7 @@ fun UserAvatar(
     borderColor: Color = MaterialTheme.colorScheme.outline,
     imageScale: ContentScale = ContentScale.Crop,
     avatarUrl: String? = null,
+    placeholder: ImageVector = Icons.Rounded.AccountCircle,
     tintColor: Color = LocalContentColor.current,
 ) {
     BoxWithConstraints(
@@ -58,7 +59,8 @@ fun UserAvatar(
             targetValue = borderColor.let {
                 if (isImageLoaded) it else it.copy(alpha = 0f)
             },
-            animationSpec = tween(durationMillis = crossfadeDurationMillis)
+            animationSpec = tween(durationMillis = crossfadeDurationMillis),
+            label = "borderColor"
         )
 
         val avatarPainter = rememberAsyncImagePainter(
@@ -86,7 +88,7 @@ fun UserAvatar(
             painter = if (isImageLoaded) {
                 avatarPainter
             } else {
-                rememberVectorPainter(image = Icons.Rounded.Person)
+                rememberVectorPainter(image = placeholder)
             },
             contentScale = imageScale,
             contentDescription = stringResource(R.string.content_description_avatar_picture),
