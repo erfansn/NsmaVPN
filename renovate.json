@@ -48,6 +48,7 @@
     {
       "matchPackageNames": [
         "org.jetbrains.kotlin.android",
+        "com.google.devtools.ksp",
         "composeOptions"
       ],
       "groupName": "kotlin related stuffs"
