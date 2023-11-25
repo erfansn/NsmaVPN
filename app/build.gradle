@@ -72,9 +72,11 @@ dependencies {
     implementation 'androidx.documentfile:documentfile:1.0.1'
 
     implementation 'androidx.work:work-runtime-ktx:2.9.0-rc01'
-    implementation 'androidx.hilt:hilt-work:1.0.0'
-    kapt 'androidx.hilt:hilt-compiler:1.0.0'
+    def androidx_hilt_version = '1.1.0'
+    implementation "androidx.hilt:hilt-work:$androidx_hilt_version"
+    ksp "androidx.hilt:hilt-compiler:$androidx_hilt_version"
     implementation "com.google.dagger:hilt-android:$hilt_version"
+    // After resolve [this issue](https://github.com/google/ksp/issues/1590) migrate to ksp
     kapt "com.google.dagger:hilt-compiler:$hilt_version"
 
     implementation 'com.google.accompanist:accompanist-systemuicontroller:0.33.0-alpha'
