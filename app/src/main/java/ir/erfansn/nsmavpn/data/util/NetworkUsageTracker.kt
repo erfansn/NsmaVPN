@@ -23,6 +23,8 @@ class DefaultNetworkUsageTracker @Inject constructor(
 ) : NetworkUsageTracker {
 
     private val networkStatsManager = context.getSystemService<NetworkStatsManager>()!!
+    override val hasPermission: Boolean
+        get() = context.isGrantedGetUsageStatsPermission
 
     override fun trackUsage(startEpochTime: Long): Flow<NetworkUsage> =
         flow {
@@ -54,7 +56,7 @@ class DefaultNetworkUsageTracker @Inject constructor(
         networkType: Int,
         startEpochTime: Long,
     ): Bucket {
-        check(context.isGrantedGetUsageStatsPermission)
+        check(hasPermission)
 
         return networkStatsManager.querySummaryForDevice(
             networkType,
@@ -66,5 +68,7 @@ class DefaultNetworkUsageTracker @Inject constructor(
 }
 
 interface NetworkUsageTracker {
+    val hasPermission: Boolean
+
     fun trackUsage(startEpochTime: Long): Flow<NetworkUsage>
 }
