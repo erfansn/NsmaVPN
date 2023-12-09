@@ -3,6 +3,7 @@ package ir.erfansn.nsmavpn.data.util
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.yield
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -58,6 +59,8 @@ suspend inline fun <T, R> Iterable<T>.asyncMap(
     map {
         async {
             block(it)
+        }.also {
+            yield()
         }
     }.awaitAll()
 }
