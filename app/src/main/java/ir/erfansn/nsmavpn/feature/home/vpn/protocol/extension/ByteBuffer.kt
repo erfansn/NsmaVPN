@@ -20,3 +20,14 @@ fun ByteBuffer.probeShort(diff: Int): Short {
 
 val ByteBuffer.capacityAfterLimit: Int
     get() = this.capacity() - this.limit()
+
+fun ByteBuffer.slide() {
+    val remaining = this.remaining()
+
+    this.array().also {
+        it.copyInto(it, 0, this.position(), this.limit())
+    }
+
+    this.position(0)
+    this.limit(remaining)
+}

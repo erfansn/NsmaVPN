@@ -5,7 +5,6 @@ import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.Result
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.Where
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.extension.move
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.DataUnit
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.*
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.CHAP_CODE_CHALLENGE
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.CHAP_CODE_FAILURE
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.CHAP_CODE_RESPONSE
@@ -14,6 +13,42 @@ import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.ChapChallenge
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.ChapFailure
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.ChapResponse
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.ChapSuccess
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.IpcpConfigureAck
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.IpcpConfigureNak
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.IpcpConfigureReject
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.IpcpConfigureRequest
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.Ipv6cpConfigureAck
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.Ipv6cpConfigureNak
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.Ipv6cpConfigureReject
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.Ipv6cpConfigureRequest
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCPCodeReject
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCPConfigureAck
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCPConfigureNak
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCPConfigureReject
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCPConfigureRequest
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCPEchoReply
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCPEchoRequest
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCPProtocolReject
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCPTerminalAck
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCPTerminalRequest
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCP_CODE_CODE_REJECT
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCP_CODE_CONFIGURE_ACK
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCP_CODE_CONFIGURE_NAK
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCP_CODE_CONFIGURE_REJECT
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCP_CODE_CONFIGURE_REQUEST
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCP_CODE_DISCARD_REQUEST
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCP_CODE_ECHO_REPLY
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCP_CODE_ECHO_REQUEST
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCP_CODE_PROTOCOL_REJECT
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCP_CODE_TERMINATE_ACK
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCP_CODE_TERMINATE_REQUEST
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LcpDiscardRequest
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.PAPAuthenticateAck
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.PAPAuthenticateNak
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.PAPAuthenticateRequest
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.PAP_CODE_AUTHENTICATE_ACK
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.PAP_CODE_AUTHENTICATE_NAK
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.PAP_CODE_AUTHENTICATE_REQUEST
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.SSTP_MESSAGE_TYPE_CALL_ABORT
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.SSTP_MESSAGE_TYPE_CALL_CONNECTED
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.SSTP_MESSAGE_TYPE_CALL_CONNECT_ACK
@@ -82,7 +117,7 @@ suspend fun IncomingClient.processLcpFrame(code: Byte, buffer: ByteBuffer): Bool
             LCP_CODE_CONFIGURE_ACK -> LCPConfigureAck()
             LCP_CODE_CONFIGURE_NAK -> LCPConfigureNak()
             LCP_CODE_CONFIGURE_REJECT -> LCPConfigureReject()
-            else -> throw NotImplementedError()
+            else -> throw NotImplementedError(code.toString())
         }
 
         tryReadDataUnit(configureFrame, buffer)?.also {
@@ -102,7 +137,7 @@ suspend fun IncomingClient.processLcpFrame(code: Byte, buffer: ByteBuffer): Bool
             LCP_CODE_ECHO_REQUEST -> LCPEchoRequest()
             LCP_CODE_ECHO_REPLY -> LCPEchoReply()
             LCP_CODE_DISCARD_REQUEST -> LcpDiscardRequest()
-            else -> throw NotImplementedError()
+            else -> throw NotImplementedError(code.toString())
         }
 
         tryReadDataUnit(frame, buffer)?.also {

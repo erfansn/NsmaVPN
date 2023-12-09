@@ -18,7 +18,7 @@ class PapClient(private val bridge: ClientBridge) {
     private var jobAuth: Job? = null
 
     fun launchJobAuth() {
-        jobAuth = bridge.service.scope.launch(bridge.handler) {
+        jobAuth = bridge.service.serviceScope.launch(bridge.handler) {
             val currentID = bridge.allocateNewFrameID()
 
             sendPAPRequest(currentID)

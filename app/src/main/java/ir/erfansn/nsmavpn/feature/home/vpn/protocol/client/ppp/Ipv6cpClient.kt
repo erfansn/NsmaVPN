@@ -11,7 +11,6 @@ import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.Ipv6cpConfigureRequ
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.option.Ipv6cpIdentifierOption
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.option.Ipv6cpOptionPack
 
-
 class Ipv6cpClient(bridge: ClientBridge) : ConfigClient<Ipv6cpConfigureFrame>(Where.IPV6CP, bridge) {
     override fun tryCreateServerReject(request: Ipv6cpConfigureFrame): Ipv6cpConfigureFrame? {
         val reject = Ipv6cpOptionPack()
@@ -50,7 +49,7 @@ class Ipv6cpClient(bridge: ClientBridge) : ConfigClient<Ipv6cpConfigureFrame>(Wh
         return request
     }
 
-    override fun tryAcceptClientNak(nak: Ipv6cpConfigureFrame) {
+    override suspend fun tryAcceptClientNak(nak: Ipv6cpConfigureFrame) {
         nak.options.identifierOption?.also {
             it.identifier.copyInto(bridge.currentIPv6)
         }

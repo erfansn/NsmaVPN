@@ -1,18 +1,14 @@
 package ir.erfansn.nsmavpn.feature.home.vpn.protocol.terminal
 
 import android.os.ParcelFileDescriptor
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol._DNS_CUSTOM_ADDRESS
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol._ROUTE_ALLOWED_APPS
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol._ROUTE_CUSTOM_ROUTES
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol._ROUTE_DO_ADD_CUSTOM_ROUTES
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol._ROUTE_DO_ADD_DEFAULT_ROUTE
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol._ROUTE_DO_ENABLE_APP_BASED_RULE
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol._ROUTE_DO_ROUTE_PRIVATE_ADDRESSES
+import android.util.Log
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.OscPrefKey
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ClientBridge
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ControlMessage
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.Result
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.Where
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.extension.isSame
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.extension.slide
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.extension.toHexByteArray
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -22,27 +18,28 @@ import java.nio.ByteBuffer
 class IpTerminal(private val bridge: ClientBridge) {
     private var fd: ParcelFileDescriptor? = null
 
-    private lateinit var inputStream: FileInputStream
-    private lateinit var outputStream: FileOutputStream
+    private var inputStream: FileInputStream? = null
+    private var outputStream: FileOutputStream? = null
 
-    private val isAppBasedRuleEnabled = _ROUTE_DO_ENABLE_APP_BASED_RULE
-    private val isDefaultRouteAdded = _ROUTE_DO_ADD_DEFAULT_ROUTE
-    private val isPrivateAddressesRouted = _ROUTE_DO_ROUTE_PRIVATE_ADDRESSES
-    private val isCustomRoutesAdded = _ROUTE_DO_ADD_CUSTOM_ROUTES
+    private val isAppBasedRuleEnabled = bridge.disallowedApps.isNotEmpty()
+    private val isDefaultRouteAdded = OscPrefKey.ROUTE_DO_ADD_DEFAULT_ROUTE
+    private val isPrivateAddressesRouted = OscPrefKey.ROUTE_DO_ROUTE_PRIVATE_ADDRESSES
+    private val isCustomDNSServerUsed = OscPrefKey.DNS_DO_USE_CUSTOM_SERVER
+    private val isCustomRoutesAdded = OscPrefKey.ROUTE_DO_ADD_CUSTOM_ROUTES
 
-    suspend fun initializeTun(): Boolean {
+    suspend fun initialize() {
         if (bridge.PPP_IPv4_ENABLED) {
             if (bridge.currentIPv4.isSame(ByteArray(4))) {
                 bridge.controlMailbox.send(ControlMessage(Where.IPv4, Result.ERR_INVALID_ADDRESS))
-                return false
+                return
             }
 
             InetAddress.getByAddress(bridge.currentIPv4).also {
                 bridge.builder.addAddress(it, 32)
             }
 
-            if (bridge.DNS_DO_USE_CUSTOM_SERVER) {
-                bridge.builder.addDnsServer(_DNS_CUSTOM_ADDRESS)
+            if (isCustomDNSServerUsed) {
+                bridge.builder.addDnsServer(OscPrefKey.DNS_CUSTOM_ADDRESS)
             }
 
             if (!bridge.currentProposedDNS.isSame(ByteArray(4))) {
@@ -51,13 +48,13 @@ class IpTerminal(private val bridge: ClientBridge) {
                 }
             }
 
-            setIPv4BasedRouteing()
+            setIPv4BasedRouting()
         }
 
         if (bridge.PPP_IPv6_ENABLED) {
             if (bridge.currentIPv6.isSame(ByteArray(8))) {
                 bridge.controlMailbox.send(ControlMessage(Where.IPv6, Result.ERR_INVALID_ADDRESS))
-                return false
+                return
             }
 
             ByteArray(16).also { // for link local addresses
@@ -67,7 +64,7 @@ class IpTerminal(private val bridge: ClientBridge) {
                 bridge.builder.addAddress(InetAddress.getByAddress(it), 64)
             }
 
-            setIPv6BasedRouteing()
+            setIPv6BasedRouting()
         }
 
         if (isCustomRoutesAdded) {
@@ -86,10 +83,10 @@ class IpTerminal(private val bridge: ClientBridge) {
             outputStream = FileOutputStream(it.fileDescriptor)
         }
 
-        return true
+        bridge.controlMailbox.send(ControlMessage(Where.IP, Result.PROCEEDED))
     }
 
-    private fun setIPv4BasedRouteing() {
+    private fun setIPv4BasedRouting() {
         if (isDefaultRouteAdded) {
             bridge.builder.addRoute("0.0.0.0", 0)
         }
@@ -101,7 +98,7 @@ class IpTerminal(private val bridge: ClientBridge) {
         }
     }
 
-    private fun setIPv6BasedRouteing() {
+    private fun setIPv6BasedRouting() {
         if (isDefaultRouteAdded) {
             bridge.builder.addRoute("::", 0)
         }
@@ -112,13 +109,13 @@ class IpTerminal(private val bridge: ClientBridge) {
     }
 
     private fun addAppBasedRules() {
-        _ROUTE_ALLOWED_APPS.forEach {
-            bridge.builder.addAllowedApplication(it)
+        bridge.disallowedApps.forEach {
+            bridge.builder.addDisallowedApplication(it.id)
         }
     }
 
     private suspend fun addCustomRoutes(): Boolean {
-        _ROUTE_CUSTOM_ROUTES.split("\n").filter { it.isNotEmpty() }.forEach {
+        OscPrefKey.ROUTE_CUSTOM_ROUTES.split("\n").filter { it.isNotEmpty() }.forEach {
             val parsed = it.split("/")
             if (parsed.size != 2) {
                 bridge.controlMailbox.send(ControlMessage(Where.ROUTE, Result.ERR_PARSING_FAILED))
@@ -144,14 +141,16 @@ class IpTerminal(private val bridge: ClientBridge) {
     }
 
     fun writePacket(start: Int, size: Int, buffer: ByteBuffer) {
+        // nothing will be written until initialized
         // the position won't be changed
-        outputStream.write(buffer.array(), start, size)
+        outputStream?.write(buffer.array(), start, size)
     }
 
     fun readPacket(buffer: ByteBuffer) {
         buffer.clear()
-        buffer.position(inputStream.read(buffer.array(), 0, bridge.PPP_MTU))
+        buffer.position(inputStream?.read(buffer.array(), 0, bridge.PPP_MTU) ?: buffer.position())
         buffer.flip()
+
     }
 
     fun close() {

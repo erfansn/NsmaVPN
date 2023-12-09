@@ -4,7 +4,11 @@ import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ClientBridge
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ControlMessage
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.Result
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.Where
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.*
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.Frame
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCP_CODE_CONFIGURE_ACK
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCP_CODE_CONFIGURE_NAK
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCP_CODE_CONFIGURE_REJECT
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCP_CODE_CONFIGURE_REQUEST
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.isActive
@@ -47,7 +51,7 @@ abstract class ConfigClient<T: Frame>(private val where: Where, protected val br
 
     protected abstract suspend fun tryAcceptClientReject(reject: T)
 
-    protected abstract fun tryAcceptClientNak(nak: T)
+    protected abstract suspend fun tryAcceptClientNak(nak: T)
 
     private suspend fun sendClientRequest() {
         consumeRequestCounter()
@@ -60,7 +64,7 @@ abstract class ConfigClient<T: Frame>(private val where: Where, protected val br
     }
 
     fun launchJobNegotiation() {
-        jobNegotiation = bridge.service.scope.launch(bridge.handler) {
+        jobNegotiation = bridge.service.serviceScope.launch(bridge.handler) {
             sendClientRequest()
 
             while (isActive) {

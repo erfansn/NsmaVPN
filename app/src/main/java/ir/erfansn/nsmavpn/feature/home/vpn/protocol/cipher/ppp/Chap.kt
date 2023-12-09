@@ -1,6 +1,5 @@
 package ir.erfansn.nsmavpn.feature.home.vpn.protocol.cipher.ppp
 
-import android.content.ContentProvider
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ChapMessage
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.extension.isSame
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.extension.sum
