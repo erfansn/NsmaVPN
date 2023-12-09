@@ -71,7 +71,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VpnSwitch(
     state: VpnSwitchState,
@@ -312,7 +312,6 @@ private operator fun VpnSwitchState.not(): VpnSwitchState {
     return if (this == VpnSwitchState.On) VpnSwitchState.Off else VpnSwitchState.On
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @PreviewLightDark
 @Composable
 fun VpnSwitchPreview() {
