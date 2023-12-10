@@ -1,15 +1,22 @@
 package ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.control
 
-import ir.erfansn.nsmavpn.feature.home.vpn.service.NOTIFICATION_ID
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.PPP_AUTH_TIMEOUT
+import android.util.Log
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.OscPrefKey
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ClientBridge
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ControlMessage
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.OutgoingClient
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.Result
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.SSTP_REQUEST_TIMEOUT
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.SstpClient
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.Where
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ppp.LcpClient
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.*
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.incoming.IncomingClient
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ppp.*
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ppp.ChapClient
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ppp.IpcpClient
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ppp.Ipv6cpClient
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ppp.LcpClient
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ppp.PPP_NEGOTIATION_TIMEOUT
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ppp.PapClient
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ppp.PppClient
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.debug.assertAlways
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.terminal.SSL_REQUEST_INTERVAL
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.option.AuthOptionMSChapv2
@@ -41,16 +48,15 @@ class ControlClient(val bridge: ClientBridge) {
 
     private val mutex = Mutex()
 
-    private val isReconnectionEnabled = false
+    private val isReconnectionEnabled =
+        OscPrefKey.RECONNECTION_ENABLED
     private val isReconnectionAvailable: Boolean
-        get() = false
+        get() = OscPrefKey.RECONNECTION_LIFE > 0
 
     private fun attachHandler() {
         bridge.handler = CoroutineExceptionHandler { _, throwable ->
             kill(isReconnectionEnabled) {
-                val header = "OSC: ERR_UNEXPECTED"
-                // bridge.service.logWriter?.report(header + "\n" + throwable.stackTraceToString())
-                bridge.service.makeNotification(NOTIFICATION_ID, header)
+                Log.e("ControlClient", throwable.message, throwable)
             }
         }
     }
@@ -58,9 +64,11 @@ class ControlClient(val bridge: ClientBridge) {
     fun launchJobMain() {
         attachHandler()
 
-        jobMain = bridge.service.scope.launch(bridge.handler) {
+        jobMain = bridge.service.serviceScope.launch(bridge.handler) {
             bridge.attachSSLTerminal()
-            bridge.sslTerminal!!.initializeSocket()
+            bridge.attachIPTerminal()
+
+            bridge.sslTerminal!!.initialize()
             if (!expectProceeded(Where.SSL, SSL_REQUEST_INTERVAL)) {
                 return@launch
             }
@@ -99,8 +107,7 @@ class ControlClient(val bridge: ClientBridge) {
                 incomingClient!!.unregisterMailbox(it)
             }
 
-
-            val authTimeout = PPP_AUTH_TIMEOUT * 1000L
+            val authTimeout = OscPrefKey.PPP_AUTH_TIMEOUT * 1000L
             when (bridge.currentAuth) {
                 is AuthOptionPAP -> PapClient(bridge).also {
                     incomingClient!!.registerMailbox(it)
@@ -123,12 +130,10 @@ class ControlClient(val bridge: ClientBridge) {
                     }
                 }
 
-                else -> throw NotImplementedError()
+                else -> throw NotImplementedError(bridge.currentAuth.protocol.toString())
             }
 
-
             sstpClient!!.sendCallConnected()
-
 
             if (bridge.PPP_IPv4_ENABLED) {
                 IpcpClient(bridge).also {
@@ -143,7 +148,6 @@ class ControlClient(val bridge: ClientBridge) {
                 }
             }
 
-
             if (bridge.PPP_IPv6_ENABLED) {
                 Ipv6cpClient(bridge).also {
                     incomingClient!!.registerMailbox(it)
@@ -157,6 +161,11 @@ class ControlClient(val bridge: ClientBridge) {
                 }
             }
 
+            bridge.ipTerminal!!.initialize()
+            if (!expectProceeded(Where.IP, null)) {
+                return@launch
+            }
+
             OutgoingClient(bridge).also {
                 it.launchJobMain()
                 outgoingClient = it
@@ -164,9 +173,9 @@ class ControlClient(val bridge: ClientBridge) {
 
             observer = NetworkObserver(bridge)
 
-            /*if (isReconnectionEnabled) {
-                resetReconnectionLife(bridge.prefs)
-            }*/
+            if (isReconnectionEnabled) {
+                OscPrefKey.RECONNECTION_LIFE = OscPrefKey.RECONNECTION_COUNT
+            }
 
             expectProceeded(Where.SSTP_CONTROL, null) // wait ERR_ message until disconnection
         }
@@ -183,7 +192,6 @@ class ControlClient(val bridge: ClientBridge) {
 
         if (received.result == Result.PROCEEDED) {
             assertAlways(received.from == where)
-
             return true
         }
 
@@ -195,25 +203,24 @@ class ControlClient(val bridge: ClientBridge) {
 
         kill(isReconnectionEnabled) {
             sstpClient?.sendLastPacket(lastPacketType)
-
-            val message = "${received.from.name}: ${received.result.name}"
-            // bridge.service.logWriter?.report(message)
-            bridge.service.makeNotification(NOTIFICATION_ID, message)
         }
-
         return false
     }
 
     fun disconnect() { // use if the user want to normally disconnect
-        kill(false) {
+        kill {
             sstpClient?.sendLastPacket(SSTP_MESSAGE_TYPE_CALL_DISCONNECT)
         }
     }
 
-    fun kill(isReconnectionRequested: Boolean, cleanup: (suspend () -> Unit)?) {
+    private fun kill(
+        isReconnectionRequested: Boolean = false,
+        cleanup: (suspend () -> Unit)? = null
+    ) {
         if (!mutex.tryLock()) return
 
-        bridge.service.scope.launch {
+        bridge.service.serviceScope.launch {
+            if (isReconnectionRequested) bridge.service.onConnectionAbort()
             observer?.close()
 
             jobMain?.cancel()
@@ -225,10 +232,23 @@ class ControlClient(val bridge: ClientBridge) {
 
             if (isReconnectionRequested && isReconnectionAvailable) {
                 bridge.service.launchJobReconnect()
-            } else {
-                bridge.service.close()
+            } else if (!isReconnectionAvailable) {
+                bridge.service.restartService()
             }
         }
+    }
+
+    fun cleanUp() {
+        observer?.close()
+
+        jobMain?.cancel()
+        cancelClients()
+
+        closeTerminals()
+
+        // Never ever call stopService here because cause destroying service
+        // after configuration changes
+        // bridge.service.stopService()
     }
 
     private fun cancelClients() {

@@ -4,6 +4,7 @@ import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ClientBridge
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ControlMessage
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.Result
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.Where
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.Frame
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -16,13 +17,13 @@ class PppClient(val bridge: ClientBridge) {
     private var jobControl: Job? = null
 
     suspend fun launchJobControl() {
-        jobControl = bridge.service.scope.launch(bridge.handler) {
+        jobControl = bridge.service.serviceScope.launch(bridge.handler) {
             while (isActive) {
                 when (val received = mailbox.receive()) {
                     is LCPEchoRequest -> {
                         LCPEchoReply().also {
                             it.id = received.id
-                            it.holder = "Free Iran".toByteArray(Charsets.US_ASCII)
+                            it.holder = "ErfanSn".toByteArray(Charsets.US_ASCII)
                             bridge.sslTerminal!!.sendDataUnit(it)
                         }
                     }

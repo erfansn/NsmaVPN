@@ -6,8 +6,12 @@ import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ClientBridge
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ControlMessage
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.Result
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.Where
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.option.AuthOptionMSChapv2
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.option.AuthOptionPAP
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.option.AuthOptionUnknown
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.option.LCPOptionPack
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.option.MRUOption
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.*
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.option.*
 import kotlin.math.max
 import kotlin.math.min
 
@@ -89,7 +93,7 @@ class LcpClient(bridge: ClientBridge) : ConfigClient<LCPConfigureFrame>(Where.LC
         return request
     }
 
-    override fun tryAcceptClientNak(nak: LCPConfigureFrame) {
+    override suspend fun tryAcceptClientNak(nak: LCPConfigureFrame) {
         nak.options.mruOption?.also {
             bridge.currentMRU = max(min(it.unitSize, bridge.PPP_MRU), MIN_MRU)
         }

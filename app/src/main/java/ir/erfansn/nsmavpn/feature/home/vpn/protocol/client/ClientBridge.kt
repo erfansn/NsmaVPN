@@ -1,28 +1,18 @@
 package ir.erfansn.nsmavpn.feature.home.vpn.protocol.client
 
-import ir.erfansn.nsmavpn.feature.home.vpn.service.SstpVpnService
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol._DNS_DO_REQUEST_ADDRESS
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol._DNS_DO_USE_CUSTOM_SERVER
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol._HOME_HOSTNAME
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol._HOME_PASSWORD
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol._HOME_USERNAME
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol._PPP_IPv4_ENABLED
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol._PPP_IPv6_ENABLED
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol._PPP_MRU
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol._PPP_MSCHAPv2_ENABLED
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol._PPP_MTU
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol._PPP_PAP_ENABLED
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol._ROUTE_DO_ENABLE_APP_BASED_RULE
+import ir.erfansn.nsmavpn.data.model.AppInfo
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.OscPrefKey
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.terminal.IpTerminal
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.terminal.SSLTerminal
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.option.AuthOption
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.option.AuthOptionMSChapv2
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.option.AuthOptionPAP
+import ir.erfansn.nsmavpn.feature.home.vpn.SstpVpnService
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.util.*
+import java.util.UUID
 
 class ChapMessage {
     val serverChallenge = ByteArray(16)
@@ -33,6 +23,7 @@ class ChapMessage {
 
 enum class Where {
     SSL,
+    PROXY,
     SSTP_DATA,
     SSTP_CONTROL,
     SSTP_REQUEST,
@@ -47,6 +38,7 @@ enum class Where {
     IPCP_IP,
     IPV6CP,
     IPV6CP_IDENTIFIER,
+    IP,
     IPv4,
     IPv6,
     ROUTE,
@@ -79,6 +71,7 @@ enum class Result {
     ERR_PROTOCOL_REJECTED,
     ERR_CODE_REJECTED,
     ERR_AUTHENTICATION_FAILED,
+    ERR_ADDRESS_REJECTED,
     ERR_OPTION_REJECTED,
 
     // for IP
@@ -89,7 +82,6 @@ enum class Result {
 }
 
 class ClientBridge(val service: SstpVpnService) {
-
     val builder = service.Builder()
     lateinit var handler: CoroutineExceptionHandler
 
@@ -98,18 +90,14 @@ class ClientBridge(val service: SstpVpnService) {
     var sslTerminal: SSLTerminal? = null
     var ipTerminal: IpTerminal? = null
 
-    val HOME_HOSTNAME = _HOME_HOSTNAME
-    val HOME_USERNAME = _HOME_USERNAME
-    val HOME_PASSWORD = _HOME_PASSWORD
-    val PPP_MRU = _PPP_MRU
-    val PPP_MTU = _PPP_MTU
-    val PPP_PAP_ENABLED = _PPP_PAP_ENABLED
-    val PPP_MSCHAPv2_ENABLED = _PPP_MSCHAPv2_ENABLED
-    val PPP_IPv4_ENABLED = _PPP_IPv4_ENABLED
-    val PPP_IPv6_ENABLED = _PPP_IPv6_ENABLED
-    val DNS_DO_REQUEST_ADDRESS = _DNS_DO_REQUEST_ADDRESS
-    val DNS_DO_USE_CUSTOM_SERVER = _DNS_DO_USE_CUSTOM_SERVER
-    val ROUTE_DO_ENABLE_APP_BASED_RULE = _ROUTE_DO_ENABLE_APP_BASED_RULE
+    val HOME_USERNAME = OscPrefKey.HOME_USERNAME
+    val HOME_PASSWORD = OscPrefKey.HOME_PASSWORD
+    val PPP_MRU = OscPrefKey.PPP_MRU
+    val PPP_MTU = OscPrefKey.PPP_MTU
+    val PPP_PAP_ENABLED = OscPrefKey.PPP_PAP_ENABLED
+    val PPP_MSCHAPv2_ENABLED = OscPrefKey.PPP_MSCHAPv2_ENABLED
+    val PPP_IPv4_ENABLED = OscPrefKey.PPP_IPv4_ENABLED
+    val PPP_IPv6_ENABLED = OscPrefKey.PPP_IPv6_ENABLED
 
     lateinit var chapMessage: ChapMessage
     val nonce = ByteArray(32)
@@ -124,6 +112,9 @@ class ClientBridge(val service: SstpVpnService) {
     val currentIPv4 = ByteArray(4)
     val currentIPv6 = ByteArray(8)
     val currentProposedDNS = ByteArray(4)
+
+    // TODO: Fill this from VpnService
+    var disallowedApps: List<AppInfo> = emptyList()
 
     fun getPreferredAuthOption(): AuthOption {
         return if (PPP_MSCHAPv2_ENABLED) AuthOptionMSChapv2() else AuthOptionPAP()

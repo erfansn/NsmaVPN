@@ -1,11 +1,17 @@
 package ir.erfansn.nsmavpn.data.source.local
 
 import androidx.datastore.core.DataStore
+import ir.erfansn.nsmavpn.data.model.MirrorLink
+import ir.erfansn.nsmavpn.data.source.local.datastore.Protocol
 import ir.erfansn.nsmavpn.data.source.local.datastore.Server
-import ir.erfansn.nsmavpn.data.source.local.datastore.UrlLink
+import ir.erfansn.nsmavpn.data.source.local.datastore.UrlParts
 import ir.erfansn.nsmavpn.data.source.local.datastore.VpnProvider
 import ir.erfansn.nsmavpn.data.source.local.datastore.copy
+import ir.erfansn.nsmavpn.data.source.local.datastore.urlParts
+import ir.erfansn.nsmavpn.di.DefaultDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
@@ -15,60 +21,73 @@ import javax.inject.Inject
  */
 class DefaultVpnProviderLocalDataSource @Inject constructor(
     private val dataStore: DataStore<VpnProvider>,
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher
 ) : VpnProviderLocalDataSource {
 
-    override suspend fun getVpnProviderAddress(): UrlLink =
+    override suspend fun getVpnProviderAddress(): UrlParts =
         dataStore.data.first().address
 
-    override suspend fun saveVpnProviderAddress(address: UrlLink) {
+    override suspend fun saveVpnProviderAddress(mirrorLink: MirrorLink) {
         dataStore.updateData {
             it.copy {
-                this.address = address
+                address = urlParts {
+                    protocol = if (mirrorLink.protocol == "http") Protocol.HTTP else Protocol.HTTPS
+                    hostName = mirrorLink.hostName
+                    portNumber = mirrorLink.port.toInt()
+                }
             }
         }
     }
 
-    override suspend fun getAvailableVpnServers(): List<Server> =
+    override suspend fun getAvailableVpnServers(): List<Server> = withContext(defaultDispatcher) {
         dataStore.data.first().let { vpnProvider ->
-            vpnProvider.serversList.filter { it !in vpnProvider.blackServersList }
+            vpnProvider.serversList.filter { it !in vpnProvider.blacklistedServersList }
         }
+    }
 
     override suspend fun saveVpnServers(servers: List<Server>) {
         dataStore.updateData { vpnProvider ->
-            vpnProvider.toBuilder().apply {
-                val newServers = servers.filter { it !in vpnProvider.serversList }
-                addAllServers(newServers)
-            }.build()
+            vpnProvider.copy {
+                val newServers = servers.filter { it !in this.servers }
+                this.servers.addAll(newServers)
+            }
         }
     }
 
     override suspend fun getBlockedVpnServers(): List<Server> {
-        return dataStore.data.first().blackServersList
+        return dataStore.data.first().blacklistedServersList
     }
 
     override suspend fun blockVpnServers(vararg servers: Server) {
         dataStore.updateData { vpnProvider ->
-            val newServers = servers.filter { it !in vpnProvider.blackServersList }
-            vpnProvider.toBuilder().addAllBlackServers(newServers).build()
+            vpnProvider.copy {
+                val newServers = servers.filter { it !in blacklistedServers }
+                blacklistedServers.addAll(newServers)
+            }
         }
     }
 
-    override suspend fun unblockVpnServer(server: Server) {
-        dataStore.updateData {
-            check(server in it.blackServersList)
-
-            val serverIndex = it.blackServersList.indexOf(server)
-            it.toBuilder().removeBlackServers(serverIndex).build()
+    override suspend fun unblockVpnServers(servers: List<Server>) {
+        dataStore.updateData { vpnProvider ->
+            vpnProvider.copy {
+                blacklistedServers.filter {
+                    it !in servers
+                }.also {
+                    blacklistedServers.clear()
+                }.let {
+                    blacklistedServers.addAll(it)
+                }
+            }
         }
     }
 }
 
 interface VpnProviderLocalDataSource {
-    suspend fun getVpnProviderAddress(): UrlLink
-    suspend fun saveVpnProviderAddress(address: UrlLink)
+    suspend fun getVpnProviderAddress(): UrlParts
+    suspend fun saveVpnProviderAddress(mirrorLink: MirrorLink)
     suspend fun getAvailableVpnServers(): List<Server>
     suspend fun saveVpnServers(servers: List<Server>)
     suspend fun getBlockedVpnServers(): List<Server>
     suspend fun blockVpnServers(vararg servers: Server)
-    suspend fun unblockVpnServer(server: Server)
+    suspend fun unblockVpnServers(servers: List<Server>)
 }

@@ -1,14 +1,12 @@
 package ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ppp
 
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.*
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.cipher.ppp.authenticateChapServerResponse
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.cipher.ppp.generateChapClientResponse
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ChapMessage
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ClientBridge
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ControlMessage
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.Result
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.Where
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.cipher.ppp.authenticateChapServerResponse
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.cipher.ppp.generateChapClientResponse
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.*
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.CHAP_CODE_CHALLENGE
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.CHAP_CODE_FAILURE
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.CHAP_CODE_SUCCESS
@@ -32,7 +30,7 @@ class ChapClient(private val bridge: ClientBridge) {
     private var isInitialAuthentication = true
 
     fun launchJobAuth() {
-        jobAuth = bridge.service.scope.launch(bridge.handler) {
+        jobAuth = bridge.service.serviceScope.launch(bridge.handler) {
             while (isActive) {
                 val received = mailbox.receive()
 

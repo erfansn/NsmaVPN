@@ -1,108 +1,84 @@
 package ir.erfansn.nsmavpn.feature.home
 
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import ir.erfansn.nsmavpn.R
-import ir.erfansn.nsmavpn.data.repository.ServersRepository
-import ir.erfansn.nsmavpn.data.repository.VpnServersNotExistsException
-import ir.erfansn.nsmavpn.data.source.local.datastore.Server
-import ir.erfansn.nsmavpn.data.util.PingChecker
-import kotlinx.coroutines.delay
+import ir.erfansn.nsmavpn.data.repository.LastVpnConnectionRepository
+import ir.erfansn.nsmavpn.data.repository.ProfileRepository
+import ir.erfansn.nsmavpn.data.util.NetworkUsageTracker
+import ir.erfansn.nsmavpn.feature.home.vpn.ConnectionState
+import ir.erfansn.nsmavpn.feature.home.vpn.SstpVpnServiceState
+import ir.erfansn.nsmavpn.sync.VpnServersSyncManager
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import org.apache.xpath.operations.Bool
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val serversRepository: ServersRepository,
-    private val pingChecker: PingChecker,
+    private val lastVpnConnectionRepository: LastVpnConnectionRepository,
+    private val networkUsageTracker: NetworkUsageTracker,
+    vpnServersSyncManager: VpnServersSyncManager,
+    profileRepository: ProfileRepository,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(HomeUiState())
-    val uiState get() = _uiState.asStateFlow()
+    private val vpnServiceState = MutableStateFlow(VpnServiceState())
+    val uiState = combine(
+        vpnServiceState,
+        vpnServersSyncManager.isSyncing,
+        profileRepository.userProfile,
+    ) { started, isSyncing, userProfile ->
+        HomeUiState(
+            isSyncing = isSyncing,
+            userAvatarUrl = userProfile.avatarUrl,
+            vpnServiceState = started,
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = HomeUiState()
+    )
 
-    init {
-        viewModelScope.launch {
-            delay(5000)
-            _uiState.update {
-                it.copy(isCollectingServers = false)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val dataTraffic = uiState
+        .flatMapLatest {
+            check(networkUsageTracker.hasPermission)
+
+            if (it.vpnServiceState.state is ConnectionState.Connected) {
+                val lastVpnConnection = lastVpnConnectionRepository.lastVpnConnection.first()
+
+                networkUsageTracker.trackUsage(lastVpnConnection.epochTime).map { usage ->
+                    DataTraffic(upload = usage.transmitted, download = usage.received)
+                }
+            } else {
+                flowOf(
+                    DataTraffic(download = 0, upload = 0)
+                )
             }
         }
-    }
-
-    fun prepareNewServer() {
-        blockCurrentServer()
-        findFastestServer()
-    }
-
-    private fun blockCurrentServer() {
-
-    }
-
-    // TODO: only one request can handle thus when new call will cancel job and start one new
-    fun findFastestServer() {
-
-    }
-
-    /*private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Disconnected)
-    val uiState = serversRepository.isCollectingVpnServers()
-        .combine(_uiState) { isCollecting, currentUiState ->
-            if (isCollecting) HomeUiState.CollectingServers else currentUiState
-        }.stateIn(
+        .catch<DataTraffic?> { emit(null) }
+        .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = _uiState.value
+            initialValue = DataTraffic(download = 0, upload = 0)
         )
 
-    private var currentVpnServer: Server? = null
-
-    init {
-        serversRepository.beginVpnServersWorker()
+    fun updateVpnServiceState(state: SstpVpnServiceState) {
+        vpnServiceState.update { it.copy(started = state.started, state = state.connectionState) }
     }
-
-    fun findBestVpnServer() {
-        viewModelScope.launch {
-            _uiState.update {
-                try {
-                    val fastestServer = serversRepository.getFastestVpnServer().also {
-                        currentVpnServer = it
-                    }
-                    HomeUiState.Connecting(vpnServer = fastestServer)
-                } catch (e: VpnServersNotExistsException) {
-                    HomeUiState.Error(R.string.error_no_exists_server)
-                }
-            }
-        }
-    }
-
-    fun checkConnectionEstablishment() {
-        viewModelScope.launch {
-            val connectionIsEstablish = pingChecker.isReachable()
-            if (connectionIsEstablish) {
-                _uiState.update { HomeUiState.Connected }
-            } else {
-                // Block selected server and trigger to select another
-                currentVpnServer?.let { serversRepository.blockVpnServer(it) }
-                findBestVpnServer()
-            }
-        }
-    }*/
 }
 
-/*sealed interface HomeUiState {
-    object Disconnected : HomeUiState
-    data class Connecting(val vpnServer: Server) : HomeUiState
-    object Connected : HomeUiState
-    object CollectingServers : HomeUiState
-    data class Error(val messageId: Int) : HomeUiState
-}*/
-
-@Immutable
 data class HomeUiState(
-    val vpnServer: Server? = null,
-    val isCollectingServers: Boolean = true,
+    val userAvatarUrl: String = "",
+    val isSyncing: Boolean = false,
+    val vpnServiceState: VpnServiceState = VpnServiceState(),
+)
+
+data class VpnServiceState(
+    val started: Boolean = false,
+    val state: ConnectionState = ConnectionState.Disconnected
+)
+
+data class DataTraffic(
+    val upload: Long,
+    val download: Long
 )

@@ -1,42 +1,50 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package ir.erfansn.nsmavpn.ui.component
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import ir.erfansn.nsmavpn.ui.component.NsmaVpnTopBarDefaults.animatedContainerColor
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
-import ir.erfansn.nsmavpn.ui.util.preview.ThemePreviews
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NsmaVpnTopBar(
     title: @Composable () -> Unit,
     navigationIcon: @Composable () -> Unit,
     actions: @Composable RowScope.() -> Unit,
     modifier: Modifier = Modifier,
-    scrollBehavior: TopAppBarScrollBehavior? = null,
-    colors: TopAppBarColors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-        containerColor = scrollBehavior.containerColor,
-        scrolledContainerColor = scrolledContainerColor
-    )
+    overlappedWithContent: () -> Boolean = { false },
 ) {
+    val containerColor by animatedContainerColor(overlappedWithContent())
     CenterAlignedTopAppBar(
-        modifier = modifier,
+        modifier = modifier.drawBehind {
+            drawRect(color = containerColor)
+        },
         title = title,
         navigationIcon = navigationIcon,
         actions = actions,
-        scrollBehavior = scrollBehavior,
-        colors = colors,
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+            containerColor = Color.Transparent,
+        ),
         windowInsets = windowInsets,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NsmaVpnLargeTopBar(
     title: @Composable () -> Unit,
@@ -44,8 +52,8 @@ fun NsmaVpnLargeTopBar(
     modifier: Modifier = Modifier,
     scrollBehavior: TopAppBarScrollBehavior? = null,
     colors: TopAppBarColors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-        containerColor = scrollBehavior.containerColor,
-        scrolledContainerColor = scrolledContainerColor,
+        containerColor = NsmaVpnTopBarDefaults.containerColor,
+        scrolledContainerColor = NsmaVpnTopBarDefaults.scrolledContainerColor,
     )
 ) {
     LargeTopAppBar(
@@ -58,21 +66,37 @@ fun NsmaVpnLargeTopBar(
     )
 }
 
-// For transform color without flicker from transparent to target color
-@OptIn(ExperimentalMaterial3Api::class)
-val TopAppBarScrollBehavior?.containerColor: Color
-    @Composable
-    get() = MaterialTheme.colorScheme.surface.copy(alpha = if (this == null) 1f else 0f)
-val scrolledContainerColor @Composable
-    get() = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+object NsmaVpnTopBarDefaults {
 
-private val windowInsets @Composable
+    // For transform color without flicker from transparent to target color
+    val containerColor: Color
+        @Composable
+        get() {
+            val inspectionMode = LocalInspectionMode.current
+            return MaterialTheme.colorScheme.surface.copy(alpha = if (inspectionMode) 1f else 0f)
+        }
+
+    val scrolledContainerColor
+        @Composable
+        get() = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+
+    @Composable
+    fun animatedContainerColor(isOverlapped: Boolean): State<Color> {
+        return animateColorAsState(
+            targetValue = if (isOverlapped) scrolledContainerColor else containerColor,
+            animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+            label = "NsmaVpnTopBarContainerColor"
+        )
+    }
+}
+
+private val windowInsets
+    @Composable
     get() = WindowInsets.safeContent.only(
         WindowInsetsSides.Top + WindowInsetsSides.Horizontal
     )
 
-@OptIn(ExperimentalMaterial3Api::class)
-@ThemePreviews
+@PreviewLightDark
 @Composable
 fun NsmaVpnTopBarPreview() {
     NsmaVpnTheme {
@@ -100,8 +124,7 @@ fun NsmaVpnTopBarPreview() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@ThemePreviews
+@PreviewLightDark
 @Composable
 fun NsmaVpnLargeTopBarPreview() {
     NsmaVpnTheme {

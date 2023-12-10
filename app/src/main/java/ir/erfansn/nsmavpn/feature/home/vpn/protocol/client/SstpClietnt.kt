@@ -5,21 +5,6 @@ import ir.erfansn.nsmavpn.feature.home.vpn.protocol.cipher.sstp.generateChapHLAK
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.option.AuthOptionMSChapv2
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.option.AuthOptionPAP
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.*
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.CERT_HASH_PROTOCOL_SHA1
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.CERT_HASH_PROTOCOL_SHA256
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.ControlPacket
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.SSTP_MESSAGE_TYPE_CALL_ABORT
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.SSTP_MESSAGE_TYPE_CALL_DISCONNECT
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.SSTP_MESSAGE_TYPE_CALL_DISCONNECT_ACK
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.SstpCallAbort
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.SstpCallConnectAck
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.SstpCallConnectNak
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.SstpCallConnectRequest
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.SstpCallConnected
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.SstpCallDisconnect
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.SstpCallDisconnectAck
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.SstpEchoRequest
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.SstpEchoResponse
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.isActive
@@ -42,7 +27,7 @@ class SstpClient(val bridge: ClientBridge) {
     private var jobControl: Job? = null
 
     suspend fun launchJobControl() {
-        jobControl = bridge.service.scope.launch(bridge.handler) {
+        jobControl = bridge.service.serviceScope.launch(bridge.handler) {
             while (isActive) {
                 when (mailbox.receive()) {
                     is SstpEchoRequest -> {
@@ -78,7 +63,7 @@ class SstpClient(val bridge: ClientBridge) {
     }
 
     suspend fun launchJobRequest() {
-        jobRequest = bridge.service.scope.launch(bridge.handler) {
+        jobRequest = bridge.service.serviceScope.launch(bridge.handler) {
             val request = SstpCallConnectRequest()
             var requestCount = SSTP_REQUEST_COUNT
 
@@ -166,7 +151,7 @@ class SstpClient(val bridge: ClientBridge) {
         val hlak = when (bridge.currentAuth) {
             is AuthOptionPAP -> ByteArray(32)
             is AuthOptionMSChapv2 -> generateChapHLAK(bridge.HOME_PASSWORD, bridge.chapMessage)
-            else -> throw NotImplementedError()
+            else -> throw NotImplementedError(bridge.currentAuth.protocol.toString())
         }
 
         val cmkSeed = "SSTP inner method derived CMK".toByteArray(Charset.forName("US-ASCII"))
@@ -191,12 +176,12 @@ class SstpClient(val bridge: ClientBridge) {
             SSTP_MESSAGE_TYPE_CALL_DISCONNECT_ACK -> SstpCallDisconnectAck()
             SSTP_MESSAGE_TYPE_CALL_ABORT -> SstpCallAbort()
 
-            else -> throw NotImplementedError()
+            else -> throw NotImplementedError(type.toString())
         }
 
         try { // maybe the socket is no longer available
             bridge.sslTerminal!!.sendDataUnit(packet)
-        } catch (_: Exception) { }
+        } catch (_: Throwable) { }
     }
 
     fun cancel() {

@@ -1,0 +1,55 @@
+package ir.erfansn.nsmavpn.sync
+
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import ir.erfansn.nsmavpn.sync.worker.CollectVpnServersWorker
+import ir.erfansn.nsmavpn.sync.worker.ReviseVpnServersWorker
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+
+class DefaultVpnServersSyncManager @Inject constructor(
+    private val workManager: WorkManager
+) : VpnServersSyncManager {
+
+    override val isSyncing =
+        workManager.getWorkInfosForUniqueWorkFlow(CollectVpnServersWorker.SERVER_COLLECTOR_WORKER)
+            .filter { !it.isNullOrEmpty() }
+            .map(List<WorkInfo>::first)
+            .map { it.state == WorkInfo.State.RUNNING }
+            .conflate()
+
+    override fun beginVpnServersSyncTasks() {
+        collectVpnServerPeriodically()
+        reviseVpnServersPeriodically()
+    }
+
+    private fun collectVpnServerPeriodically() {
+        workManager.enqueueUniquePeriodicWork(
+            CollectVpnServersWorker.SERVER_COLLECTOR_WORKER,
+            ExistingPeriodicWorkPolicy.KEEP,
+            CollectVpnServersWorker.WorkRequest
+        )
+    }
+
+    private fun reviseVpnServersPeriodically() {
+        workManager.enqueueUniquePeriodicWork(
+            ReviseVpnServersWorker.SERVERS_REVISION_WORKER,
+            ExistingPeriodicWorkPolicy.KEEP,
+            ReviseVpnServersWorker.WorkRequest
+        )
+    }
+
+    override fun endAllVpnServersSyncTasks() {
+        workManager.cancelAllWork()
+    }
+}
+
+interface VpnServersSyncManager {
+    val isSyncing: Flow<Boolean>
+    fun beginVpnServersSyncTasks()
+    fun endAllVpnServersSyncTasks()
+}

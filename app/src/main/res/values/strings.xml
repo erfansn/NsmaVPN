@@ -2,13 +2,21 @@
     <string name="app_name">Nsma VPN</string>
 
     <!--Common-->
-    <string name="web_client_id">870845865908\-4qde8iut5e3j76tmtn54rcthqjh4lcg8.apps.googleusercontent.com</string>
+    <string name="web_client_id">870845865908-4qde8iut5e3j76tmtn54rcthqjh4lcg8.apps.googleusercontent.com</string>
     <string name="error_no_exists_server">Not found VPN server</string>
     <string name="permissions_not_granted">Must all scopes permission be granted</string>
     <string name="ok">OK</string>
     <string name="go">GO</string>
     <string name="runtime_permissions_rationale_shown_state">runtime_permissions_rationale_shown_state</string>
     <string name="cd_back">Go to back</string>
+    <string name="notification_channel_sync_name">Server Sync</string>
+    <string name="connecting">Connecting…</string>
+    <string name="disconnecting">Disconnecting…</string>
+    <string name="connected">Connected to %s</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="initializing">Initializing…</string>
+    <string name="network_error">Network error</string>
+    <string name="validating">Validating…</string>
 
     <!--Auth feature-->
     <string name="auth_explanation">To obtain and collect VPN servers this app uses your email messages that sent from VpnGate thus only way to use this app sign-in with email that subscribed to VpnGate daily mirror link</string>
@@ -25,6 +33,14 @@
     <string name="field_full_name">Full Name</string>
     <string name="field_email_address">Email Address</string>
     <string name="content_description_avatar_picture">Avatar picture</string>
+    <string name="cd_back_to_home">Back to home</string>
+    <string name="cd_sign_out_from_account">Sign out from account</string>
+    <string name="dialog_description_sign_out">This will stop the collection of VPN servers, but the collected servers will remain intact.</string>
+    <string name="dialog_title_sign_out">Sign-out account?</string>
+    <string name="dialog_button_sign_out">Sign out</string>
+    <string name="dialog_button_cancel">Cancel</string>
+    <string name="message_subscribed_to_vpngate">Subscribed to VpnGate currently</string>
+    <string name="message_no_subscribe_to_vpngate">Check your subscription to VpnGate\nmaybe you cannot receive any new servers</string>
 
     <!--Settings feature-->
     <string name="title_settings">Settings</string>
@@ -49,4 +65,8 @@
     <string name="title_home">Home</string>
     <string name="post_notification_permission_required">To see state on a Post Notification permission must be granted</string>
     <string name="refer_user_to_settings_for_permission_granting">To show notification sent by app, grant its permission from app settings</string>
+    <string name="collecting_servers">Collecting Servers</string>
+    <string name="usage_access_permission">Allow the usage access permission to see stats</string>
+    <string name="notification_permission_rationale">To notify latest vpn state from notification you should grant it</string>
+    <string name="notification_permission_denied">Notifications don\'t show due to lack of permission</string>
 </resources>

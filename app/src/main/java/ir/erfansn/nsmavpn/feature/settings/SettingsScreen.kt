@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -62,7 +63,7 @@ private fun SettingsScreen(
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     NsmaVpnScaffold(
-        modifier = modifier,
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             NsmaVpnLargeTopBar(
                 title = {
@@ -86,7 +87,6 @@ private fun SettingsScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
-        scrollBehavior = scrollBehavior,
     ) {
         val context = LocalContext.current
         val uriHandler = LocalUriHandler.current

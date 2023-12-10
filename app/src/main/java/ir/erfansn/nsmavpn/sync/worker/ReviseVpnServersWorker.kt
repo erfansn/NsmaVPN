@@ -1,15 +1,19 @@
-package ir.erfansn.nsmavpn.data.worker
+package ir.erfansn.nsmavpn.sync.worker
 
 import android.content.Context
 import androidx.hilt.work.HiltWorker
-import androidx.work.*
+import androidx.work.Constraints
+import androidx.work.CoroutineWorker
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import ir.erfansn.nsmavpn.data.repository.ServersRepository
 import java.util.concurrent.TimeUnit
 
 @HiltWorker
-class ServerUnblockingWorker @AssistedInject constructor(
+class ReviseVpnServersWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val serversRepository: ServersRepository,
@@ -17,7 +21,8 @@ class ServerUnblockingWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         return try {
-            serversRepository.unblockAvailableVpnServerFromBlacklistRandomly()
+            serversRepository.unblockReachableVpnServers()
+            serversRepository.blockUnreachableVpnServers()
             Result.success()
         } catch (e: Exception) {
             Result.failure()
@@ -25,17 +30,18 @@ class ServerUnblockingWorker @AssistedInject constructor(
     }
 
     companion object {
-        const val SERVER_UNBLOCKING_WORKER = "server_blocking"
+        const val SERVERS_REVISION_WORKER = "servers_revision"
 
-        private const val UNBLOCKING_TIME_INTERVAL = 24L
         private val unblockingWorkerConstraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        val workRequest = PeriodicWorkRequestBuilder<ServerUnblockingWorker>(
-            repeatInterval = UNBLOCKING_TIME_INTERVAL,
-            repeatIntervalTimeUnit = TimeUnit.HOURS,
-        )
+        val WorkRequest =
+            PeriodicWorkRequestBuilder<ReviseVpnServersWorker>(
+                repeatInterval = 2,
+                repeatIntervalTimeUnit = TimeUnit.HOURS,
+            )
+            .setInitialDelay(1, TimeUnit.HOURS)
             .setConstraints(unblockingWorkerConstraints)
             .build()
     }

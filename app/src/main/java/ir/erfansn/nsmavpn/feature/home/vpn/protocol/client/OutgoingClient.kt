@@ -1,6 +1,5 @@
 package ir.erfansn.nsmavpn.feature.home.vpn.protocol.client
 
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.BUFFER_OUTGOING
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.PPP_HEADER
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.PPP_PROTOCOL_IP
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.PPP_PROTOCOL_IPv6
@@ -21,14 +20,11 @@ class OutgoingClient(private val bridge: ClientBridge) {
     private var jobMain: Job? = null
     private var jobRetrieve: Job? = null
 
-    private val mainBuffer = ByteBuffer.allocate(BUFFER_OUTGOING)
+    private val mainBuffer = ByteBuffer.allocate(bridge.sslTerminal!!.getApplicationBufferSize())
     private val channel = Channel<ByteBuffer>(0)
 
     fun launchJobMain() {
-        jobMain = bridge.service.scope.launch(bridge.handler) {
-            bridge.attachIPTerminal()
-            if (!bridge.ipTerminal!!.initializeTun()) return@launch
-
+        jobMain = bridge.service.serviceScope.launch(bridge.handler) {
             launchJobRetrieve()
 
             val minCapacity = PREFIX_SIZE + bridge.PPP_MTU
@@ -53,7 +49,7 @@ class OutgoingClient(private val bridge: ClientBridge) {
     }
 
     private fun launchJobRetrieve() {
-        jobRetrieve = bridge.service.scope.launch(bridge.handler) {
+        jobRetrieve = bridge.service.serviceScope.launch(bridge.handler) {
             val bufferAlpha = ByteBuffer.allocate(bridge.PPP_MTU)
             val bufferBeta = ByteBuffer.allocate(bridge.PPP_MTU)
             var isBlockingAlpha = true

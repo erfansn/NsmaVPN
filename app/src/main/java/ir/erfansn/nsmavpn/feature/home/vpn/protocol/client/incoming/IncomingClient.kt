@@ -1,19 +1,35 @@
 package ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.incoming
 
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.MAX_MRU
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ClientBridge
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ControlMessage
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.Result
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.SstpClient
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.Where
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ppp.ChapClient
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ppp.IpcpClient
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ppp.Ipv6cpClient
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ppp.LcpClient
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.*
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ppp.*
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.extension.capacityAfterLimit
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ppp.PapClient
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ppp.PppClient
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.extension.probeByte
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.extension.probeShort
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.extension.toIntAsUShort
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.BUFFER_INCOMING
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.*
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.ChapFrame
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.Frame
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.IpcpConfigureFrame
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.Ipv6cpConfigureFrame
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCPConfigureFrame
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.LCPEchoRequest
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.PAPFrame
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.PPP_HEADER
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.PPP_PROTOCOL_CHAP
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.PPP_PROTOCOL_IP
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.PPP_PROTOCOL_IPCP
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.PPP_PROTOCOL_IPv6
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.PPP_PROTOCOL_IPv6CP
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.PPP_PROTOCOL_LCP
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.ppp.PPP_PROTOCOL_PAP
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.ControlPacket
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.SSTP_PACKET_TYPE_CONTROL
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.unit.sstp.SSTP_PACKET_TYPE_DATA
@@ -28,7 +44,7 @@ private const val SSTP_ECHO_INTERVAL = 20_000L
 private const val PPP_ECHO_INTERVAL = 20_000L
 
 class IncomingClient(val bridge: ClientBridge) {
-    private val bufferSize = BUFFER_INCOMING
+    private val bufferSize = bridge.sslTerminal!!.getApplicationBufferSize() + MAX_MRU + 8 // MAX_MRU + 8 for fragment
 
     private var jobMain: Job? = null
 
@@ -63,7 +79,7 @@ class IncomingClient(val bridge: ClientBridge) {
             is Ipv6cpClient -> ipv6cpMailbox = client.mailbox
             is PppClient -> pppMailbox = client.mailbox
             is SstpClient -> sstpMailbox = client.mailbox
-            else -> throw NotImplementedError()
+            else -> throw NotImplementedError(client?.toString() ?: "")
         }
     }
 
@@ -76,12 +92,12 @@ class IncomingClient(val bridge: ClientBridge) {
             is Ipv6cpClient -> ipv6cpMailbox = null
             is PppClient -> pppMailbox = null
             is SstpClient -> sstpMailbox = null
-            else -> throw NotImplementedError()
+            else -> throw NotImplementedError(client?.toString() ?: "")
         }
     }
 
     fun launchJobMain() {
-        jobMain = bridge.service.scope.launch(bridge.handler) {
+        jobMain = bridge.service.serviceScope.launch(bridge.handler) {
             val buffer = ByteBuffer.allocate(bufferSize).also { it.limit(0) }
 
             sstpTimer.tick()
@@ -110,7 +126,7 @@ class IncomingClient(val bridge: ClientBridge) {
                     in 4..bufferSize -> { }
 
                     -1 -> {
-                        load(4, buffer)
+                        bridge.sslTerminal!!.receive(buffer)
                         continue
                     }
 
@@ -122,9 +138,8 @@ class IncomingClient(val bridge: ClientBridge) {
                     }
                 }
 
-                val lacked = size - buffer.remaining()
-                if (lacked > 0) {
-                    load(lacked, buffer)
+                if (size > buffer.remaining()) {
+                    bridge.sslTerminal!!.receive(buffer)
                     continue
                 }
 
@@ -196,21 +211,6 @@ class IncomingClient(val bridge: ClientBridge) {
         } else {
             buffer.probeShort(2).toIntAsUShort()
         }
-    }
-
-    private fun load(minSize: Int, buffer: ByteBuffer) {
-        if (buffer.capacityAfterLimit < minSize) { // need to slide
-            val remaining = buffer.remaining()
-
-            buffer.array().also {
-                it.copyInto(it, 0, buffer.position(), buffer.limit())
-            }
-
-            buffer.position(0)
-            buffer.limit(remaining)
-        }
-
-        bridge.sslTerminal!!.receive(buffer.capacityAfterLimit, buffer)
     }
 
     fun cancel() {

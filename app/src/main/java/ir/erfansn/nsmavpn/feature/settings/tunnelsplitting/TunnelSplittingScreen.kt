@@ -4,9 +4,6 @@ package ir.erfansn.nsmavpn.feature.settings.tunnelsplitting
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -33,7 +30,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Search
@@ -49,8 +46,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
@@ -64,6 +59,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -78,8 +74,7 @@ import ir.erfansn.nsmavpn.data.model.AppInfo
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnBackground
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnScaffold
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnTopBar
-import ir.erfansn.nsmavpn.ui.component.containerColor
-import ir.erfansn.nsmavpn.ui.component.scrolledContainerColor
+import ir.erfansn.nsmavpn.ui.component.NsmaVpnTopBarDefaults
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
 import ir.erfansn.nsmavpn.ui.util.preview.TunnelSplittingPreviews
 import kotlin.random.Random
@@ -114,7 +109,6 @@ fun TunnelSplittingScreen(
     onNavigateToBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val lazyGridState = rememberSaveable(uiState.searchQuery, saver = LazyGridState.Saver) {
         LazyGridState()
     }
@@ -125,7 +119,6 @@ fun TunnelSplittingScreen(
                 windowWidthClass = windowClass.widthSizeClass,
                 query = uiState.searchQuery,
                 onSearchQueryChange = onSearchQueryChange,
-                scrollBehavior = scrollBehavior,
                 overlappedWithContent = {
                     lazyGridState.firstVisibleItemIndex > 0 || lazyGridState.firstVisibleItemScrollOffset > 0
                 },
@@ -134,7 +127,6 @@ fun TunnelSplittingScreen(
                 showSearchBar = uiState.appItems != null,
             )
         },
-        scrollBehavior = scrollBehavior
     ) { contentPadding ->
         AnimatedContent(
             targetState = uiState.appItems,
@@ -196,7 +188,6 @@ fun TunnelSplittingScreen(
 @Composable
 fun TunnelSplittingTopBar(
     windowWidthClass: WindowWidthSizeClass,
-    scrollBehavior: TopAppBarScrollBehavior,
     query: String,
     onSearchQueryChange: (String) -> Unit,
     onNavigateToBack: () -> Unit,
@@ -204,19 +195,10 @@ fun TunnelSplittingTopBar(
     overlappedWithContent: () -> Boolean,
     showSearchBar: Boolean = true,
 ) {
-    val appBarContainerColor by animateColorAsState(
-        targetValue = if (overlappedWithContent()) {
-            scrolledContainerColor
-        } else {
-            scrollBehavior.containerColor
-        },
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "appBarContainerColor"
-    )
+    val containerColor by NsmaVpnTopBarDefaults.animatedContainerColor(overlappedWithContent())
     Column(
         modifier = Modifier
-            .background(color = appBarContainerColor)
-            .clipToBounds(),
+            .drawBehind { drawRect(color = containerColor) },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         NsmaVpnTopBar(
@@ -226,7 +208,7 @@ fun TunnelSplittingTopBar(
             navigationIcon = {
                 IconButton(onClick = onNavigateToBack) {
                     Icon(
-                        imageVector = Icons.Rounded.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                         contentDescription = stringResource(id = R.string.cd_back)
                     )
                 }
@@ -260,11 +242,6 @@ fun TunnelSplittingTopBar(
                     )
                 }
             },
-            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                containerColor = Color.Transparent,
-                scrolledContainerColor = Color.Transparent,
-            ),
-            scrollBehavior = scrollBehavior,
         )
         AnimatedVisibility(visible = showSearchBar) {
             OutlinedTextField(
