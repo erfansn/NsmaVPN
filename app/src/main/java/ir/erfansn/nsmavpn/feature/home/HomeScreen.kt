@@ -1,44 +1,59 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package ir.erfansn.nsmavpn.feature.home
 
-import android.app.Activity
+import android.app.Service
 import android.content.ComponentName
 import android.content.Context
-import android.content.ContextWrapper
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.net.Uri
 import android.os.Build
 import android.os.IBinder
-import android.provider.Settings
+import android.util.Log
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.launch
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -55,61 +70,75 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.layoutId
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.erfansn.nsmavpn.R
-import ir.erfansn.nsmavpn.core.get
-import ir.erfansn.nsmavpn.core.hasRationaleShownPreferences
-import ir.erfansn.nsmavpn.core.set
-import ir.erfansn.nsmavpn.data.source.local.datastore.Server
-import ir.erfansn.nsmavpn.data.util.DataUsageTracker
-import ir.erfansn.nsmavpn.data.util.monitor.VpnConnectionStatus
-import ir.erfansn.nsmavpn.data.util.monitor.VpnNetworkMonitor
-import ir.erfansn.nsmavpn.feature.home.vpn.service.SstpVpnService
-import ir.erfansn.nsmavpn.ui.*
+import ir.erfansn.nsmavpn.data.util.NetworkMonitor
+import ir.erfansn.nsmavpn.feature.home.util.GetUsageAccess
+import ir.erfansn.nsmavpn.feature.home.vpn.ConnectionState
+import ir.erfansn.nsmavpn.feature.home.vpn.SstpVpnService
+import ir.erfansn.nsmavpn.feature.home.vpn.SstpVpnServiceState
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnBackground
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnScaffold
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnTopBar
 import ir.erfansn.nsmavpn.ui.component.UserAvatar
-import ir.erfansn.nsmavpn.ui.component.modifier.*
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
-import ir.erfansn.nsmavpn.ui.util.ErrorNotifier
-import ir.erfansn.nsmavpn.ui.util.rememberErrorNotifier
+import ir.erfansn.nsmavpn.ui.util.UserMessagePriority
+import ir.erfansn.nsmavpn.ui.util.UserMessageNotifier
+import ir.erfansn.nsmavpn.ui.util.rememberRequestPermissionsLauncher
+import ir.erfansn.nsmavpn.ui.util.rememberUserMessageNotifier
+import ir.erfansn.nsmavpn.ui.util.toCountryFlagEmoji
+import ir.erfansn.nsmavpn.ui.util.toHumanReadableByteSize
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeRoute(
-    /*networkMonitor: NetworkMonitor,*/
+    networkMonitor: NetworkMonitor,
     windowSize: WindowSizeClass,
+    onNavigateToProfile: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    /*val isOffline by networkMonitor.isOffline.collectAsStateWithLifecycle()*/
+    val networkUsage by viewModel.dataTraffic.collectAsStateWithLifecycle()
+    val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(false)
 
     HomeScreen(
-        /*isOffline = isOffline,*/
         uiState = uiState,
         windowSize = windowSize,
-        modifier = modifier
+        modifier = modifier,
+        isOnline = isOnline,
+        dataTraffic = networkUsage,
+        onNavigateToSettings = onNavigateToSettings,
+        onNavigateToProfile = onNavigateToProfile,
+        onChangeVpnServiceState = viewModel::updateVpnServiceState
     )
 }
 
 @Composable
-fun HomeScreen(
+private fun HomeScreen(
     uiState: HomeUiState,
     windowSize: WindowSizeClass,
     modifier: Modifier = Modifier,
+    isOnline: Boolean = false,
+    dataTraffic: DataTraffic? = null,
     onNavigateToSettings: () -> Unit = { },
     onNavigateToProfile: () -> Unit = { },
+    onChangeVpnServiceState: (SstpVpnServiceState) -> Unit = { },
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    val errorNotifier = rememberErrorNotifier(snackbarHostState)
-
+    val userNotifier = rememberUserMessageNotifier()
     val scrollState = rememberScrollState()
+
     NsmaVpnScaffold(
         modifier = modifier,
+        snackbarHost = {
+            SnackbarHost(userNotifier.snackbarHostState)
+        },
         topBar = {
             NsmaVpnTopBar(
                 title = {
@@ -130,8 +159,10 @@ fun HomeScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateToProfile) {
-                        // Obtain user avatar url from UiState
-                        UserAvatar()
+                        UserAvatar(
+                            avatarUrl = uiState.userAvatarUrl,
+                            borderWidth = 0.5.dp,
+                        )
                     }
                 },
                 actions = {
@@ -149,197 +180,236 @@ fun HomeScreen(
         }
     ) {
         HomeContent(
+            uiState = uiState,
+            isOnline = isOnline,
+            dataTraffic = dataTraffic,
+            windowSize = windowSize,
+            userMessageNotifier = userNotifier,
+            onChangeVpnServiceState = onChangeVpnServiceState,
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
                 .padding(vertical = 32.dp)
                 .padding(it),
-            uiState = uiState,
-            windowSize = windowSize,
-            errorNotifier = errorNotifier,
         )
     }
 }
 
 @Composable
-fun HomeContent(
+private fun HomeContent(
+    isOnline: Boolean,
     uiState: HomeUiState,
+    dataTraffic: DataTraffic?,
     windowSize: WindowSizeClass,
-    errorNotifier: ErrorNotifier,
+    userMessageNotifier: UserMessageNotifier,
     modifier: Modifier = Modifier,
+    onChangeVpnServiceState: (SstpVpnServiceState) -> Unit,
 ) {
     ConstraintLayout(
         modifier = modifier,
         constraintSet = windowSize.createConstraintSet,
     ) {
-        var state by remember { mutableStateOf(VpnSwitchState.Off) }
+        var vpnSwitchState by remember(uiState.vpnServiceState.started, isOnline) {
+            mutableStateOf(
+                if (uiState.vpnServiceState.started && isOnline) {
+                    VpnSwitchState.On
+                } else {
+                    VpnSwitchState.Off
+                }
+            )
+        }
 
-        var connected by remember { mutableStateOf(false) }
-
-        // Text determined by below status values
-        Text(
-            modifier = Modifier.layoutId("vpn_status_message"),
-            // text = vpnStatusMessage,
-            text = "Connected To \uD83C\uDDEF\uD83C\uDDF5",
-            // text = "Disconnected",
-            // text = "Connecting...",
-            // text = "Collecting Servers",
-            style = MaterialTheme.typography.displaySmall,
-            color = MaterialTheme.colorScheme.onBackground,
+        CurrentStateText(
+            modifier = Modifier.layoutId("current_state_text"),
+            vpnSwitchState = vpnSwitchState,
+            isSyncing = uiState.isSyncing,
+            connectionState = uiState.vpnServiceState.state,
+        )
+        DataTrafficDisplay(
+            modifier = Modifier
+                .layoutId("data_traffic_display")
+                .height(IntrinsicSize.Min),
+            stats = if (vpnSwitchState == VpnSwitchState.Off) null else dataTraffic
         )
 
         val context = LocalContext.current
-        // Determined by HomeState and VpnService and VpnNetworkMonitor
-        var usageStats by remember { mutableStateOf<UsageStats?>(null) }
-
-        // Download and upload speed passed as bits count and write Ui Logic to convert it to
-        // readable text info
-        // Display --- when switch is off
-        DataUsageStatsDisplay(
-            modifier = Modifier
-                .layoutId("connection_speed_display")
-                .height(IntrinsicSize.Min),
-            stats = usageStats,
-        )
-
-        val serviceConnectionCallback = remember {
-            object : ServiceConnection {
-                override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-                    service as SstpVpnService.VpnStateExposer
-                    service.onEstablishment = {
-                        connected = true
-                        // TODO: Save vpn server to use by Tile button
-                    }
-                    service.onInvalid = {
-                        // TODO: block vpn server then request new one
-                    }
-                }
-
-                override fun onServiceDisconnected(name: ComponentName?) {
-                    connected = false
-                    usageStats = null
-                }
+        LaunchedEffect(context, isOnline) {
+            if (!isOnline) {
+                userMessageNotifier.showMessage(
+                    messageId = R.string.network_problem,
+                    duration = SnackbarDuration.Indefinite,
+                    priority = UserMessagePriority.High,
+                )
             }
         }
 
-        LaunchedEffect(uiState) {
-            val vpnIntent = Intent(context, SstpVpnService::class.java)
+        val scope = rememberCoroutineScope()
+        val serviceConnectionCallback = remember(scope, onChangeVpnServiceState) {
+            object : ServiceConnection {
+                var vpnStartedStateCollectorJob: Job? = null
 
-            with(context) {
-                if (uiState.vpnServer != null) {
-                    bindService(vpnIntent, serviceConnectionCallback, Context.BIND_AUTO_CREATE)
-                    ContextCompat.startForegroundService(this, vpnIntent
-                        .setAction(SstpVpnService.ACTION_VPN_CONNECT)
-                        .putExtra("server", Server.ADDRESS_FIELD_NUMBER)
-                    )
-                } else {
-                    unbindService(serviceConnectionCallback)
-                    ContextCompat.startForegroundService(this, vpnIntent
-                        .setAction(SstpVpnService.ACTION_VPN_DISCONNECT)
-                    )
+                override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                    if (service !is SstpVpnService.LocalBinder) return
+
+                    vpnStartedStateCollectorJob = service
+                        .sstpVpnServiceState
+                        .onEach(onChangeVpnServiceState)
+                        .launchIn(scope)
+                }
+
+                override fun onServiceDisconnected(name: ComponentName?) {
+                    vpnStartedStateCollectorJob?.cancel()
+                }
+            }
+        }
+        DisposableEffect(serviceConnectionCallback, context) {
+            context.bindService(
+                Intent(context, SstpVpnService::class.java),
+                serviceConnectionCallback,
+                Service.BIND_AUTO_CREATE
+            )
+            onDispose {
+                context.unbindService(serviceConnectionCallback)
+            }
+        }
+
+        lateinit var getUsageAccessLauncher: ManagedActivityResultLauncher<Unit, Context.() -> Boolean>
+        getUsageAccessLauncher = rememberLauncherForActivityResult(GetUsageAccess()) { isGranted ->
+            if (!context.isGranted()) {
+                scope.launch {
+                    userMessageNotifier.showMessage(
+                        messageId = R.string.usage_access_permission,
+                        actionLabelId = R.string.ok,
+                    ).also {
+                        if (it == SnackbarResult.ActionPerformed) {
+                            getUsageAccessLauncher.launch()
+                        }
+                    }
                 }
             }
         }
 
         VpnSwitch(
             modifier = Modifier.layoutId("vpn_switch"),
-            state = state,
+            state = vpnSwitchState,
             onStateChange = {
-                if (it == VpnSwitchState.On) {
-                    /*findBestVpnServer()*/
-                } else {
-                    /*invalidateCurrentServer()*/
+                if (!isOnline) return@VpnSwitch
+
+                when (it) {
+                    VpnSwitchState.On -> {
+                        getUsageAccessLauncher.launch()
+                        ContextCompat.startForegroundService(
+                            context,
+                            Intent(context, SstpVpnService::class.java).apply {
+                                action = SstpVpnService.ACTION_VPN_CONNECT
+                            }
+                        )
+                    }
+
+                    VpnSwitchState.Off -> {
+                        context.startService(
+                            Intent(context, SstpVpnService::class.java).apply {
+                                action = SstpVpnService.ACTION_VPN_DISCONNECT
+                            }
+                        )
+                    }
                 }
-                state = it
+                vpnSwitchState = it
             },
-            enabled = !uiState.isCollectingServers,
-            connected = connected,
+            enabled = !uiState.isSyncing || vpnSwitchState == VpnSwitchState.On,
+            connected = uiState.vpnServiceState.state is ConnectionState.Connected,
         )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            PostNotificationPermissionChecker(
-                vpnSwitchState = state,
-                errorNotifier = errorNotifier,
+            PostNotificationPermissionEffect(
+                userMessageNotifier = userMessageNotifier
             )
         }
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
-fun PostNotificationPermissionChecker(
+private fun CurrentStateText(
+    connectionState: ConnectionState,
     vpnSwitchState: VpnSwitchState,
-    errorNotifier: ErrorNotifier,
+    isSyncing: Boolean,
+    modifier: Modifier = Modifier,
 ) {
-    var permissionCheckingRequest by remember { mutableStateOf(0) }
-    val requestPostNotificationPermission =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
-            if (!it) permissionCheckingRequest++
+    val vpnStateMessage = when {
+        vpnSwitchState == VpnSwitchState.Off && isSyncing -> {
+            stringResource(R.string.collecting_servers)
         }
 
-    LaunchedEffect(vpnSwitchState) {
-        if (vpnSwitchState == VpnSwitchState.On) {
-            requestPostNotificationPermission.launch(
-                android.Manifest.permission.POST_NOTIFICATIONS
-            )
+        connectionState is ConnectionState.Connected -> {
+            stringResource(connectionState.messageId, connectionState.serverCountryCode.toCountryFlagEmoji())
+        }
+
+        else -> {
+            stringResource(connectionState.messageId)
         }
     }
 
-    val context = LocalContext.current
-    LaunchedEffect(permissionCheckingRequest) {
-        when {
-            ActivityCompat.shouldShowRequestPermissionRationale(
-                context.findActivity(),
-                android.Manifest.permission.POST_NOTIFICATIONS
-            ) -> {
-                errorNotifier.showErrorMessage(
-                    messageId = R.string.post_notification_permission_required,
-                    actionLabelId = R.string.ok,
-                ) {
-                    context.hasRationaleShownPreferences[android.Manifest.permission.POST_NOTIFICATIONS] =
-                        true
-                    requestPostNotificationPermission.launch(
-                        android.Manifest.permission.POST_NOTIFICATIONS
-                    )
-                }
-            }
+    Text(
+        modifier = modifier,
+        text = vpnStateMessage,
+        style = MaterialTheme.typography.displaySmall,
+        color = MaterialTheme.colorScheme.onBackground,
+    )
+}
 
-            context.hasRationaleShownPreferences[android.Manifest.permission.POST_NOTIFICATIONS]
-                    && !context.isGrantedPostNotificationPermission -> {
-                errorNotifier.showErrorMessage(
-                    messageId = R.string.refer_user_to_settings_for_permission_granting,
-                    actionLabelId = R.string.go,
-                ) {
-                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                        .setData(Uri.fromParts("package", context.packageName, null))
-                        .also(context::startActivity)
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+@Composable
+private fun PostNotificationPermissionEffect(
+    userMessageNotifier: UserMessageNotifier
+) {
+    var trigger by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val permissionsRequest = rememberRequestPermissionsLauncher(
+        onGranted = {
+            Log.d("HomeScreen", "Notification permission has granted")
+        },
+        onRationaleShow = {
+            scope.launch {
+                userMessageNotifier.showMessage(
+                    messageId = R.string.notification_permission_rationale,
+                    actionLabelId = R.string.ok
+                ).also {
+                    if (it == SnackbarResult.ActionPerformed) {
+                        trigger = !trigger
+                    }
                 }
             }
+        },
+        onPermanentlyDenied = {
+            scope.launch {
+                userMessageNotifier.showMessage(
+                    messageId = R.string.notification_permission_denied,
+                )
+            }
+        },
+    )
+
+    val context = LocalContext.current
+    LaunchedEffect(trigger) {
+        if (!context.isGrantedPostNotificationPermission) {
+            permissionsRequest.launch(
+                arrayOf(android.Manifest.permission.POST_NOTIFICATIONS)
+            )
         }
     }
 }
 
 private val Context.isGrantedPostNotificationPermission: Boolean
-    get() = ContextCompat.checkSelfPermission(
-        this,
-        android.Manifest.permission.POST_NOTIFICATIONS
-    ) == PackageManager.PERMISSION_GRANTED
-
-private tailrec fun Context.findActivity(): Activity = when (this) {
-    is Activity -> this
-    is ContextWrapper -> baseContext.findActivity()
-    else -> throw IllegalStateException()
-}
-
-data class UsageStats(
-    val upload: String,
-    val download: String,
-)
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU) get() =
+        ContextCompat.checkSelfPermission(
+            this,
+            android.Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
 
 @Composable
-fun DataUsageStatsDisplay(
+private fun DataTrafficDisplay(
     modifier: Modifier = Modifier,
-    stats: UsageStats? = null,
+    stats: DataTraffic? = null,
 ) {
     Row(
         modifier = modifier,
@@ -351,7 +421,7 @@ fun DataUsageStatsDisplay(
                 .padding(vertical = 8.dp),
             icon = painterResource(id = R.drawable.round_upload_24),
             text = "Upload",
-            value = stats?.upload ?: "--- Bit/s"
+            value = stats?.upload.toHumanReadableByteSize()
         )
         Box(
             modifier = Modifier
@@ -368,13 +438,13 @@ fun DataUsageStatsDisplay(
                 .padding(vertical = 8.dp),
             icon = painterResource(id = R.drawable.round_download_24),
             text = "Download",
-            value = stats?.download ?: "--- Bit/s"
+            value = stats?.download.toHumanReadableByteSize()
         )
     }
 }
 
 @Composable
-fun ConnectionMetric(
+private fun ConnectionMetric(
     icon: Painter,
     text: String,
     value: String,
@@ -408,21 +478,15 @@ fun ConnectionMetric(
     }
 }
 
-enum class VpnSwitchState { On, Off }
-
-operator fun VpnSwitchState.not(): VpnSwitchState {
-    return if (this == VpnSwitchState.On) VpnSwitchState.Off else VpnSwitchState.On
-}
-
 private val WindowSizeClass.createConstraintSet: ConstraintSet
     get() = ConstraintSet {
-        val vpnStatusMessage = createRefFor("vpn_status_message")
-        val connectionSpeedDisplay = createRefFor("connection_speed_display")
+        val vpnStateMessage = createRefFor("current_state_text")
+        val connectionSpeedDisplay = createRefFor("data_traffic_display")
         val vpnSwitch = createRefFor("vpn_switch")
 
         val guidelineTop50 = createGuidelineFromTop(0.3f)
 
-        constrain(vpnStatusMessage) {
+        constrain(vpnStateMessage) {
             bottom.linkTo(connectionSpeedDisplay.top, margin = 28.dp)
             linkTo(
                 start = parent.start,
