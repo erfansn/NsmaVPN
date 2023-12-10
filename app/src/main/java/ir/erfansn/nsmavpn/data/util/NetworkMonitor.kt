@@ -10,6 +10,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import javax.inject.Inject
 
 class ConnectivityNetworkMonitor @Inject constructor(
@@ -42,7 +43,7 @@ class ConnectivityNetworkMonitor @Inject constructor(
         awaitClose {
             connectivityManager?.unregisterNetworkCallback(callback)
         }
-    }
+    }.distinctUntilChanged()
 
     private fun ConnectivityManager?.isCurrentlyConnected() = when (this) {
         null -> false
