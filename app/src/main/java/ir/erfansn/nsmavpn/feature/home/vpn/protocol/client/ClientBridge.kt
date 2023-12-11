@@ -113,8 +113,7 @@ class ClientBridge(val service: SstpVpnService) {
     val currentIPv6 = ByteArray(8)
     val currentProposedDNS = ByteArray(4)
 
-    // TODO: Fill this from VpnService
-    var disallowedApps: List<AppInfo> = emptyList()
+    val disallowedApps: List<String> = OscPrefKey.DISALLOWED_APPS
 
     fun getPreferredAuthOption(): AuthOption {
         return if (PPP_MSCHAPv2_ENABLED) AuthOptionMSChapv2() else AuthOptionPAP()

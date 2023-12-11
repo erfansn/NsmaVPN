@@ -50,4 +50,5 @@ object OscPrefKey {
     const val SSL_VERSION = "DEFAULT"
     val SSL_SUITES = emptySet<String>()
     val SSL_CERT_DIR: Uri? = null
+    var DISALLOWED_APPS = emptyList<String>()
 }
