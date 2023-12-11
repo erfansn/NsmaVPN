@@ -57,6 +57,8 @@ class SstpVpnService : VpnService() {
     lateinit var lastVpnConnectionRepository: LastVpnConnectionRepository
     @Inject
     lateinit var serversRepository: ServersRepository
+    @Inject
+    lateinit var configurationsRepository: ConfigurationsRepository
 
     private lateinit var sstpVpnEventHandler: SstpVpnEventHandler
     private lateinit var sstpVpnNotificationManager: SstpVpnNotificationManager
@@ -70,6 +72,7 @@ class SstpVpnService : VpnService() {
             pingChecker,
             lastVpnConnectionRepository,
             serversRepository,
+            configurationsRepository,
             this,
         )
         sstpVpnNotificationManager = DefaultSstpVpnNotificationManager(
@@ -156,7 +159,8 @@ class SstpVpnService : VpnService() {
         sstpVpnEventHandler.restartService()
     }
 
-    private fun initializeClient() {
+    private suspend fun initializeClient() {
+        sstpVpnEventHandler.updateDisallowedAppsIdList()
         controlClient = ControlClient(ClientBridge(this)).also {
             it.launchJobMain()
         }

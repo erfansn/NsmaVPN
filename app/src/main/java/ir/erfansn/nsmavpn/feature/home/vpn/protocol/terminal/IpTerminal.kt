@@ -1,14 +1,12 @@
 package ir.erfansn.nsmavpn.feature.home.vpn.protocol.terminal
 
 import android.os.ParcelFileDescriptor
-import android.util.Log
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.OscPrefKey
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ClientBridge
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ControlMessage
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.Result
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.Where
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.extension.isSame
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.extension.slide
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.extension.toHexByteArray
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -110,7 +108,7 @@ class IpTerminal(private val bridge: ClientBridge) {
 
     private fun addAppBasedRules() {
         bridge.disallowedApps.forEach {
-            bridge.builder.addDisallowedApplication(it.id)
+            bridge.builder.addDisallowedApplication(it)
         }
     }
 

@@ -2,21 +2,21 @@ package ir.erfansn.nsmavpn.feature.home.vpn
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import ir.erfansn.nsmavpn.R
+import ir.erfansn.nsmavpn.data.repository.ConfigurationsRepository
 import ir.erfansn.nsmavpn.data.repository.LastVpnConnectionRepository
 import ir.erfansn.nsmavpn.data.repository.NoAvailableVpnServerException
 import ir.erfansn.nsmavpn.data.repository.ServersRepository
 import ir.erfansn.nsmavpn.data.source.local.datastore.Server
 import ir.erfansn.nsmavpn.data.util.PingChecker
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import ir.erfansn.nsmavpn.feature.home.vpn.protocol.OscPrefKey
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -24,6 +24,7 @@ class DefaultSstpVpnEventHandler(
     private val pingChecker: PingChecker,
     private val lastVpnConnectionRepository: LastVpnConnectionRepository,
     private val serversRepository: ServersRepository,
+    private val configurationsRepository: ConfigurationsRepository,
     private val context: Context,
 ) : SstpVpnEventHandler {
 
@@ -107,6 +108,12 @@ class DefaultSstpVpnEventHandler(
             }
         )
     }
+
+    override suspend fun updateDisallowedAppsIdList() {
+        OscPrefKey.DISALLOWED_APPS = configurationsRepository.configurations.map {
+            it.splitTunnelingAppIds
+        }.first()
+    }
 }
 
 interface SstpVpnEventHandler {
@@ -121,6 +128,7 @@ interface SstpVpnEventHandler {
     suspend fun startConnectionValidation()
     fun restartService()
     fun disconnectServiceDueNetworkError()
+    suspend fun updateDisallowedAppsIdList()
 }
 
 sealed class ConnectionState(@StringRes val messageId: Int) {
