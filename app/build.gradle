@@ -8,6 +8,13 @@ plugins {
     id 'com.google.devtools.ksp'
 }
 
+// Best articles about this:
+// - [https://stefma.medium.com/sourcecompatibility-targetcompatibility-and-jvm-toolchains-in-gradle-explained-d2c17c8cff7c]
+// - [https://developer.android.com/build/jdks#source-compat]
+kotlin {
+    jvmToolchain(17)
+}
+
 android {
     namespace 'ir.erfansn.nsmavpn'
     compileSdk 34
@@ -33,13 +40,6 @@ android {
         }
     }
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = '11'
-    }
     buildFeatures {
         compose true
     }
