@@ -111,6 +111,8 @@ dependencies {
 }
 
 androidComponents {
+    registerSourceType("proto")
+
     // Temporarily solution about problem with generated classes of Protobuf [https://github.com/google/ksp/issues/1590]
     onVariants(selector().all(), { variant ->
         afterEvaluate {
