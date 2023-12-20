@@ -7,7 +7,6 @@ import android.content.ServiceConnection
 import android.net.VpnService
 import android.os.Build
 import android.os.IBinder
-import android.os.SystemClock
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import android.util.Log
@@ -59,8 +58,6 @@ class VpnSwitchTileService : TileService() {
     @Inject
     lateinit var vpnServersSyncManager: VpnServersSyncManager
 
-    private var lastClickTime: Long = 0
-
     override fun onCreate() {
         super.onCreate()
         serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -93,10 +90,6 @@ class VpnSwitchTileService : TileService() {
 
     override fun onClick() {
         super.onClick()
-        // To protect from inconsistency due repeatable click
-        if (System.currentTimeMillis() - lastClickTime <= 1000) return
-        lastClickTime = System.currentTimeMillis()
-
         when (qsTile.state) {
             Tile.STATE_ACTIVE -> {
                 startService(
