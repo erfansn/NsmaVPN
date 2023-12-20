@@ -7,7 +7,6 @@ import android.content.pm.ServiceInfo
 import android.net.VpnService
 import android.os.Binder
 import android.os.IBinder
-import android.util.Log
 import androidx.core.app.ServiceCompat
 import dagger.hilt.android.AndroidEntryPoint
 import ir.erfansn.nsmavpn.data.repository.ConfigurationsRepository
@@ -29,7 +28,6 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -40,7 +38,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class SstpVpnService : VpnService() {
 
-    private val TAG: String? = this::class.simpleName
     lateinit var serviceScope: CoroutineScope
     private var controlClient: ControlClient? = null
 
@@ -89,18 +86,20 @@ class SstpVpnService : VpnService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         return when (intent?.action) {
             ACTION_VPN_CONNECT -> {
+                val restartRequested = intent.getBooleanExtra(EXTRA_RESTART, false)
+
                 disconnectJob?.cancel()
                 controlClient?.cleanUp()
                 notifyForeground()
 
                 sstpVpnEventHandler.notifyConnecting()
 
+                vpnStartingJob?.cancel()
                 vpnStartingJob = networkMonitor.isOnline
                     .onEachLatest { isOnline ->
                         check(isOnline)
 
-                        if (intent.getBooleanExtra(EXTRA_RESTART, false)) sstpVpnEventHandler.blockCurrentServer()
-                        val server = sstpVpnEventHandler.obtainVpnServer()
+                        val server = sstpVpnEventHandler.obtainVpnServer(useCache = !restartRequested)
 
                         OscPrefKey.HOME_HOSTNAME = server.address.hostName
                         OscPrefKey.SSL_PORT = server.address.portNumber
