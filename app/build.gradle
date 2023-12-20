@@ -1,11 +1,17 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
-    id 'kotlin-kapt'
     id 'com.google.dagger.hilt.android'
     id 'com.google.protobuf'
     id 'io.gitlab.arturbosch.detekt'
     id 'com.google.devtools.ksp'
+}
+
+// Best articles about this:
+// - [https://stefma.medium.com/sourcecompatibility-targetcompatibility-and-jvm-toolchains-in-gradle-explained-d2c17c8cff7c]
+// - [https://developer.android.com/build/jdks#source-compat]
+kotlin {
+    jvmToolchain(17)
 }
 
 android {
@@ -33,13 +39,6 @@ android {
         }
     }
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = '11'
-    }
     buildFeatures {
         compose true
     }
@@ -76,8 +75,7 @@ dependencies {
     implementation "androidx.hilt:hilt-work:$androidx_hilt_version"
     ksp "androidx.hilt:hilt-compiler:$androidx_hilt_version"
     implementation "com.google.dagger:hilt-android:$hilt_version"
-    // After resolve [this issue](https://github.com/google/ksp/issues/1590) migrate to ksp
-    kapt "com.google.dagger:hilt-compiler:$hilt_version"
+    ksp "com.google.dagger:hilt-compiler:$hilt_version"
 
     implementation 'com.google.accompanist:accompanist-systemuicontroller:0.33.0-alpha'
     implementation 'com.google.accompanist:accompanist-drawablepainter:0.33.0-alpha'
@@ -109,13 +107,21 @@ dependencies {
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
 
-    // TODO: Add twitter compose detekt lint
-    // detekt 'io.gitlab.arturbosch.detekt:detekt-cli:1.22.0'
-    // detektPlugins 'com.twitter.compose.rules:detekt:0.0.26'
+    detektPlugins 'io.nlopez.compose.rules:detekt:0.3.8'
 }
 
-kapt {
-    correctErrorTypes true
+androidComponents {
+    registerSourceType("proto")
+
+    // Temporarily solution about problem with generated classes of Protobuf [https://github.com/google/ksp/issues/1590]
+    onVariants(selector().all(), { variant ->
+        afterEvaluate {
+            def capName = variant.name.capitalize()
+            tasks.getByName("ksp${capName}Kotlin") {
+                setSource(tasks.getByName("generate${capName}Proto").outputs)
+            }
+        }
+    })
 }
 
 protobuf {
@@ -138,4 +144,8 @@ protobuf {
             }
         }
     }
+}
+
+detekt {
+    config.setFrom("$rootDir/detekt/config.yml")
 }
