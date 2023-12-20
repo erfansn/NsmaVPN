@@ -97,6 +97,7 @@ class VpnSwitchTileService : TileService() {
                         action = SstpVpnService.ACTION_VPN_DISCONNECT
                     }
                 )
+                qsTile.state = Tile.STATE_INACTIVE
             }
 
             Tile.STATE_INACTIVE -> {
@@ -106,8 +107,10 @@ class VpnSwitchTileService : TileService() {
                         action = SstpVpnService.ACTION_VPN_CONNECT
                     }
                 )
+                qsTile.state = Tile.STATE_ACTIVE
             }
         }
+        qsTile.updateTile()
     }
 
     override fun onStopListening() {
