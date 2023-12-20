@@ -116,6 +116,9 @@ class VpnSwitchTileService : TileService() {
     override fun onStopListening() {
         super.onStopListening()
         vpnServiceStartedCollectorJob?.cancel()
+
+        qsTile.state = Tile.STATE_UNAVAILABLE
+        qsTile.updateTile()
     }
 
     override fun onDestroy() {
