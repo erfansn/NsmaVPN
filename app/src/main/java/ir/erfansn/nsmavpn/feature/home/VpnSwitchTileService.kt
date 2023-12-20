@@ -118,17 +118,8 @@ class VpnSwitchTileService : TileService() {
         vpnServiceStartedCollectorJob?.cancel()
     }
 
-    override fun onTileRemoved() {
-        super.onTileRemoved()
-        release()
-    }
-
     override fun onDestroy() {
         super.onDestroy()
-        release()
-    }
-
-    private fun release() {
         unbindService(serviceConnection)
         serviceScope.cancel()
     }
