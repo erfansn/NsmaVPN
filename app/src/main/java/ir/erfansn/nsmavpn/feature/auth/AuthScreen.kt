@@ -58,7 +58,7 @@ import ir.erfansn.nsmavpn.feature.auth.google.rememberGoogleAuthState
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnBackground
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnScaffold
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
-import ir.erfansn.nsmavpn.ui.util.preview.AuthPreviews
+import ir.erfansn.nsmavpn.ui.util.preview.AuthStates
 import ir.erfansn.nsmavpn.ui.util.preview.PreviewLightDarkLandscape
 import ir.erfansn.nsmavpn.ui.util.preview.parameter.VpnGateSubscriptionStatusParameterProvider
 import ir.erfansn.nsmavpn.ui.util.rememberUserMessageNotifier
@@ -335,7 +335,7 @@ private fun LayoutType.isColumn(): Boolean {
     return this is LayoutType.Column
 }
 
-@AuthPreviews.PreSignedIn
+@AuthStates.PreviewPreSignedIn
 @Composable
 private fun AuthScreenPreview_PreSignedIn() {
     AuthScreenPreview(
@@ -344,7 +344,7 @@ private fun AuthScreenPreview_PreSignedIn() {
     )
 }
 
-@AuthPreviews.SignedOut
+@AuthStates.PreviewSignedOut
 @Composable
 private fun AuthScreenPreview_SignedOut() {
     AuthScreenPreview(
@@ -353,7 +353,7 @@ private fun AuthScreenPreview_SignedOut() {
     )
 }
 
-@AuthPreviews.InProgress
+@AuthStates.PreviewInProgress
 @Composable
 private fun AuthScreenPreview_InProgress() {
     AuthScreenPreview(
@@ -362,7 +362,7 @@ private fun AuthScreenPreview_InProgress() {
     )
 }
 
-@AuthPreviews.PermissionsNotGranted
+@AuthStates.PreviewPermissionsNotGranted
 @Composable
 private fun AuthScreenPreview_PermissionsNotGranted() {
     AuthScreenPreview(
@@ -371,7 +371,7 @@ private fun AuthScreenPreview_PermissionsNotGranted() {
     )
 }
 
-@AuthPreviews.SignedIn
+@AuthStates.PreviewSignedIn
 @Composable
 private fun AuthScreenPreview_SignedIn(
     @PreviewParameter(VpnGateSubscriptionStatusParameterProvider::class) params: VpnGateSubscriptionStatus
