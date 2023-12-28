@@ -94,7 +94,7 @@ private fun AuthScreen(
     onErrorShown: () -> Unit = { },
     onNavigateToHome: () -> Unit = { },
     googleAuthState: GoogleAuthState = rememberGoogleAuthState(
-        clientId = R.string.web_client_id,
+        clientId = stringResource(R.string.web_client_id),
         Scope(GmailScopes.GMAIL_READONLY),
         Scope(Scopes.PROFILE),
         Scope(Scopes.EMAIL),
