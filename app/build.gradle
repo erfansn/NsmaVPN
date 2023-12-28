@@ -74,6 +74,7 @@ dependencies {
 
     def androidx_hilt_version = '1.1.0'
     implementation "androidx.hilt:hilt-work:$androidx_hilt_version"
+    implementation "androidx.hilt:hilt-navigation-compose:$androidx_hilt_version"
     ksp "androidx.hilt:hilt-compiler:$androidx_hilt_version"
     implementation "com.google.dagger:hilt-android:$hilt_version"
     ksp "com.google.dagger:hilt-compiler:$hilt_version"
