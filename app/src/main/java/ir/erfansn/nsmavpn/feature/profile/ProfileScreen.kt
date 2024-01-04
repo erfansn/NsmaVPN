@@ -93,7 +93,12 @@ private fun ProfileScreen(
                 shouldShowSignOutDialog = false
             },
             confirmButton = {
-                TextButton(onClick = onSignOut) {
+                TextButton(
+                    onClick = {
+                        shouldShowSignOutDialog = false
+                        onSignOut()
+                    }
+                ) {
                     Text(text = stringResource(R.string.dialog_button_sign_out))
                 }
             },
