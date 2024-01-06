@@ -9,7 +9,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -58,9 +57,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpOffset
@@ -100,7 +99,7 @@ fun TunnelSplittingRoute(
 }
 
 @Composable
-fun TunnelSplittingScreen(
+private fun TunnelSplittingScreen(
     uiState: TunnelSplittingUiState,
     windowClass: WindowSizeClass,
     onSearchQueryChange: (String) -> Unit,
@@ -130,7 +129,7 @@ fun TunnelSplittingScreen(
     ) { contentPadding ->
         AnimatedContent(
             targetState = uiState.appItems,
-            label = "content",
+            label = "apps_items",
             contentKey = { it?.isNotEmpty() }
         ) {
             Box(
@@ -149,7 +148,7 @@ fun TunnelSplittingScreen(
                     it.isEmpty() -> {
                         Text(
                             modifier = topPaddingModifier,
-                            text = "No such app!",
+                            text = stringResource(R.string.no_such_app),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -186,7 +185,7 @@ fun TunnelSplittingScreen(
 }
 
 @Composable
-fun TunnelSplittingTopBar(
+private fun TunnelSplittingTopBar(
     windowWidthClass: WindowWidthSizeClass,
     query: String,
     onSearchQueryChange: (String) -> Unit,
@@ -198,7 +197,9 @@ fun TunnelSplittingTopBar(
     val containerColor by NsmaVpnTopBarDefaults.animatedContainerColor(overlappedWithContent())
     Column(
         modifier = Modifier
-            .drawBehind { drawRect(color = containerColor) },
+            .drawBehind { drawRect(color = containerColor) }
+            // Prevent propagate touch event to lower layers
+            .pointerInput(Unit) {},
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         NsmaVpnTopBar(
@@ -221,14 +222,14 @@ fun TunnelSplittingTopBar(
                     offset = DpOffset((-12).dp, 8.dp)
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Allow all") },
+                        text = { Text(text = stringResource(R.string.allow_all)) },
                         onClick = {
                             onAllAppsSplitTunnelingChange(true)
                             expanded = false
                         },
                     )
                     DropdownMenuItem(
-                        text = { Text("Disallow all") },
+                        text = { Text(text = stringResource(R.string.disallow_all)) },
                         onClick = {
                             onAllAppsSplitTunnelingChange(false)
                             expanded = false
@@ -265,12 +266,13 @@ fun TunnelSplittingTopBar(
                 onValueChange = onSearchQueryChange,
                 shape = CircleShape,
                 placeholder = {
-                    Text(text = "App name")
+                    Text(text = stringResource(R.string.searchbar_placeholder))
                 },
                 leadingIcon = {
                     Icon(
                         modifier = Modifier.padding(start = 4.dp),
-                        imageVector = Icons.Rounded.Search, contentDescription = "Search",
+                        imageVector = Icons.Rounded.Search,
+                        contentDescription = stringResource(R.string.cd_search),
                     )
                 },
                 trailingIcon = {
@@ -283,7 +285,10 @@ fun TunnelSplittingTopBar(
                             modifier = Modifier.padding(end = 4.dp),
                             onClick = { onSearchQueryChange("") }
                         ) {
-                            Icon(imageVector = Icons.Rounded.Clear, contentDescription = "Clear")
+                            Icon(
+                                imageVector = Icons.Rounded.Clear,
+                                contentDescription = stringResource(R.string.cd_clear)
+                            )
                         }
                     }
                 },
@@ -294,7 +299,7 @@ fun TunnelSplittingTopBar(
 }
 
 @Composable
-fun AppItem(
+private fun AppItem(
     itemState: AppItemUiState,
     onChangeAllowed: (AppInfo, Boolean) -> Unit,
 ) {
@@ -306,7 +311,7 @@ fun AppItem(
             Image(
                 modifier = Modifier.size(56.dp),
                 painter = rememberDrawablePainter(drawable = itemState.appInfo.icon),
-                contentDescription = "App icon"
+                contentDescription = null
             )
         },
         trailingContent = {

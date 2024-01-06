@@ -39,8 +39,8 @@
     <string name="dialog_title_sign_out">Sign-out account?</string>
     <string name="dialog_button_sign_out">Sign out</string>
     <string name="dialog_button_cancel">Cancel</string>
-    <string name="message_subscribed_to_vpngate">Subscribed to VpnGate currently</string>
-    <string name="message_no_subscribe_to_vpngate">Check your subscription to VpnGate\nmaybe you cannot receive any new servers</string>
+    <string name="subscription_status">Subscription status</string>
+    <string name="desc_subscription_status">It seems that your email has been unsubscribed from receiving mirror links of VPN Gate and this may cause problems in collecting new servers.</string>
 
     <!--Settings feature-->
     <string name="title_settings">Settings</string>
@@ -60,6 +60,12 @@
     <string name="item_title_tunnel_splitting">Tunnel splitting</string>
     <string name="item_title_use_dynamic_scheme">Use Dynamic scheme</string>
     <string name="cd_more">More</string>
+    <string name="no_such_app">No such app!</string>
+    <string name="allow_all">Allow all</string>
+    <string name="disallow_all">Disallow all</string>
+    <string name="searchbar_placeholder">App name</string>
+    <string name="cd_search">Search</string>
+    <string name="cd_clear">Clear</string>
 
     <!--Home feature-->
     <string name="title_home">Home</string>
