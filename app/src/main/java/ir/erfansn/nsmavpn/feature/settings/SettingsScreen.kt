@@ -19,7 +19,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.lerp
-import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -31,6 +30,7 @@ import ir.erfansn.nsmavpn.ui.component.NsmaVpnLargeTopBar
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnScaffold
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
 import ir.erfansn.nsmavpn.ui.theme.isSupportDynamicScheme
+import ir.erfansn.nsmavpn.ui.util.preview.SettingsStates
 import kotlin.random.Random
 
 @Composable
@@ -38,7 +38,7 @@ fun SettingsRoute(
     onNavigateToBack: () -> Unit,
     onNavigateToTunnelSplitting: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: SettingViewModel = viewModel(),
+    viewModel: SettingsViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -304,9 +304,20 @@ private fun SettingsItem(
     }
 }
 
-@PreviewLightDark
+@SettingsStates.PreviewApi30AndEarlier
 @Composable
-private fun SettingsDialogPreview() {
+private fun SettingsScreenPreview_PreviewApi30AndEarlier() {
+    SettingsScreenPreview()
+}
+
+@SettingsStates.PreviewApi30Later
+@Composable
+private fun SettingsScreenPreview_PreviewApi30Later() {
+    SettingsScreenPreview()
+}
+
+@Composable
+private fun SettingsScreenPreview() {
     NsmaVpnTheme {
         NsmaVpnBackground {
             SettingsScreen(
