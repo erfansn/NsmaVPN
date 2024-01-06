@@ -306,13 +306,13 @@ private fun SettingsItem(
 
 @SettingsStates.PreviewApi30AndEarlier
 @Composable
-private fun SettingsScreenPreview_PreviewApi30AndEarlier() {
+private fun SettingsScreenPreview_Api30AndEarlier() {
     SettingsScreenPreview()
 }
 
 @SettingsStates.PreviewApi30Later
 @Composable
-private fun SettingsScreenPreview_PreviewApi30Later() {
+private fun SettingsScreenPreview_Api30Later() {
     SettingsScreenPreview()
 }
 
