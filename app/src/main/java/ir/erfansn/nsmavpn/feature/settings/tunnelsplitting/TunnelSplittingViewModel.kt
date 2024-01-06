@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.erfansn.nsmavpn.data.model.AppInfo
 import ir.erfansn.nsmavpn.data.repository.ConfigurationsRepository
-import ir.erfansn.nsmavpn.data.source.InstalledAppsListProvider
+import ir.erfansn.nsmavpn.data.util.InstalledAppsListProvider
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
