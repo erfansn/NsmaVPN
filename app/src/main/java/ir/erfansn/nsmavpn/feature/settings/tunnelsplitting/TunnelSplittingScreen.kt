@@ -75,7 +75,7 @@ import ir.erfansn.nsmavpn.ui.component.NsmaVpnScaffold
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnTopBar
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnTopBarDefaults
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
-import ir.erfansn.nsmavpn.ui.util.preview.TunnelSplittingPreviews
+import ir.erfansn.nsmavpn.ui.util.preview.SettingsStates
 import kotlin.random.Random
 
 @Composable
@@ -329,72 +329,53 @@ private fun AppItem(
     )
 }
 
-@TunnelSplittingPreviews.EmptyAppList
+@SettingsStates.TunnelSplittingStates.PreviewEmptyAppList
 @Composable
-fun SplittingTunnelScreenPreview_EmptyAppList() {
-    BoxWithConstraints {
-        val windowClass = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight))
-        NsmaVpnTheme {
-            NsmaVpnBackground {
-                TunnelSplittingScreen(
-                    uiState = TunnelSplittingUiState(appItems = emptyList()),
-                    onSearchQueryChange = { },
-                    onAppAllowingChange = { _, _ -> },
-                    onNavigateToBack = { },
-                    onAllAppsSplitTunnelingChange = { },
-                    windowClass = windowClass
-                )
-            }
-        }
-    }
+private fun TunnelSplittingScreenPreview_EmptyAppList() {
+    TunnelSplittingScreenPreview(
+        uiState = TunnelSplittingUiState(appItems = emptyList())
+    )
 }
 
-@TunnelSplittingPreviews.Loading
+@SettingsStates.TunnelSplittingStates.PreviewLoading
 @Composable
-fun SplittingTunnelScreenPreview_Loading() {
-    BoxWithConstraints {
-        val windowClass = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight))
-        NsmaVpnTheme {
-            NsmaVpnBackground {
-                TunnelSplittingScreen(
-                    uiState = TunnelSplittingUiState(appItems = null),
-                    onSearchQueryChange = { },
-                    onAppAllowingChange = { _, _ -> },
-                    onNavigateToBack = { },
-                    onAllAppsSplitTunnelingChange = { },
-                    windowClass = windowClass
-                )
-            }
-        }
-    }
+private fun TunnelSplittingScreenPreview_Loading() {
+    TunnelSplittingScreenPreview(
+        uiState = TunnelSplittingUiState(appItems = null)
+    )
 }
 
-@TunnelSplittingPreviews.AppItems
+@SettingsStates.TunnelSplittingStates.PreviewAppItems
 @Composable
-fun SplittingTunnelScreenPreview_AppItems() {
-    BoxWithConstraints {
-        val windowClass = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight))
-        NsmaVpnTheme {
-            NsmaVpnBackground {
-                val resource = LocalContext.current.resources
-                TunnelSplittingScreen(
-                    uiState = TunnelSplittingUiState(
-                        appItems = buildList {
-                            repeat(12) {
-                                this += AppItemUiState(
-                                    appInfo = AppInfo(
-                                        id = "com.example.$it",
-                                        name = "Example $it",
-                                        icon = resource.getDrawable(
-                                            R.drawable.ic_launcher_background,
-                                            null
-                                        ),
-                                    ),
-                                    allowed = Random.nextBoolean(),
-                                )
-                            }
-                        },
+private fun TunnelSplittingScreenPreview_AppItems() {
+    val resource = LocalContext.current.resources
+    TunnelSplittingScreenPreview(
+        uiState = TunnelSplittingUiState(
+            appItems = List(12) {
+                AppItemUiState(
+                    appInfo = AppInfo(
+                        id = "com.example.$it",
+                        name = "Example $it",
+                        icon = resource.getDrawable(
+                            R.drawable.ic_launcher_background,
+                            null
+                        ),
                     ),
+                    allowed = Random.nextBoolean(),
+                )
+            },
+        )
+    )
+}
+
+@Composable
+private fun TunnelSplittingScreenPreview(uiState: TunnelSplittingUiState) {
+    BoxWithConstraints {
+        val windowClass = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight))
+        NsmaVpnTheme {
+            NsmaVpnBackground {
+                TunnelSplittingScreen(
+                    uiState = uiState,
                     onSearchQueryChange = { },
                     onAppAllowingChange = { _, _ -> },
                     onNavigateToBack = { },
