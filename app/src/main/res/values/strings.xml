@@ -75,4 +75,6 @@
     <string name="usage_access_permission">Allow the usage access permission to see stats</string>
     <string name="notification_permission_rationale">To notify latest vpn state from notification you should grant it</string>
     <string name="notification_permission_denied">Notifications don\'t show due to lack of permission</string>
+    <string name="switch_off">Start</string>
+    <string name="switch_on">Stop</string>
 </resources>
