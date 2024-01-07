@@ -162,6 +162,7 @@ private fun HomeScreen(
                         UserAvatar(
                             avatarUrl = uiState.userAvatarUrl,
                             borderWidth = 0.5.dp,
+                            contentDescription = stringResource(R.string.cd_profile)
                         )
                     }
                 },
@@ -169,7 +170,7 @@ private fun HomeScreen(
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(
                             imageVector = Icons.Rounded.Settings,
-                            contentDescription = "Settings",
+                            contentDescription = stringResource(R.string.cd_settings),
                         )
                     }
                 },
@@ -366,7 +367,7 @@ private fun PostNotificationPermissionEffect(
     val scope = rememberCoroutineScope()
     val permissionsRequest = rememberRequestPermissionsLauncher(
         onGranted = {
-            Log.d("HomeScreen", "Notification permission has granted")
+            Log.i("HomeScreen", "Notification permission has granted")
         },
         onRationaleShow = {
             scope.launch {
@@ -420,7 +421,7 @@ private fun DataTrafficDisplay(
                 .weight(1f)
                 .padding(vertical = 8.dp),
             icon = painterResource(id = R.drawable.round_upload_24),
-            text = "Upload",
+            text = stringResource(R.string.upload),
             value = stats?.upload.toHumanReadableByteSize()
         )
         Box(
@@ -437,7 +438,7 @@ private fun DataTrafficDisplay(
                 .weight(1f)
                 .padding(vertical = 8.dp),
             icon = painterResource(id = R.drawable.round_download_24),
-            text = "Download",
+            text = stringResource(R.string.download),
             value = stats?.download.toHumanReadableByteSize()
         )
     }

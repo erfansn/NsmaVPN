@@ -72,9 +72,13 @@
     <string name="post_notification_permission_required">To see state on a Post Notification permission must be granted</string>
     <string name="refer_user_to_settings_for_permission_granting">To show notification sent by app, grant its permission from app settings</string>
     <string name="collecting_servers">Collecting Servers</string>
-    <string name="usage_access_permission">Allow the usage access permission to see stats</string>
+    <string name="usage_access_permission">To see stats allow the usage access permission</string>
     <string name="notification_permission_rationale">To notify latest vpn state from notification you should grant it</string>
     <string name="notification_permission_denied">Notifications don\'t show due to lack of permission</string>
+    <string name="cd_settings">Settings</string>
+    <string name="cd_profile">Profile</string>
+    <string name="upload">Upload</string>
+    <string name="download">Download</string>
     <string name="switch_off">Start</string>
     <string name="switch_on">Stop</string>
 </resources>
