@@ -1,5 +1,6 @@
 package ir.erfansn.nsmavpn.feature.home
 
+import android.app.AppOpsManager
 import android.app.Service
 import android.content.ComponentName
 import android.content.Context
@@ -9,6 +10,8 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
 import android.os.IBinder
+import android.os.Process
+import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -62,8 +65,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -71,12 +72,14 @@ import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.layoutId
 import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.erfansn.nsmavpn.R
 import ir.erfansn.nsmavpn.data.util.NetworkMonitor
 import ir.erfansn.nsmavpn.feature.home.util.GetUsageAccess
 import ir.erfansn.nsmavpn.feature.home.vpn.ConnectionState
+import ir.erfansn.nsmavpn.feature.home.vpn.CountryCode
 import ir.erfansn.nsmavpn.feature.home.vpn.SstpVpnService
 import ir.erfansn.nsmavpn.feature.home.vpn.SstpVpnServiceState
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnBackground
@@ -84,8 +87,9 @@ import ir.erfansn.nsmavpn.ui.component.NsmaVpnScaffold
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnTopBar
 import ir.erfansn.nsmavpn.ui.component.UserAvatar
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
-import ir.erfansn.nsmavpn.ui.util.UserMessagePriority
 import ir.erfansn.nsmavpn.ui.util.UserMessageNotifier
+import ir.erfansn.nsmavpn.ui.util.UserMessagePriority
+import ir.erfansn.nsmavpn.ui.util.preview.HomeStates
 import ir.erfansn.nsmavpn.ui.util.rememberRequestPermissionsLauncher
 import ir.erfansn.nsmavpn.ui.util.rememberUserMessageNotifier
 import ir.erfansn.nsmavpn.ui.util.toCountryFlagEmoji
@@ -162,6 +166,7 @@ private fun HomeScreen(
                         UserAvatar(
                             avatarUrl = uiState.userAvatarUrl,
                             borderWidth = 0.5.dp,
+                            contentDescription = stringResource(R.string.cd_profile)
                         )
                     }
                 },
@@ -169,7 +174,7 @@ private fun HomeScreen(
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(
                             imageVector = Icons.Rounded.Settings,
-                            contentDescription = "Settings",
+                            contentDescription = stringResource(R.string.cd_settings),
                         )
                     }
                 },
@@ -273,22 +278,6 @@ private fun HomeContent(
             }
         }
 
-        lateinit var getUsageAccessLauncher: ManagedActivityResultLauncher<Unit, Context.() -> Boolean>
-        getUsageAccessLauncher = rememberLauncherForActivityResult(GetUsageAccess()) { isGranted ->
-            if (!context.isGranted()) {
-                scope.launch {
-                    userMessageNotifier.showMessage(
-                        messageId = R.string.usage_access_permission,
-                        actionLabelId = R.string.ok,
-                    ).also {
-                        if (it == SnackbarResult.ActionPerformed) {
-                            getUsageAccessLauncher.launch()
-                        }
-                    }
-                }
-            }
-        }
-
         VpnSwitch(
             modifier = Modifier.layoutId("vpn_switch"),
             state = vpnSwitchState,
@@ -297,7 +286,20 @@ private fun HomeContent(
 
                 when (it) {
                     VpnSwitchState.On -> {
-                        getUsageAccessLauncher.launch()
+                        if (!context.isGrantedGetUsageStatsPermission) {
+                            scope.launch {
+                                userMessageNotifier.showMessage(
+                                    messageId = R.string.usage_access_permission,
+                                    duration = SnackbarDuration.Long,
+                                    actionLabelId = R.string.ok,
+                                ).also { result ->
+                                    if (result == SnackbarResult.ActionPerformed) {
+                                        context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                                    }
+                                }
+                            }
+                        }
+
                         ContextCompat.startForegroundService(
                             context,
                             Intent(context, SstpVpnService::class.java).apply {
@@ -366,7 +368,7 @@ private fun PostNotificationPermissionEffect(
     val scope = rememberCoroutineScope()
     val permissionsRequest = rememberRequestPermissionsLauncher(
         onGranted = {
-            Log.d("HomeScreen", "Notification permission has granted")
+            Log.i("HomeScreen", "Notification permission has granted")
         },
         onRationaleShow = {
             scope.launch {
@@ -420,7 +422,7 @@ private fun DataTrafficDisplay(
                 .weight(1f)
                 .padding(vertical = 8.dp),
             icon = painterResource(id = R.drawable.round_upload_24),
-            text = "Upload",
+            text = stringResource(R.string.upload),
             value = stats?.upload.toHumanReadableByteSize()
         )
         Box(
@@ -437,7 +439,7 @@ private fun DataTrafficDisplay(
                 .weight(1f)
                 .padding(vertical = 8.dp),
             icon = painterResource(id = R.drawable.round_download_24),
-            text = "Download",
+            text = stringResource(R.string.download),
             value = stats?.download.toHumanReadableByteSize()
         )
     }
@@ -520,19 +522,121 @@ private val WindowSizeClass.createConstraintSet: ConstraintSet
         }
     }
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-@Preview(
-    device = "spec:width=411dp,height=891dp", wallpaper = Wallpapers.GREEN_DOMINATED_EXAMPLE,
-    uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL,
-)
+
+@HomeStates.PreviewStoppedAndSyncing
 @Composable
-private fun HomeScreenPreview() {
+private fun HomeScreenPreview_StoppedAndSyncing() {
+    HomeScreenPreview(
+        uiState = HomeUiState(
+            isSyncing = true,
+            vpnServiceState = VpnServiceState(
+                started = false,
+            )
+        ),
+    )
+}
+
+@HomeStates.PreviewStartedAndSyncing
+@Composable
+private fun HomeScreenPreview_StartedAndSyncing() {
+    HomeScreenPreview(
+        uiState = HomeUiState(
+            isSyncing = true,
+            vpnServiceState = VpnServiceState(
+                started = true,
+                state = ConnectionState.Connecting
+            )
+        ),
+    )
+}
+
+@HomeStates.PreviewStartedInConnecting
+@Composable
+private fun HomeScreenPreview_StartedInConnecting() {
+    HomeScreenPreview(
+        uiState = HomeUiState(
+            vpnServiceState = VpnServiceState(
+                started = true,
+                state = ConnectionState.Connecting,
+            ),
+        ),
+    )
+}
+
+@HomeStates.PreviewStartedInConnected
+@Composable
+private fun HomeScreenPreview_StartedInConnected() {
+    HomeScreenPreview(
+        uiState = HomeUiState(
+            vpnServiceState = VpnServiceState(
+                started = true,
+                state = ConnectionState.Connected(CountryCode("IR")),
+            ),
+        ),
+    )
+}
+
+@HomeStates.PreviewStoppedInDisconnecting
+@Composable
+private fun HomeScreenPreview_StoppedInDisconnecting() {
+    HomeScreenPreview(
+        uiState = HomeUiState(
+            vpnServiceState = VpnServiceState(
+                started = false,
+                state = ConnectionState.Disconnecting,
+            ),
+        ),
+    )
+}
+
+@HomeStates.PreviewStoppedInDisconnected
+@Composable
+private fun HomeScreenPreview_StoppedInDisconnected() {
+    HomeScreenPreview(
+        uiState = HomeUiState(
+            vpnServiceState = VpnServiceState(
+                started = false,
+                state = ConnectionState.Disconnected,
+            ),
+        ),
+    )
+}
+
+@HomeStates.PreviewStoppedInNetworkError
+@Composable
+private fun HomeScreenPreview_StoppedInNetworkError() {
+    HomeScreenPreview(
+        uiState = HomeUiState(
+            vpnServiceState = VpnServiceState(
+                started = false,
+                state = ConnectionState.NetworkError,
+            ),
+        ),
+    )
+}
+
+@HomeStates.PreviewStartedInValidating
+@Composable
+private fun HomeScreenPreview_StartedInValidating() {
+    HomeScreenPreview(
+        uiState = HomeUiState(
+            vpnServiceState = VpnServiceState(
+                started = true,
+                state = ConnectionState.Validating,
+            ),
+        )
+    )
+}
+
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Composable
+private fun HomeScreenPreview(uiState: HomeUiState) {
     BoxWithConstraints {
         NsmaVpnTheme {
             NsmaVpnBackground {
                 val windowSize = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight))
                 HomeScreen(
-                    uiState = HomeUiState(),
+                    uiState = uiState,
                     windowSize = windowSize,
                 )
             }

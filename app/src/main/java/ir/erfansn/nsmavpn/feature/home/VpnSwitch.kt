@@ -52,6 +52,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.IntOffset
@@ -246,9 +247,9 @@ private fun VpnSwitchThumb(
             )
             val stateIndicatorText =
                 if (state == VpnSwitchState.Off) {
-                    "Start"
+                    stringResource(R.string.switch_off)
                 } else {
-                    "Stop"
+                    stringResource(R.string.switch_on)
                 }
             Text(stateIndicatorText.uppercase())
             Icon(
@@ -314,7 +315,7 @@ private operator fun VpnSwitchState.not(): VpnSwitchState {
 
 @PreviewLightDark
 @Composable
-fun VpnSwitchPreview() {
+private fun VpnSwitchPreview() {
     NsmaVpnTheme {
         var state by remember { mutableStateOf(VpnSwitchState.Off) }
         var enabled by remember { mutableStateOf(false) }

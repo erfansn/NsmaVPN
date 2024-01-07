@@ -3,17 +3,36 @@
 package ir.erfansn.nsmavpn.feature.auth
 
 import androidx.annotation.StringRes
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -30,14 +49,17 @@ import com.google.android.gms.common.Scopes
 import com.google.android.gms.common.api.Scope
 import com.google.api.services.gmail.GmailScopes
 import ir.erfansn.nsmavpn.R
-import ir.erfansn.nsmavpn.feature.auth.google.*
+import ir.erfansn.nsmavpn.feature.auth.google.AuthenticationStatus
+import ir.erfansn.nsmavpn.feature.auth.google.GoogleAccountSignInResult
+import ir.erfansn.nsmavpn.feature.auth.google.GoogleAuthState
+import ir.erfansn.nsmavpn.feature.auth.google.rememberGoogleAuthState
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnBackground
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnScaffold
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
-import ir.erfansn.nsmavpn.ui.util.preview.AuthPreviews
+import ir.erfansn.nsmavpn.ui.util.preview.AuthStates
 import ir.erfansn.nsmavpn.ui.util.preview.PreviewLightDarkLandscape
 import ir.erfansn.nsmavpn.ui.util.preview.parameter.VpnGateSubscriptionStatusParameterProvider
-import ir.erfansn.nsmavpn.ui.util.rememberErrorNotifier
+import ir.erfansn.nsmavpn.ui.util.rememberUserMessageNotifier
 import kotlinx.coroutines.launch
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -61,7 +83,6 @@ fun AuthRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AuthScreen(
     windowSize: WindowSizeClass,
@@ -71,21 +92,20 @@ private fun AuthScreen(
     onErrorShown: () -> Unit = { },
     onNavigateToHome: () -> Unit = { },
     googleAuthState: GoogleAuthState = rememberGoogleAuthState(
-        clientId = R.string.web_client_id,
+        clientId = stringResource(R.string.web_client_id),
         Scope(GmailScopes.GMAIL_READONLY),
         Scope(Scopes.PROFILE),
-        Scope(Scopes.EMAIL)
+        Scope(Scopes.EMAIL),
     ),
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
-    val errorNotifier = rememberErrorNotifier(snackbarHostState, coroutineScope)
+    val userNotifier = rememberUserMessageNotifier()
 
     DisposableEffect(googleAuthState) {
         googleAuthState.onSignInResult = {
             when (it) {
                 is GoogleAccountSignInResult.Error -> coroutineScope.launch {
-                    errorNotifier.showErrorMessage(
+                    userNotifier.showMessage(
                         messageId = it.messageId,
                         actionLabelId = R.string.ok
                     )
@@ -104,7 +124,7 @@ private fun AuthScreen(
     LaunchedEffect(googleAuthState, uiState.errorMessage, onErrorShown) {
         if (uiState.errorMessage != null) {
             googleAuthState.signOut()
-            errorNotifier.showErrorMessage(
+            userNotifier.showMessage(
                 messageId = uiState.errorMessage,
                 actionLabelId = R.string.ok
             )
@@ -114,24 +134,13 @@ private fun AuthScreen(
 
     NsmaVpnScaffold(
         modifier = modifier,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = { SnackbarHost(hostState = userNotifier.snackbarHostState) }
     ) { contentPadding ->
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) {
-            val contentLayoutModifier = when {
-                windowSize.widthSizeClass == WindowWidthSizeClass.Compact &&
-                        windowSize.heightSizeClass == WindowHeightSizeClass.Compact -> {
-                    Modifier.fillMaxSize()
-                }
-                windowSize.heightSizeClass == WindowHeightSizeClass.Compact -> {
-                    Modifier.aspectRatio(10 / 7f)
-                }
-                else -> {
-                    Modifier.aspectRatio(7 / 10f)
-                }
-            }
+            val contentLayoutModifier = Modifier.fillMaxSize()
             val content: @Composable LayoutType.() -> Unit = {
                 AuthContent(
                     contentPadding = contentPadding,
@@ -313,48 +322,48 @@ private fun LayoutType.isColumn(): Boolean {
     return this is LayoutType.Column
 }
 
-@AuthPreviews.PreSignedIn
+@AuthStates.PreviewPreSignedIn
 @Composable
-private fun SignInScreenPreview_PreSignedIn() {
-    SignInScreenPreview(
+private fun AuthScreenPreview_PreSignedIn() {
+    AuthScreenPreview(
         uiState = AuthUiState(subscriptionStatus = VpnGateSubscriptionStatus.entries.random()),
         authenticationStatus = AuthenticationStatus.PreSignedIn,
     )
 }
 
-@AuthPreviews.SignedOut
+@AuthStates.PreviewSignedOut
 @Composable
-private fun SignInScreenPreview_SignedOut() {
-    SignInScreenPreview(
+private fun AuthScreenPreview_SignedOut() {
+    AuthScreenPreview(
         uiState = AuthUiState(subscriptionStatus = VpnGateSubscriptionStatus.entries.random()),
         authenticationStatus = AuthenticationStatus.SignedOut,
     )
 }
 
-@AuthPreviews.InProgress
+@AuthStates.PreviewInProgress
 @Composable
-private fun SignInScreenPreview_InProgress() {
-    SignInScreenPreview(
+private fun AuthScreenPreview_InProgress() {
+    AuthScreenPreview(
         uiState = AuthUiState(subscriptionStatus = VpnGateSubscriptionStatus.entries.random()),
         authenticationStatus = AuthenticationStatus.InProgress,
     )
 }
 
-@AuthPreviews.PermissionsNotGranted
+@AuthStates.PreviewPermissionsNotGranted
 @Composable
-private fun SignInScreenPreview_PermissionsNotGranted() {
-    SignInScreenPreview(
+private fun AuthScreenPreview_PermissionsNotGranted() {
+    AuthScreenPreview(
         uiState = AuthUiState(subscriptionStatus = VpnGateSubscriptionStatus.entries.random()),
         authenticationStatus = AuthenticationStatus.PermissionsNotGranted,
     )
 }
 
-@AuthPreviews.SignedIn
+@AuthStates.PreviewSignedIn
 @Composable
-private fun SignInScreenPreview_SignedIn(
+private fun AuthScreenPreview_SignedIn(
     @PreviewParameter(VpnGateSubscriptionStatusParameterProvider::class) params: VpnGateSubscriptionStatus
 ) {
-    SignInScreenPreview(
+    AuthScreenPreview(
         uiState = AuthUiState(subscriptionStatus = params),
         authenticationStatus = AuthenticationStatus.SignedIn,
     )
@@ -362,15 +371,15 @@ private fun SignInScreenPreview_SignedIn(
 
 @PreviewLightDarkLandscape
 @Composable
-private fun SignInScreenPreview_Landscape() {
-    SignInScreenPreview(
+private fun AuthScreenPreview_Landscape() {
+    AuthScreenPreview(
         uiState = AuthUiState(subscriptionStatus = VpnGateSubscriptionStatus.entries.random()),
         authenticationStatus = AuthenticationStatus.SignedOut,
     )
 }
 
 @Composable
-private fun SignInScreenPreview(uiState: AuthUiState, authenticationStatus: AuthenticationStatus) {
+private fun AuthScreenPreview(uiState: AuthUiState, authenticationStatus: AuthenticationStatus) {
     BoxWithConstraints {
         NsmaVpnTheme {
             NsmaVpnBackground {

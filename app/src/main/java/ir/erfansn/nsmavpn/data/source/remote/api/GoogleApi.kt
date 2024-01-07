@@ -8,7 +8,7 @@ import javax.inject.Inject
 
 abstract class GoogleApi<T : AbstractGoogleJsonClient> {
 
-    @Inject protected lateinit var credential: GoogleAccountCredential
+    protected abstract val credential: GoogleAccountCredential
     @Inject protected lateinit var httpTransport: NetHttpTransport
     @Inject protected lateinit var gsonFactory: GsonFactory
 

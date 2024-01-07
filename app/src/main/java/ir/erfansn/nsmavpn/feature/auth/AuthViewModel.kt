@@ -11,6 +11,7 @@ import ir.erfansn.nsmavpn.R
 import ir.erfansn.nsmavpn.data.model.Profile
 import ir.erfansn.nsmavpn.data.repository.ProfileRepository
 import ir.erfansn.nsmavpn.data.repository.VpnGateMailRepository
+import ir.erfansn.nsmavpn.sync.VpnServersSyncManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -21,6 +22,7 @@ import javax.inject.Inject
 class AuthViewModel @Inject constructor(
     private val vpnGateMailRepository: VpnGateMailRepository,
     private val profileRepository: ProfileRepository,
+    private val vpnServersSyncManager: VpnServersSyncManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -34,6 +36,7 @@ class AuthViewModel @Inject constructor(
                 val isSubscribed = vpnGateMailRepository.isSubscribedToDailyMail(account.email!!)
                 if (isSubscribed) {
                     saveUserProfile(account)
+                    vpnServersSyncManager.beginVpnServersSyncTasks()
                 }
 
                 _uiState.update {

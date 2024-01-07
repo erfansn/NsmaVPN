@@ -7,9 +7,14 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -29,15 +34,15 @@ interface GoogleAuthState {
     fun signOut()
 }
 
-class MutableGoogleAuthState(
-    @StringRes clientId: Int,
+private class MutableGoogleAuthState(
+    clientId: String,
     initStatus: AuthenticationStatus? = null,
     private val context: Context,
     private val scopes: List<Scope>,
 ) : GoogleAuthState {
 
     private val googleSignInOptions = GoogleSignInOptions.Builder()
-        .requestIdToken(context.getString(clientId))
+        .requestIdToken(clientId)
         .apply {
             if (scopes.isEmpty()) return@apply
 
@@ -115,7 +120,7 @@ class MutableGoogleAuthState(
 
     companion object {
         fun Saver(
-            @StringRes clientId: Int,
+            clientId: String,
             context: Context,
             scopes: List<Scope>,
         ) = Saver<MutableGoogleAuthState, AuthenticationStatus>(
@@ -127,9 +132,9 @@ class MutableGoogleAuthState(
 
 @Composable
 fun rememberGoogleAuthState(
-    @StringRes clientId: Int,
+    clientId: String,
     vararg scopes: Scope,
-): MutableGoogleAuthState {
+): GoogleAuthState {
     val context = LocalContext.current
     val googleAuthState = rememberSaveable(clientId, saver = MutableGoogleAuthState.Saver(clientId, context, scopes.toList())) {
         MutableGoogleAuthState(
@@ -151,11 +156,6 @@ fun rememberGoogleAuthState(
     return googleAuthState
 }
 
-/**
- * State is the condition of an object at any given time, while status is a description of the
- * state. State is the actual condition of something, while status is a description of that condition.
- * For example, an object can have a state of "on" and a status of "active".
- */
 enum class AuthenticationStatus { PreSignedIn, SignedIn, InProgress, SignedOut, PermissionsNotGranted }
 
 sealed class GoogleAccountSignInResult {

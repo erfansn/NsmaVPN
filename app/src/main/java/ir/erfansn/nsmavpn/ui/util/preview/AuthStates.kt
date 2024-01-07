@@ -3,7 +3,7 @@ package ir.erfansn.nsmavpn.ui.util.preview
 import android.content.res.Configuration
 import androidx.compose.ui.tooling.preview.Preview
 
-annotation class AuthPreviews {
+annotation class AuthStates {
 
     @Preview(
         group = "PreSignedIn",
@@ -14,7 +14,7 @@ annotation class AuthPreviews {
         name = "Dark",
         uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
     )
-    annotation class PreSignedIn
+    annotation class PreviewPreSignedIn
 
     @Preview(
         group = "SignedOut",
@@ -25,7 +25,7 @@ annotation class AuthPreviews {
         name = "Dark",
         uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
     )
-    annotation class SignedOut
+    annotation class PreviewSignedOut
 
 
     @Preview(
@@ -37,7 +37,7 @@ annotation class AuthPreviews {
         name = "Dark",
         uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
     )
-    annotation class InProgress
+    annotation class PreviewInProgress
 
     @Preview(
         group = "PermissionsNotGranted",
@@ -48,7 +48,7 @@ annotation class AuthPreviews {
         name = "Dark",
         uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
     )
-    annotation class PermissionsNotGranted
+    annotation class PreviewPermissionsNotGranted
 
     @Preview(
         group = "SignedIn",
@@ -59,5 +59,5 @@ annotation class AuthPreviews {
         name = "Dark",
         uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
     )
-    annotation class SignedIn
+    annotation class PreviewSignedIn
 }
