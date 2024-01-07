@@ -77,6 +77,7 @@ import ir.erfansn.nsmavpn.R
 import ir.erfansn.nsmavpn.data.util.NetworkMonitor
 import ir.erfansn.nsmavpn.feature.home.util.GetUsageAccess
 import ir.erfansn.nsmavpn.feature.home.vpn.ConnectionState
+import ir.erfansn.nsmavpn.feature.home.vpn.CountryCode
 import ir.erfansn.nsmavpn.feature.home.vpn.SstpVpnService
 import ir.erfansn.nsmavpn.feature.home.vpn.SstpVpnServiceState
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnBackground
@@ -274,22 +275,6 @@ private fun HomeContent(
             }
         }
 
-        lateinit var getUsageAccessLauncher: ManagedActivityResultLauncher<Unit, Context.() -> Boolean>
-        getUsageAccessLauncher = rememberLauncherForActivityResult(GetUsageAccess()) { isGranted ->
-            if (!context.isGranted()) {
-                scope.launch {
-                    userMessageNotifier.showMessage(
-                        messageId = R.string.usage_access_permission,
-                        actionLabelId = R.string.ok,
-                    ).also {
-                        if (it == SnackbarResult.ActionPerformed) {
-                            getUsageAccessLauncher.launch()
-                        }
-                    }
-                }
-            }
-        }
-
         VpnSwitch(
             modifier = Modifier.layoutId("vpn_switch"),
             state = vpnSwitchState,
@@ -298,7 +283,20 @@ private fun HomeContent(
 
                 when (it) {
                     VpnSwitchState.On -> {
-                        getUsageAccessLauncher.launch()
+                        if (!context.isGrantedGetUsageStatsPermission) {
+                            scope.launch {
+                                userMessageNotifier.showMessage(
+                                    messageId = R.string.usage_access_permission,
+                                    duration = SnackbarDuration.Long,
+                                    actionLabelId = R.string.ok,
+                                ).also { result ->
+                                    if (result == SnackbarResult.ActionPerformed) {
+                                        context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                                    }
+                                }
+                            }
+                        }
+
                         ContextCompat.startForegroundService(
                             context,
                             Intent(context, SstpVpnService::class.java).apply {
