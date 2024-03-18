@@ -8,6 +8,17 @@ import ir.erfansn.nsmavpn.data.source.local.datastore.*
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
+interface UserPreferencesLocalDataSource {
+    val userPreferences: Flow<UserPreferences>
+    suspend fun setThemeMode(mode: Configurations.ThemeMode)
+    suspend fun setDynamicSchemeEnable(enable: Boolean)
+    suspend fun addAppsToSplitTunnelingList(apps: List<AppInfo>)
+    suspend fun removeAppFromSplitTunnelingList(app: AppInfo)
+    suspend fun clearSplitTunnelingList()
+    suspend fun saveUserProfile(profile: Profile)
+    suspend fun clearUserProfile()
+}
+
 class DefaultUserPreferencesLocalDataSource @Inject constructor(
     private val dataStore: DataStore<UserPreferences>,
 ) : UserPreferencesLocalDataSource {
@@ -45,12 +56,10 @@ class DefaultUserPreferencesLocalDataSource @Inject constructor(
     override suspend fun removeAppFromSplitTunnelingList(app: AppInfo) {
         dataStore.updateData {
             it.copy {
-                splitTunnelingAppId.filter { id ->
-                    id != app.id
-                }.also {
-                    splitTunnelingAppId.clear()
-                }.let { appsId ->
-                    splitTunnelingAppId.addAll(appsId)
+                with(splitTunnelingAppId) {
+                    val appsId = filter { id -> id != app.id }
+                    clear()
+                    addAll(appsId)
                 }
             }
         }
@@ -83,15 +92,4 @@ class DefaultUserPreferencesLocalDataSource @Inject constructor(
             }
         }
     }
-}
-
-interface UserPreferencesLocalDataSource {
-    val userPreferences: Flow<UserPreferences>
-    suspend fun setThemeMode(mode: Configurations.ThemeMode)
-    suspend fun setDynamicSchemeEnable(enable: Boolean)
-    suspend fun addAppsToSplitTunnelingList(apps: List<AppInfo>)
-    suspend fun removeAppFromSplitTunnelingList(app: AppInfo)
-    suspend fun clearSplitTunnelingList()
-    suspend fun saveUserProfile(profile: Profile)
-    suspend fun clearUserProfile()
 }

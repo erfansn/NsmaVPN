@@ -1,5 +1,6 @@
 .gradle/
 build/
+detekt/*.jar
 
 *.iml
 local.properties

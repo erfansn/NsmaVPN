@@ -7,15 +7,15 @@ import android.net.NetworkRequest
 import android.util.Log
 import androidx.core.content.getSystemService
 import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ClientBridge
-import kotlinx.coroutines.Job
 
-class NetworkObserver(val bridge: ClientBridge) {
+class NetworkObserver(
+    val bridge: ClientBridge,
+    val startConnectionValidation: () -> Unit,
+    val cancelConnectionValidation: () -> Unit,
+) {
 
     private val manager = bridge.service.getSystemService<ConnectivityManager>()!!
     private val callback: ConnectivityManager.NetworkCallback
-
-    private var validatingJob: Job? = null
-    private var firstValidation: Boolean = true
 
     init {
         val request = NetworkRequest.Builder().let {
@@ -26,15 +26,7 @@ class NetworkObserver(val bridge: ClientBridge) {
 
         callback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
-                bridge.service.startConnectionValidation()
-
-                /*bridge.service.vpnEventHandler.sendEvent(VpnEvent.Validating)*/
-                /*job = with(bridge.service) {
-                    serviceScope.launch {
-                        checkServerValidation()
-                    }
-                }*/
-                Log.i(TAG, "onAvailable: Called")
+                startConnectionValidation()
             }
         }
 
@@ -42,9 +34,7 @@ class NetworkObserver(val bridge: ClientBridge) {
     }
 
     fun close() {
-        Log.i(TAG, "close: Called")
-        // validatingJob?.cancel()
-        bridge.service.cancelConnectionValidation()
+        cancelConnectionValidation()
 
         try {
             manager.unregisterNetworkCallback(callback)

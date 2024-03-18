@@ -7,10 +7,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.erfansn.nsmavpn.data.model.AppInfo
 import ir.erfansn.nsmavpn.data.repository.ConfigurationsRepository
-import ir.erfansn.nsmavpn.data.source.InstalledAppsListProvider
+import ir.erfansn.nsmavpn.data.util.InstalledAppsListProvider
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -24,13 +23,12 @@ class TunnelSplittingViewModel @Inject constructor(
 
     private val searchQuery = savedStateHandle.getStateFlow(KEY_SEARCH_QUERY, "")
     val uiState = combine(
-        installedAppsListProvider.installedApps,
         searchQuery,
         configurationsRepository.configurations,
-    ) { installedApps, searchQuery, configurations ->
+    ) { searchQuery, configurations ->
         TunnelSplittingUiState(
             searchQuery = searchQuery,
-            appItems = installedApps.filter {
+            appItems = installedAppsListProvider.getCurrentInstalledApps().filter {
                 it.name.contains(searchQuery, ignoreCase = true)
             }.map {
                 AppItemUiState(
@@ -64,8 +62,8 @@ class TunnelSplittingViewModel @Inject constructor(
             if (allow) {
                 configurationsRepository.removeAllAppsFromSplitTunnelingList()
             } else {
-                val installedApps = installedAppsListProvider.installedApps.first().toTypedArray()
-                configurationsRepository.addAppToSplitTunnelingList(*installedApps)
+                val installedApps = installedAppsListProvider.getCurrentInstalledApps()
+                configurationsRepository.addAppToSplitTunnelingList(*installedApps.toTypedArray())
             }
         }
     }

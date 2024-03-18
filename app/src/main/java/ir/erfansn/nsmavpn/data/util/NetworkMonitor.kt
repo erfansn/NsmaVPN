@@ -10,8 +10,12 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.conflate
 import javax.inject.Inject
+
+interface NetworkMonitor {
+    val isOnline: Flow<Boolean>
+}
 
 class ConnectivityNetworkMonitor @Inject constructor(
     @ApplicationContext context: Context,
@@ -21,12 +25,17 @@ class ConnectivityNetworkMonitor @Inject constructor(
         val connectivityManager = context.getSystemService<ConnectivityManager>()
 
         val callback = object : ConnectivityManager.NetworkCallback() {
+
+            private val networks = mutableSetOf<Network>()
+
             override fun onAvailable(network: Network) {
+                networks += network
                 trySend(true)
             }
 
             override fun onLost(network: Network) {
-                trySend(false)
+                networks -= network
+                trySend(networks.isNotEmpty())
             }
         }
 
@@ -43,7 +52,7 @@ class ConnectivityNetworkMonitor @Inject constructor(
         awaitClose {
             connectivityManager?.unregisterNetworkCallback(callback)
         }
-    }.distinctUntilChanged()
+    }.conflate()
 
     private fun ConnectivityManager?.isCurrentlyConnected() = when (this) {
         null -> false
@@ -54,8 +63,4 @@ class ConnectivityNetworkMonitor @Inject constructor(
                         && it.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
             } ?: false
     }
-}
-
-interface NetworkMonitor {
-    val isOnline: Flow<Boolean>
 }

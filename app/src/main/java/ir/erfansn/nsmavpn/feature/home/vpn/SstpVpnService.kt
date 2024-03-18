@@ -7,82 +7,56 @@ import android.content.pm.ServiceInfo
 import android.net.VpnService
 import android.os.Binder
 import android.os.IBinder
-import android.util.Log
 import androidx.core.app.ServiceCompat
 import dagger.hilt.android.AndroidEntryPoint
-import ir.erfansn.nsmavpn.data.repository.ConfigurationsRepository
-import ir.erfansn.nsmavpn.data.repository.LastVpnConnectionRepository
-import ir.erfansn.nsmavpn.data.repository.ServersRepository
 import ir.erfansn.nsmavpn.data.util.NetworkMonitor
-import ir.erfansn.nsmavpn.data.util.PingChecker
-import ir.erfansn.nsmavpn.data.util.asyncMap
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.OscPrefKey
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.ClientBridge
-import ir.erfansn.nsmavpn.feature.home.vpn.protocol.client.control.ControlClient
+import ir.erfansn.nsmavpn.core.NsmaVpnNotificationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class SstpVpnService : VpnService() {
 
-    private val TAG: String? = this::class.simpleName
     lateinit var serviceScope: CoroutineScope
-    private var controlClient: ControlClient? = null
 
     private var vpnStartingJob: Job? = null
-    private var jobReconnect: Job? = null
     private var disconnectJob: Job? = null
-    private var validationJob: Job? = null
+    private var deactivationCheckerJob: Job? = null
 
-    @Inject
-    lateinit var pingChecker: PingChecker
     @Inject
     lateinit var networkMonitor: NetworkMonitor
-    @Inject
-    lateinit var lastVpnConnectionRepository: LastVpnConnectionRepository
-    @Inject
-    lateinit var serversRepository: ServersRepository
-    @Inject
-    lateinit var configurationsRepository: ConfigurationsRepository
 
-    private lateinit var sstpVpnEventHandler: SstpVpnEventHandler
-    private lateinit var sstpVpnNotificationManager: SstpVpnNotificationManager
-    private lateinit var localBinder: LocalBinder
+    @Inject
+    lateinit var sstpVpnEventHandler: SstpVpnEventHandler
+
+    @Inject
+    lateinit var nsmaVpnNotificationManager: NsmaVpnNotificationManager
+
+    private val localBinder: LocalBinder = LocalBinder()
 
     override fun onCreate() {
         super.onCreate()
         serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-        sstpVpnEventHandler = DefaultSstpVpnEventHandler(
-            pingChecker,
-            lastVpnConnectionRepository,
-            serversRepository,
-            configurationsRepository,
-            this,
-        )
-        sstpVpnNotificationManager = DefaultSstpVpnNotificationManager(
-            this,
-            FOREGROUND_NOTIFICATION_ID
-        )
-        localBinder = LocalBinder()
-
         sstpVpnEventHandler.connectionState
-            .onEach(sstpVpnNotificationManager::updateNotification)
+            .onEach {
+                if (prepare(this) != null && it !is ConnectionState.Error) return@onEach
+                nsmaVpnNotificationManager.notifyOrUpdateNotification(connectionState = it)
+            }
             .launchIn(serviceScope)
     }
 
@@ -90,26 +64,28 @@ class SstpVpnService : VpnService() {
         return when (intent?.action) {
             ACTION_VPN_CONNECT -> {
                 disconnectJob?.cancel()
-                controlClient?.cleanUp()
                 notifyForeground()
 
-                sstpVpnEventHandler.notifyConnecting()
-
+                deactivationCheckerJob?.cancel()
+                deactivationCheckerJob = serviceScope.launch {
+                    while (true) {
+                        if (prepare(applicationContext) != null) {
+                            onRevoke()
+                            break
+                        }
+                        yield()
+                    }
+                }
+                vpnStartingJob?.cancel()
                 vpnStartingJob = networkMonitor.isOnline
                     .onEachLatest { isOnline ->
                         check(isOnline)
 
-                        if (intent.getBooleanExtra(EXTRA_RESTART, false)) sstpVpnEventHandler.blockCurrentServer()
-                        val server = sstpVpnEventHandler.obtainVpnServer()
-
-                        OscPrefKey.HOME_HOSTNAME = server.address.hostName
-                        OscPrefKey.SSL_PORT = server.address.portNumber
-                        OscPrefKey.RECONNECTION_LIFE = OscPrefKey.RECONNECTION_COUNT
-
-                        initializeClient()
+                        sstpVpnEventHandler.startConnecting()
                     }
                     .catch {
-                        sstpVpnEventHandler.disconnectServiceDueNetworkError()
+                        it.printStackTrace()
+                        sstpVpnEventHandler.disconnectVpnDue(ConnectionState.Error.Network)
                     }
                     .launchIn(serviceScope)
 
@@ -117,18 +93,12 @@ class SstpVpnService : VpnService() {
             }
 
             ACTION_VPN_DISCONNECT -> {
-                val silent = intent.getBooleanExtra(EXTRA_SILENT, false)
+                val quietly = intent.getBooleanExtra(EXTRA_QUIET, false)
+                disconnectJob = serviceScope.launch(Dispatchers.Main.immediate) {
+                    vpnStartingJob?.cancel()
+                    deactivationCheckerJob?.cancel()
 
-                if (!silent) sstpVpnEventHandler.notifyDisconnecting()
-                disconnectJob = serviceScope.launch {
-                    listOf(jobReconnect, vpnStartingJob, validationJob).asyncMap {
-                        it?.cancelAndJoin()
-                    }
-
-                    controlClient?.disconnect()
-                    controlClient = null
-
-                    if (!silent) sstpVpnEventHandler.notifyDisconnected()
+                    sstpVpnEventHandler.shutdownVpnTunnel(quietly)
                     stopService()
                 }
                 Service.START_NOT_STICKY
@@ -140,53 +110,16 @@ class SstpVpnService : VpnService() {
         }
     }
 
-    fun startConnectionValidation() {
-        cancelConnectionValidation()
-        validationJob = serviceScope.launch {
-            sstpVpnEventHandler.startConnectionValidation()
-        }
-    }
-
-    fun cancelConnectionValidation() {
-        validationJob?.cancel()
-    }
-
-    fun onConnectionAbort() {
-        sstpVpnEventHandler.onConnectionAbort()
-    }
-
-    fun restartService() {
-        sstpVpnEventHandler.restartService()
-    }
-
-    private suspend fun initializeClient() {
-        sstpVpnEventHandler.updateDisallowedAppsIdList()
-        controlClient = ControlClient(ClientBridge(this)).also {
-            it.launchJobMain()
-        }
-    }
-
-    fun launchJobReconnect() {
-        jobReconnect = serviceScope.launch {
-            OscPrefKey.RECONNECTION_LIFE.also {
-                val life = it - 1
-                OscPrefKey.RECONNECTION_LIFE = life
-            }
-
-            delay(OscPrefKey.RECONNECTION_INTERVAL * 1000L)
-
-            initializeClient()
-        }
-    }
-
     @SuppressLint("InlinedApi")
     private fun notifyForeground() {
+        nsmaVpnNotificationManager.cancelErrorNotification()
         ServiceCompat.startForeground(
             this,
             FOREGROUND_NOTIFICATION_ID,
-            sstpVpnNotificationManager.initialNotification(),
+            nsmaVpnNotificationManager.initialNotification(),
             ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST
         )
+        sstpVpnEventHandler.initState()
     }
 
     override fun onBind(intent: Intent?): IBinder {
@@ -194,43 +127,40 @@ class SstpVpnService : VpnService() {
     }
 
     override fun onRevoke() {
-        startService(
-            Intent(this, SstpVpnService::class.java).apply {
-                action = ACTION_VPN_DISCONNECT
-            }
-        )
+        sstpVpnEventHandler.disconnectVpnDue(ConnectionState.Error.System)
     }
 
-    fun stopService() {
-        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH)
+    private suspend fun stopService() {
+        // Due to the lack of guarantee that the notification will not appear after [stopService] is called
+        delay(150)
+        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
     override fun onDestroy() {
-        controlClient?.cleanUp()
-        controlClient = null
+        sstpVpnEventHandler.cleanUp()
 
         serviceScope.cancel()
     }
 
     inner class LocalBinder : Binder() {
-        val sstpVpnServiceState = this@SstpVpnService.sstpVpnEventHandler.connectionState.map {
-            SstpVpnServiceState(connectionState = it)
-        }
+        val sstpVpnServiceState get() = sstpVpnEventHandler
+            .connectionState
+            .map {
+                SstpVpnServiceState(connectionState = it)
+            }
     }
 
     companion object {
         const val ACTION_VPN_CONNECT =
             "ir.erfansn.nsmavpn.feature.home.vpn.service.action.VPN_CONNECT"
-        const val EXTRA_RESTART =
-            "ir.erfansn.nsmavpn.feature.home.vpn.service.extra.RESTART"
 
         const val ACTION_VPN_DISCONNECT =
             "ir.erfansn.nsmavpn.feature.home.vpn.service.action.VPN_DISCONNECT"
-        const val EXTRA_SILENT =
-            "ir.erfansn.nsmavpn.feature.home.vpn.service.extra.SILENT"
+        const val EXTRA_QUIET =
+            "ir.erfansn.nsmavpn.feature.home.vpn.service.extra.QUIET"
 
-        private const val FOREGROUND_NOTIFICATION_ID = 1
+        private const val FOREGROUND_NOTIFICATION_ID = NsmaVpnNotificationManager.CONNECTION_NOTIFICATION_ID
     }
 }
 

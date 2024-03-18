@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option java_package = "ir.erfansn.nsmavpn.data.source.local.datastore";
+option java_multiple_files = true;
+
+message VpnServers {
+  repeated Server sstp_servers = 1;
+  repeated Server unavailable_servers = 2;
+}
+
+message Server {
+  string country_code = 1;
+  UrlParts address = 2;
+}
+
+message UrlParts {
+  string host_name = 1;
+  int32 port_number = 2;
+}

@@ -2,15 +2,25 @@ package ir.erfansn.nsmavpn.feature.auth.google
 
 import android.content.Context
 import android.content.Intent
+import android.os.Parcelable
+import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.StringRes
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -19,25 +29,27 @@ import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.common.api.Scope
 import ir.erfansn.nsmavpn.R
+import ir.erfansn.nsmavpn.core.AndroidString
+import kotlinx.parcelize.Parcelize
 
 @Stable
 interface GoogleAuthState {
     val authStatus: AuthenticationStatus
-    var onSignInResult: ((GoogleAccountSignInResult) -> Unit)?
+    var onErrorOccur: ((AndroidString) -> Unit)?
     fun signIn()
     fun requestPermissions()
     fun signOut()
 }
 
-class MutableGoogleAuthState(
-    @StringRes clientId: Int,
-    initStatus: AuthenticationStatus? = null,
+private class MutableGoogleAuthState(
+    clientId: String,
+    initStatus: AuthenticationStatus = AuthenticationStatus.InProgress,
     private val context: Context,
     private val scopes: List<Scope>,
 ) : GoogleAuthState {
 
     private val googleSignInOptions = GoogleSignInOptions.Builder()
-        .requestIdToken(context.getString(clientId))
+        .requestIdToken(clientId)
         .apply {
             if (scopes.isEmpty()) return@apply
 
@@ -48,55 +60,67 @@ class MutableGoogleAuthState(
             }
         }
         .build()
+
     private val googleSignIn = GoogleSignIn.getClient(context, googleSignInOptions)
 
-    override var authStatus by mutableStateOf(initStatus ?: AuthenticationStatus.InProgress)
+    override var authStatus by mutableStateOf(initStatus)
         private set
 
-    private val currentAccount get() = GoogleSignIn.getLastSignedInAccount(context)
-
-    override var onSignInResult: ((GoogleAccountSignInResult) -> Unit)? = null
-
     init {
-        if (initStatus == null) {
-            authStatus = when {
-                currentAccount?.allPermissionsGranted == true -> {
-                    AuthenticationStatus.PreSignedIn
-                }
+        updateStatus()
+    }
 
-                currentAccount != null -> {
-                    AuthenticationStatus.PermissionsNotGranted
-                }
-
-                else -> {
-                    AuthenticationStatus.SignedOut
-                }
+    fun refreshSignInToken() {
+        googleSignIn.silentSignIn().addOnCompleteListener {
+            synchronized(this) {
+                updateStatus()
             }
         }
     }
 
+    private fun updateStatus() {
+        authStatus = when {
+            currentAccount?.allPermissionsGranted == true -> {
+                AuthenticationStatus.SignedIn(currentAccount!!)
+            }
+
+            currentAccount != null -> {
+                AuthenticationStatus.PermissionsNotGranted
+            }
+
+            else -> {
+                AuthenticationStatus.SignedOut
+            }
+        }
+    }
+
+    override var onErrorOccur: ((AndroidString) -> Unit)? = null
+
     fun handleSigningToAccount(data: Intent?) {
         try {
-            val result = GoogleSignIn.getSignedInAccountFromIntent(data).getResult(ApiException::class.java)
+            val result =
+                GoogleSignIn.getSignedInAccountFromIntent(data).getResult(ApiException::class.java)
 
-            val account = if (!result.allPermissionsGranted) {
-                authStatus = AuthenticationStatus.PermissionsNotGranted
-                null
+            authStatus = if (result.allPermissionsGranted) {
+                AuthenticationStatus.SignedIn(result)
             } else {
-                authStatus = AuthenticationStatus.SignedIn
-                result
+                AuthenticationStatus.PermissionsNotGranted
             }
-            onSignInResult?.invoke(GoogleAccountSignInResult.Success(account))
         } catch (e: ApiException) {
+            Log.e("GoogleAuthState", e.message, e)
+
             when (e.statusCode) {
-                GoogleSignInStatusCodes.SIGN_IN_FAILED -> onSignInResult?.invoke(GoogleAccountSignInResult.Error(R.string.sign_in_failed))
-                CommonStatusCodes.NETWORK_ERROR -> onSignInResult?.invoke(GoogleAccountSignInResult.Error(R.string.network_problem))
+                CommonStatusCodes.NETWORK_ERROR -> onErrorOccur?.invoke(AndroidString(R.string.network_problem))
+                GoogleSignInStatusCodes.SIGN_IN_FAILED -> onErrorOccur?.invoke(AndroidString(R.string.sign_in_failed))
             }
         }
     }
 
     private val GoogleSignInAccount.allPermissionsGranted
         get() = GoogleSignIn.hasPermissions(this, *scopes.toTypedArray())
+
+    val currentAccount
+        get() = GoogleSignIn.getLastSignedInAccount(context)
 
     var launcher: ManagedActivityResultLauncher<Intent, ActivityResult>? = null
 
@@ -115,7 +139,7 @@ class MutableGoogleAuthState(
 
     companion object {
         fun Saver(
-            @StringRes clientId: Int,
+            clientId: String,
             context: Context,
             scopes: List<Scope>,
         ) = Saver<MutableGoogleAuthState, AuthenticationStatus>(
@@ -127,11 +151,14 @@ class MutableGoogleAuthState(
 
 @Composable
 fun rememberGoogleAuthState(
-    @StringRes clientId: Int,
+    clientId: String,
     vararg scopes: Scope,
-): MutableGoogleAuthState {
+): GoogleAuthState {
     val context = LocalContext.current
-    val googleAuthState = rememberSaveable(clientId, saver = MutableGoogleAuthState.Saver(clientId, context, scopes.toList())) {
+    val googleAuthState = rememberSaveable(
+        clientId,
+        saver = MutableGoogleAuthState.Saver(clientId, context, scopes.toList())
+    ) {
         MutableGoogleAuthState(
             context = context,
             clientId = clientId,
@@ -139,10 +166,18 @@ fun rememberGoogleAuthState(
         )
     }
 
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        googleAuthState.handleSigningToAccount(it.data)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner, googleAuthState) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            googleAuthState.refreshSignInToken()
+        }
     }
-    DisposableEffect(clientId) {
+
+    val launcher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            googleAuthState.handleSigningToAccount(it.data)
+        }
+    DisposableEffect(googleAuthState, launcher) {
         googleAuthState.launcher = launcher
         onDispose {
             googleAuthState.launcher = null
@@ -151,14 +186,10 @@ fun rememberGoogleAuthState(
     return googleAuthState
 }
 
-/**
- * State is the condition of an object at any given time, while status is a description of the
- * state. State is the actual condition of something, while status is a description of that condition.
- * For example, an object can have a state of "on" and a status of "active".
- */
-enum class AuthenticationStatus { PreSignedIn, SignedIn, InProgress, SignedOut, PermissionsNotGranted }
-
-sealed class GoogleAccountSignInResult {
-    data class Error(@StringRes val messageId: Int) : GoogleAccountSignInResult()
-    data class Success(val googleSignInAccount: GoogleSignInAccount?) : GoogleAccountSignInResult()
+@Parcelize
+sealed class AuthenticationStatus : Parcelable {
+    data object InProgress : AuthenticationStatus()
+    data object SignedOut : AuthenticationStatus()
+    data object PermissionsNotGranted : AuthenticationStatus()
+    data class SignedIn(val account: GoogleSignInAccount) : AuthenticationStatus()
 }

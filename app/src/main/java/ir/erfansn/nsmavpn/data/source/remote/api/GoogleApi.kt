@@ -8,14 +8,16 @@ import javax.inject.Inject
 
 abstract class GoogleApi<T : AbstractGoogleJsonClient> {
 
-    @Inject protected lateinit var credential: GoogleAccountCredential
-    @Inject protected lateinit var httpTransport: NetHttpTransport
-    @Inject protected lateinit var gsonFactory: GsonFactory
+    protected abstract val credential: GoogleAccountCredential
+    @Inject lateinit var httpTransport: NetHttpTransport
+    @Inject lateinit var gsonFactory: GsonFactory
 
     protected abstract fun getService(): T
 
+
     fun selectAccount(emailAddress: String): T {
         credential.selectedAccountName = emailAddress
+        checkNotNull(credential.selectedAccount) { "No account associate with $emailAddress in your device" }
         return getService()
     }
 }

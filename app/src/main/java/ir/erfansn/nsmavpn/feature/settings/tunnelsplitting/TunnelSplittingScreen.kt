@@ -9,13 +9,16 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
@@ -58,10 +61,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
@@ -76,7 +80,7 @@ import ir.erfansn.nsmavpn.ui.component.NsmaVpnScaffold
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnTopBar
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnTopBarDefaults
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
-import ir.erfansn.nsmavpn.ui.util.preview.TunnelSplittingPreviews
+import ir.erfansn.nsmavpn.ui.util.preview.SettingsStates
 import kotlin.random.Random
 
 @Composable
@@ -100,7 +104,7 @@ fun TunnelSplittingRoute(
 }
 
 @Composable
-fun TunnelSplittingScreen(
+private fun TunnelSplittingScreen(
     uiState: TunnelSplittingUiState,
     windowClass: WindowSizeClass,
     onSearchQueryChange: (String) -> Unit,
@@ -129,8 +133,9 @@ fun TunnelSplittingScreen(
         },
     ) { contentPadding ->
         AnimatedContent(
+            modifier = Modifier.consumeWindowInsets(contentPadding),
             targetState = uiState.appItems,
-            label = "content",
+            label = "apps_items",
             contentKey = { it?.isNotEmpty() }
         ) {
             Box(
@@ -149,7 +154,7 @@ fun TunnelSplittingScreen(
                     it.isEmpty() -> {
                         Text(
                             modifier = topPaddingModifier,
-                            text = "No such app!",
+                            text = stringResource(R.string.no_such_app),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -163,18 +168,27 @@ fun TunnelSplittingScreen(
                                 else -> 3
                             }
                         }
+
                         LazyVerticalGrid(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .align(Alignment.TopCenter),
-                            contentPadding = contentPadding,
+                            contentPadding = PaddingValues(
+                                top = contentPadding.calculateTopPadding(),
+                                bottom = contentPadding.calculateBottomPadding(),
+                            ),
                             state = lazyGridState,
                             columns = GridCells.Fixed(columnsCount)
                         ) {
                             items(it) { item ->
+                                val layoutDirection = LocalLayoutDirection.current
                                 AppItem(
                                     itemState = item,
                                     onChangeAllowed = onAppAllowingChange,
+                                    contentPadding = PaddingValues(
+                                        start = contentPadding.calculateStartPadding(layoutDirection),
+                                        end = contentPadding.calculateEndPadding(layoutDirection)
+                                    )
                                 )
                             }
                         }
@@ -186,7 +200,7 @@ fun TunnelSplittingScreen(
 }
 
 @Composable
-fun TunnelSplittingTopBar(
+private fun TunnelSplittingTopBar(
     windowWidthClass: WindowWidthSizeClass,
     query: String,
     onSearchQueryChange: (String) -> Unit,
@@ -198,7 +212,9 @@ fun TunnelSplittingTopBar(
     val containerColor by NsmaVpnTopBarDefaults.animatedContainerColor(overlappedWithContent())
     Column(
         modifier = Modifier
-            .drawBehind { drawRect(color = containerColor) },
+            .drawBehind { drawRect(color = containerColor) }
+            // Prevent propagate touch event to lower layers
+            .pointerInput(Unit) {},
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         NsmaVpnTopBar(
@@ -221,14 +237,14 @@ fun TunnelSplittingTopBar(
                     offset = DpOffset((-12).dp, 8.dp)
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Allow all") },
+                        text = { Text(text = stringResource(R.string.allow_all)) },
                         onClick = {
                             onAllAppsSplitTunnelingChange(true)
                             expanded = false
                         },
                     )
                     DropdownMenuItem(
-                        text = { Text("Disallow all") },
+                        text = { Text(text = stringResource(R.string.disallow_all)) },
                         onClick = {
                             onAllAppsSplitTunnelingChange(false)
                             expanded = false
@@ -265,12 +281,13 @@ fun TunnelSplittingTopBar(
                 onValueChange = onSearchQueryChange,
                 shape = CircleShape,
                 placeholder = {
-                    Text(text = "App name")
+                    Text(text = stringResource(R.string.searchbar_placeholder))
                 },
                 leadingIcon = {
                     Icon(
                         modifier = Modifier.padding(start = 4.dp),
-                        imageVector = Icons.Rounded.Search, contentDescription = "Search",
+                        imageVector = Icons.Rounded.Search,
+                        contentDescription = stringResource(R.string.cd_search),
                     )
                 },
                 trailingIcon = {
@@ -283,7 +300,10 @@ fun TunnelSplittingTopBar(
                             modifier = Modifier.padding(end = 4.dp),
                             onClick = { onSearchQueryChange("") }
                         ) {
-                            Icon(imageVector = Icons.Rounded.Clear, contentDescription = "Clear")
+                            Icon(
+                                imageVector = Icons.Rounded.Clear,
+                                contentDescription = stringResource(R.string.cd_clear)
+                            )
                         }
                     }
                 },
@@ -294,23 +314,30 @@ fun TunnelSplittingTopBar(
 }
 
 @Composable
-fun AppItem(
+private fun AppItem(
     itemState: AppItemUiState,
     onChangeAllowed: (AppInfo, Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
+    val layoutDirection = LocalLayoutDirection.current
     ListItem(
         headlineContent = {
             Text(text = itemState.appInfo.name)
         },
         leadingContent = {
             Image(
-                modifier = Modifier.size(56.dp),
+                modifier = Modifier
+                    .padding(start = contentPadding.calculateStartPadding(layoutDirection))
+                    .size(56.dp),
                 painter = rememberDrawablePainter(drawable = itemState.appInfo.icon),
-                contentDescription = "App icon"
+                contentDescription = null
             )
         },
         trailingContent = {
             Switch(
+                modifier = Modifier
+                    .padding(end = contentPadding.calculateStartPadding(layoutDirection)),
                 checked = itemState.allowed,
                 onCheckedChange = null,
             )
@@ -318,78 +345,59 @@ fun AppItem(
         colors = ListItemDefaults.colors(
             containerColor = Color.Transparent,
         ),
-        modifier = Modifier.clickable {
+        modifier = modifier.clickable {
             onChangeAllowed(itemState.appInfo, !itemState.allowed)
         }
     )
 }
 
-@TunnelSplittingPreviews.EmptyAppList
+@SettingsStates.TunnelSplittingStates.PreviewEmptyAppList
 @Composable
-fun SplittingTunnelScreenPreview_EmptyAppList() {
-    BoxWithConstraints {
-        val windowClass = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight))
-        NsmaVpnTheme {
-            NsmaVpnBackground {
-                TunnelSplittingScreen(
-                    uiState = TunnelSplittingUiState(appItems = emptyList()),
-                    onSearchQueryChange = { },
-                    onAppAllowingChange = { _, _ -> },
-                    onNavigateToBack = { },
-                    onAllAppsSplitTunnelingChange = { },
-                    windowClass = windowClass
-                )
-            }
-        }
-    }
+private fun TunnelSplittingScreenPreview_EmptyAppList() {
+    TunnelSplittingScreenPreview(
+        uiState = TunnelSplittingUiState(appItems = emptyList())
+    )
 }
 
-@TunnelSplittingPreviews.Loading
+@SettingsStates.TunnelSplittingStates.PreviewLoading
 @Composable
-fun SplittingTunnelScreenPreview_Loading() {
-    BoxWithConstraints {
-        val windowClass = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight))
-        NsmaVpnTheme {
-            NsmaVpnBackground {
-                TunnelSplittingScreen(
-                    uiState = TunnelSplittingUiState(appItems = null),
-                    onSearchQueryChange = { },
-                    onAppAllowingChange = { _, _ -> },
-                    onNavigateToBack = { },
-                    onAllAppsSplitTunnelingChange = { },
-                    windowClass = windowClass
-                )
-            }
-        }
-    }
+private fun TunnelSplittingScreenPreview_Loading() {
+    TunnelSplittingScreenPreview(
+        uiState = TunnelSplittingUiState(appItems = null)
+    )
 }
 
-@TunnelSplittingPreviews.AppItems
+@SettingsStates.TunnelSplittingStates.PreviewAppItems
 @Composable
-fun SplittingTunnelScreenPreview_AppItems() {
-    BoxWithConstraints {
-        val windowClass = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight))
-        NsmaVpnTheme {
-            NsmaVpnBackground {
-                val resource = LocalContext.current.resources
-                TunnelSplittingScreen(
-                    uiState = TunnelSplittingUiState(
-                        appItems = buildList {
-                            repeat(12) {
-                                this += AppItemUiState(
-                                    appInfo = AppInfo(
-                                        id = "com.example.$it",
-                                        name = "Example $it",
-                                        icon = resource.getDrawable(
-                                            R.drawable.ic_launcher_background,
-                                            null
-                                        ),
-                                    ),
-                                    allowed = Random.nextBoolean(),
-                                )
-                            }
-                        },
+private fun TunnelSplittingScreenPreview_AppItems() {
+    val resource = LocalContext.current.resources
+    TunnelSplittingScreenPreview(
+        uiState = TunnelSplittingUiState(
+            appItems = List(12) {
+                AppItemUiState(
+                    appInfo = AppInfo(
+                        id = "com.example.$it",
+                        name = "Example $it",
+                        icon = resource.getDrawable(
+                            R.drawable.ic_launcher_background,
+                            null
+                        ),
                     ),
+                    allowed = Random.nextBoolean(),
+                )
+            },
+        )
+    )
+}
+
+@Composable
+private fun TunnelSplittingScreenPreview(uiState: TunnelSplittingUiState) {
+    BoxWithConstraints {
+        val windowClass = WindowSizeClass.calculateFromSize(DpSize(maxWidth, maxHeight))
+        NsmaVpnTheme {
+            NsmaVpnBackground {
+                TunnelSplittingScreen(
+                    uiState = uiState,
                     onSearchQueryChange = { },
                     onAppAllowingChange = { _, _ -> },
                     onNavigateToBack = { },

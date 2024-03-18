@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.constrainWidth
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Job
 import kotlin.math.absoluteValue
 import kotlin.math.ceil
 import kotlin.math.roundToInt
@@ -206,6 +207,7 @@ private class MarqueeModifierNode(
     private var contentWidth by mutableIntStateOf(0)
     private var containerWidth by mutableIntStateOf(0)
     private var hasFocus by mutableStateOf(false)
+    private var animationJob: Job? = null
     var spacing: MarqueeSpacing by mutableStateOf(spacing)
     var animationMode: MarqueeAnimationMode by mutableStateOf(animationMode)
 
@@ -223,6 +225,11 @@ private class MarqueeModifierNode(
 
     override fun onAttach() {
         restartAnimation()
+    }
+
+    override fun onDetach() {
+        animationJob?.cancel()
+        animationJob = null
     }
 
     fun update(
@@ -327,8 +334,12 @@ private class MarqueeModifierNode(
     }
 
     private fun restartAnimation() {
+        val oldJob = animationJob
+        oldJob?.cancel()
         if (isAttached) {
-            coroutineScope.launch {
+            animationJob = coroutineScope.launch {
+                // Wait for the cancellation to finish.
+                oldJob?.join()
                 runAnimation()
             }
         }

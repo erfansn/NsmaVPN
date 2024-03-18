@@ -7,6 +7,11 @@ import ir.erfansn.nsmavpn.data.source.local.datastore.copy
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
+interface LastVpnConnectionLocalDataSource {
+    val lastVpnConnection: Flow<LastVpnConnection>
+    suspend fun saveLastConnectionInfo(vpnServer: Server, connectionTimeSinceEpoch: Long)
+}
+
 class DefaultLastVpnConnectionLocalDataSource @Inject constructor(
     private val dataStore: DataStore<LastVpnConnection>
 ) : LastVpnConnectionLocalDataSource {
@@ -21,9 +26,4 @@ class DefaultLastVpnConnectionLocalDataSource @Inject constructor(
             }
         }
     }
-}
-
-interface LastVpnConnectionLocalDataSource {
-    val lastVpnConnection: Flow<LastVpnConnection>
-    suspend fun saveLastConnectionInfo(vpnServer: Server, connectionTimeSinceEpoch: Long)
 }
