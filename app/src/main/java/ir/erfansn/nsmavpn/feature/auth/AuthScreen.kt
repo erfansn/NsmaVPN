@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -45,14 +46,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.android.gms.common.Scopes
-import com.google.android.gms.common.api.Scope
-import com.google.api.services.gmail.GmailScopes
 import ir.erfansn.nsmavpn.R
+import ir.erfansn.nsmavpn.core.AndroidString
 import ir.erfansn.nsmavpn.feature.auth.google.AuthenticationStatus
-import ir.erfansn.nsmavpn.feature.auth.google.GoogleAccountSignInResult
 import ir.erfansn.nsmavpn.feature.auth.google.GoogleAuthState
-import ir.erfansn.nsmavpn.feature.auth.google.rememberGoogleAuthState
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnBackground
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnScaffold
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
@@ -68,6 +65,7 @@ import kotlin.contracts.contract
 fun AuthRoute(
     windowSize: WindowSizeClass,
     onNavigateToHome: () -> Unit,
+    googleAuthState: GoogleAuthState,
     modifier: Modifier = Modifier,
     viewModel: AuthViewModel = viewModel(),
 ) {
@@ -77,9 +75,10 @@ fun AuthRoute(
         modifier = modifier,
         uiState = uiState,
         windowSize = windowSize,
-        onSuccessfulSignIn = viewModel::verifyVpnGateSubscriptionAndSaveIt,
+        onSuccessfulSignIn = viewModel::verifyVpnGateSubscription,
         onErrorShown = viewModel::notifyMessageShown,
         onNavigateToHome = onNavigateToHome,
+        googleAuthState = googleAuthState,
     )
 }
 
@@ -87,45 +86,34 @@ fun AuthRoute(
 private fun AuthScreen(
     windowSize: WindowSizeClass,
     uiState: AuthUiState,
+    googleAuthState: GoogleAuthState,
     modifier: Modifier = Modifier,
     onSuccessfulSignIn: (GoogleSignInAccount) -> Unit = { },
     onErrorShown: () -> Unit = { },
     onNavigateToHome: () -> Unit = { },
-    googleAuthState: GoogleAuthState = rememberGoogleAuthState(
-        clientId = stringResource(R.string.web_client_id),
-        Scope(GmailScopes.GMAIL_READONLY),
-        Scope(Scopes.PROFILE),
-        Scope(Scopes.EMAIL),
-    ),
 ) {
     val coroutineScope = rememberCoroutineScope()
     val userNotifier = rememberUserMessageNotifier()
 
     DisposableEffect(googleAuthState) {
-        googleAuthState.onSignInResult = {
-            when (it) {
-                is GoogleAccountSignInResult.Error -> coroutineScope.launch {
-                    userNotifier.showMessage(
-                        messageId = it.messageId,
-                        actionLabelId = R.string.ok
-                    )
-                }
-
-                is GoogleAccountSignInResult.Success -> {
-                    it.googleSignInAccount?.run(onSuccessfulSignIn)
-                }
+        googleAuthState.onErrorOccur = {
+            coroutineScope.launch {
+                userNotifier.showMessage(
+                    messageId = it.id,
+                    actionLabelId = R.string.ok,
+                )
             }
         }
         onDispose {
-            googleAuthState.onSignInResult = null
+            googleAuthState.onErrorOccur = null
         }
     }
 
-    LaunchedEffect(googleAuthState, uiState.errorMessage, onErrorShown) {
+    LaunchedEffect(uiState.errorMessage, googleAuthState, userNotifier, onErrorShown) {
         if (uiState.errorMessage != null) {
             googleAuthState.signOut()
             userNotifier.showMessage(
-                messageId = uiState.errorMessage,
+                messageId = uiState.errorMessage.id,
                 actionLabelId = R.string.ok
             )
             onErrorShown()
@@ -137,7 +125,7 @@ private fun AuthScreen(
         snackbarHost = { SnackbarHost(hostState = userNotifier.snackbarHostState) }
     ) { contentPadding ->
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().consumeWindowInsets(contentPadding),
             contentAlignment = Alignment.Center,
         ) {
             val contentLayoutModifier = Modifier.fillMaxSize()
@@ -146,6 +134,7 @@ private fun AuthScreen(
                     contentPadding = contentPadding,
                     subscriptionStatus = uiState.subscriptionStatus,
                     onNavigateToHome = onNavigateToHome,
+                    onSuccessfulSignIn = onSuccessfulSignIn,
                     googleAuthState = googleAuthState,
                 )
             }
@@ -178,6 +167,7 @@ private fun LayoutType.AuthContent(
     contentPadding: PaddingValues,
     subscriptionStatus: VpnGateSubscriptionStatus,
     onNavigateToHome: () -> Unit,
+    onSuccessfulSignIn: (GoogleSignInAccount) -> Unit,
     googleAuthState: GoogleAuthState,
 ) {
     val commonModifier = if (isColumn()) with(scope) {
@@ -195,7 +185,7 @@ private fun LayoutType.AuthContent(
             .size(240.dp)
             .then(commonModifier),
         colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.secondary),
-        painter = painterResource(id = R.drawable.ic_round_key),
+        painter = painterResource(id = R.drawable.round_key_24),
         contentDescription = null
     )
 
@@ -217,7 +207,7 @@ private fun LayoutType.AuthContent(
                 AuthenticationStatus.InProgress, AuthenticationStatus.SignedOut -> {
                     DescriptionText(stringId = R.string.auth_explanation)
                     Button(
-                        enabled = googleAuthState.authStatus != AuthenticationStatus.InProgress,
+                        enabled = it != AuthenticationStatus.InProgress,
                         onClick = googleAuthState::signIn,
                     ) {
                         Text(
@@ -242,53 +232,39 @@ private fun LayoutType.AuthContent(
                         }
                     }
                 }
-                AuthenticationStatus.SignedIn -> {
-                    SignedInSubContent(
-                        onNavigateToHome = onNavigateToHome,
-                        onSignOut = googleAuthState::signOut,
-                        subscriptionStatus = subscriptionStatus,
-                    )
-                }
-                AuthenticationStatus.PreSignedIn -> {
-                    LaunchedEffect(Unit) {
-                        googleAuthState.signOut()
+                is AuthenticationStatus.SignedIn -> {
+                    LaunchedEffect(onSuccessfulSignIn) {
+                        onSuccessfulSignIn(it.account)
                     }
-                }
-            }
-        }
-    }
-}
 
-@Composable
-private fun SignedInSubContent(
-    onNavigateToHome: () -> Unit,
-    onSignOut: () -> Unit,
-    subscriptionStatus: VpnGateSubscriptionStatus,
-) {
-    AnimatedContent(subscriptionStatus, label = "signed-in") {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            when (it) {
-                VpnGateSubscriptionStatus.Unknown -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.padding(32.dp)
-                    )
-                }
+                    AnimatedContent(subscriptionStatus, label = "signed-in") { subscriptionStatus ->
+                        when (subscriptionStatus) {
+                            VpnGateSubscriptionStatus.Unknown -> {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.padding(32.dp)
+                                )
+                            }
 
-                VpnGateSubscriptionStatus.Is -> {
-                    LaunchedEffect(Unit) {
-                        onNavigateToHome()
-                    }
-                }
+                            VpnGateSubscriptionStatus.Is -> {
+                                LaunchedEffect(Unit) {
+                                    onNavigateToHome()
+                                }
+                            }
 
-                VpnGateSubscriptionStatus.IsNot -> {
-                    DescriptionText(stringId = R.string.not_being_subscribed_to_vpngate)
-                    Button(
-                        onClick = onSignOut
-                    ) {
-                        Text(text = stringResource(id = R.string.sign_out))
+                            VpnGateSubscriptionStatus.IsNot -> {
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                ) {
+                                    DescriptionText(stringId = R.string.not_being_subscribed_to_vpngate)
+                                    Button(
+                                        onClick = googleAuthState::signOut
+                                    ) {
+                                        Text(text = stringResource(id = R.string.sign_out))
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -320,15 +296,6 @@ private fun LayoutType.isColumn(): Boolean {
         returns(false) implies (this@isColumn is LayoutType.Row)
     }
     return this is LayoutType.Column
-}
-
-@AuthStates.PreviewPreSignedIn
-@Composable
-private fun AuthScreenPreview_PreSignedIn() {
-    AuthScreenPreview(
-        uiState = AuthUiState(subscriptionStatus = VpnGateSubscriptionStatus.entries.random()),
-        authenticationStatus = AuthenticationStatus.PreSignedIn,
-    )
 }
 
 @AuthStates.PreviewSignedOut
@@ -365,7 +332,7 @@ private fun AuthScreenPreview_SignedIn(
 ) {
     AuthScreenPreview(
         uiState = AuthUiState(subscriptionStatus = params),
-        authenticationStatus = AuthenticationStatus.SignedIn,
+        authenticationStatus = AuthenticationStatus.SignedIn(GoogleSignInAccount.createDefault()),
     )
 }
 
@@ -390,7 +357,7 @@ private fun AuthScreenPreview(uiState: AuthUiState, authenticationStatus: Authen
                     googleAuthState = object : GoogleAuthState {
                         override val authStatus: AuthenticationStatus = authenticationStatus
 
-                        override var onSignInResult: ((GoogleAccountSignInResult) -> Unit)? = null
+                        override var onErrorOccur: ((AndroidString) -> Unit)? = { }
 
                         override fun signIn() = Unit
 

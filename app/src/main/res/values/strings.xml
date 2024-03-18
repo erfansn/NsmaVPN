@@ -2,7 +2,7 @@
     <string name="app_name">Nsma VPN</string>
 
     <!--Common-->
-    <string name="web_client_id">870845865908-4qde8iut5e3j76tmtn54rcthqjh4lcg8.apps.googleusercontent.com</string>
+    <string name="web_client_id">870845865908\-4qde8iut5e3j76tmtn54rcthqjh4lcg8.apps.googleusercontent.com</string>
     <string name="error_no_exists_server">Not found VPN server</string>
     <string name="permissions_not_granted">Must all scopes permission be granted</string>
     <string name="ok">OK</string>
@@ -16,7 +16,10 @@
     <string name="disconnected">Disconnected</string>
     <string name="initializing">Initializing…</string>
     <string name="network_error">Network error</string>
+    <string name="deactivated">Deactivated!</string>
     <string name="validating">Validating…</string>
+    <string name="nsmavpn_notification_channel_name">VPN connection</string>
+    <string name="disconnect">Disconnect</string>
 
     <!--Auth feature-->
     <string name="auth_explanation">To obtain and collect VPN servers this app uses your email messages that sent from VpnGate thus only way to use this app sign-in with email that subscribed to VpnGate daily mirror link</string>
@@ -81,4 +84,5 @@
     <string name="download">Download</string>
     <string name="switch_off">Start</string>
     <string name="switch_on">Stop</string>
+    <string name="reauth">Needs to reauth to obtain new servers</string>
 </resources>

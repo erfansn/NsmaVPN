@@ -10,11 +10,6 @@ fun NavController.navigateToAuth() {
     }
 }
 
-fun NavController.popBackToHome() {
-    // To prevent extra pop due of multiple call
-    popBackStack(route = NavScreensRoute.Home, inclusive = false)
-}
-
 object NavScreensRoute {
     const val Home = "home"
     const val Auth = "auth"

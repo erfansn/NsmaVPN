@@ -30,7 +30,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeoutOrNull
 
-class ControlClient(val bridge: ClientBridge) {
+class ControlClient(
+    val bridge: ClientBridge,
+    private val onRestartVpn: suspend () -> Unit,
+    private val onStartConnectionValidation: () -> Unit,
+    private val onCancelConnectionValidation: () -> Unit,
+) {
     private var observer: NetworkObserver? = null
 
     private var sstpClient: SstpClient? = null
@@ -48,14 +53,9 @@ class ControlClient(val bridge: ClientBridge) {
 
     private val mutex = Mutex()
 
-    private val isReconnectionEnabled =
-        OscPrefKey.RECONNECTION_ENABLED
-    private val isReconnectionAvailable: Boolean
-        get() = OscPrefKey.RECONNECTION_LIFE > 0
-
     private fun attachHandler() {
         bridge.handler = CoroutineExceptionHandler { _, throwable ->
-            kill(isReconnectionEnabled) {
+            kill(isReconnectionRequested = true) {
                 Log.e("ControlClient", throwable.message, throwable)
             }
         }
@@ -171,11 +171,11 @@ class ControlClient(val bridge: ClientBridge) {
                 outgoingClient = it
             }
 
-            observer = NetworkObserver(bridge)
-
-            if (isReconnectionEnabled) {
-                OscPrefKey.RECONNECTION_LIFE = OscPrefKey.RECONNECTION_COUNT
-            }
+            observer = NetworkObserver(
+                bridge = bridge,
+                startConnectionValidation = onStartConnectionValidation,
+                cancelConnectionValidation = onCancelConnectionValidation,
+            )
 
             expectProceeded(Where.SSTP_CONTROL, null) // wait ERR_ message until disconnection
         }
@@ -201,7 +201,7 @@ class ControlClient(val bridge: ClientBridge) {
             SSTP_MESSAGE_TYPE_CALL_ABORT
         }
 
-        kill(isReconnectionEnabled) {
+        kill(isReconnectionRequested = true) {
             sstpClient?.sendLastPacket(lastPacketType)
         }
         return false
@@ -220,7 +220,6 @@ class ControlClient(val bridge: ClientBridge) {
         if (!mutex.tryLock()) return
 
         bridge.service.serviceScope.launch {
-            if (isReconnectionRequested) bridge.service.onConnectionAbort()
             observer?.close()
 
             jobMain?.cancel()
@@ -230,25 +229,16 @@ class ControlClient(val bridge: ClientBridge) {
 
             closeTerminals()
 
-            if (isReconnectionRequested && isReconnectionAvailable) {
-                bridge.service.launchJobReconnect()
-            } else if (!isReconnectionAvailable) {
-                bridge.service.restartService()
+            if (isReconnectionRequested) {
+                onRestartVpn()
             }
         }
     }
 
     fun cleanUp() {
-        observer?.close()
-
-        jobMain?.cancel()
-        cancelClients()
-
-        closeTerminals()
-
+        kill()
         // Never ever call stopService here because cause destroying service
         // after configuration changes
-        // bridge.service.stopService()
     }
 
     private fun cancelClients() {

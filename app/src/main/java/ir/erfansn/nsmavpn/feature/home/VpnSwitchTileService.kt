@@ -9,11 +9,12 @@ import android.os.Build
 import android.os.IBinder
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
-import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
+import ir.erfansn.nsmavpn.data.model.isEmpty
+import ir.erfansn.nsmavpn.data.repository.ProfileRepository
 import ir.erfansn.nsmavpn.feature.home.vpn.SstpVpnService
+import ir.erfansn.nsmavpn.feature.home.vpn.SstpVpnServiceAction
 import ir.erfansn.nsmavpn.sync.VpnServersSyncManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -57,6 +58,10 @@ class VpnSwitchTileService : TileService() {
 
     @Inject
     lateinit var vpnServersSyncManager: VpnServersSyncManager
+    @Inject
+    lateinit var sstpVpnServiceAction: SstpVpnServiceAction
+    @Inject
+    lateinit var profileRepository: ProfileRepository
 
     override fun onCreate() {
         super.onCreate()
@@ -71,10 +76,13 @@ class VpnSwitchTileService : TileService() {
 
     override fun onStartListening() {
         super.onStartListening()
-        vpnServiceStartedCollectorJob = vpnServiceStarted
-            .combine(vpnServersSyncManager.isSyncing) { started, syncing ->
+        vpnServiceStartedCollectorJob = combine(
+                vpnServiceStarted,
+                vpnServersSyncManager.isSyncing,
+                profileRepository.userProfile,
+            ) { started, syncing, userProfile ->
                 qsTile.state = when {
-                    !isVpnPrepared || syncing -> Tile.STATE_UNAVAILABLE
+                    userProfile.isEmpty() || !isVpnPrepared || syncing -> Tile.STATE_UNAVAILABLE
                     isVpnPrepared && started -> Tile.STATE_ACTIVE
                     else -> Tile.STATE_INACTIVE
                 }
@@ -92,21 +100,12 @@ class VpnSwitchTileService : TileService() {
         super.onClick()
         when (qsTile.state) {
             Tile.STATE_ACTIVE -> {
-                startService(
-                    Intent(this, SstpVpnService::class.java).apply {
-                        action = SstpVpnService.ACTION_VPN_DISCONNECT
-                    }
-                )
+                sstpVpnServiceAction.disconnect()
                 qsTile.state = Tile.STATE_INACTIVE
             }
 
             Tile.STATE_INACTIVE -> {
-                ContextCompat.startForegroundService(
-                    this,
-                    Intent(this, SstpVpnService::class.java).apply {
-                        action = SstpVpnService.ACTION_VPN_CONNECT
-                    }
-                )
+                sstpVpnServiceAction.connect()
                 qsTile.state = Tile.STATE_ACTIVE
             }
         }

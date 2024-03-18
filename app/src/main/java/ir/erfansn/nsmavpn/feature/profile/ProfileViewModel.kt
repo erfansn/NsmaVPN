@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.erfansn.nsmavpn.data.repository.ProfileRepository
 import ir.erfansn.nsmavpn.data.repository.VpnGateMailRepository
-import ir.erfansn.nsmavpn.sync.VpnServersSyncManager
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.retry
@@ -14,9 +13,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val profileRepository: ProfileRepository,
-    private val vpnGateMailRepository: VpnGateMailRepository,
-    private val vpnServersSyncManager: VpnServersSyncManager
+    profileRepository: ProfileRepository,
+    vpnGateMailRepository: VpnGateMailRepository,
 ) : ViewModel() {
 
     val uiState = profileRepository
@@ -36,20 +34,13 @@ class ProfileViewModel @Inject constructor(
 
     val isSubscribedToVpnGate = profileRepository
         .userProfile
-        .map {
-            vpnGateMailRepository.isSubscribedToDailyMail(it.emailAddress)
-        }
+        .map { vpnGateMailRepository.isSubscribedToDailyMail(it.emailAddress) }
         .retry()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = true
         )
-
-    fun signOutFromAccount() {
-        vpnServersSyncManager.endAllVpnServersSyncTasks()
-        profileRepository.clearUserProfile()
-    }
 }
 
 data class ProfileUiState(

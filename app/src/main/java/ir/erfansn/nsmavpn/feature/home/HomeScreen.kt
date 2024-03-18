@@ -7,15 +7,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.os.Build
 import android.os.IBinder
 import android.os.Process
 import android.provider.Settings
 import android.util.Log
-import androidx.activity.compose.ManagedActivityResultLauncher
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.launch
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +20,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -59,6 +56,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -77,7 +75,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.erfansn.nsmavpn.R
 import ir.erfansn.nsmavpn.data.util.NetworkMonitor
-import ir.erfansn.nsmavpn.feature.home.util.GetUsageAccess
 import ir.erfansn.nsmavpn.feature.home.vpn.ConnectionState
 import ir.erfansn.nsmavpn.feature.home.vpn.CountryCode
 import ir.erfansn.nsmavpn.feature.home.vpn.SstpVpnService
@@ -94,6 +91,7 @@ import ir.erfansn.nsmavpn.ui.util.rememberRequestPermissionsLauncher
 import ir.erfansn.nsmavpn.ui.util.rememberUserMessageNotifier
 import ir.erfansn.nsmavpn.ui.util.toCountryFlagEmoji
 import ir.erfansn.nsmavpn.ui.util.toHumanReadableByteSize
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -103,14 +101,16 @@ import kotlinx.coroutines.launch
 fun HomeRoute(
     networkMonitor: NetworkMonitor,
     windowSize: WindowSizeClass,
+    hasNeedToReauth: Boolean,
     onNavigateToProfile: () -> Unit,
     onNavigateToSettings: () -> Unit,
+    onRequestToReauthentication: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val networkUsage by viewModel.dataTraffic.collectAsStateWithLifecycle()
-    val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(false)
+    val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(true)
 
     HomeScreen(
         uiState = uiState,
@@ -120,7 +120,11 @@ fun HomeRoute(
         dataTraffic = networkUsage,
         onNavigateToSettings = onNavigateToSettings,
         onNavigateToProfile = onNavigateToProfile,
-        onChangeVpnServiceState = viewModel::updateVpnServiceState
+        onChangeVpnServiceState = viewModel::updateVpnServiceState,
+        onConnectToVpn = viewModel::connectToVpn,
+        onDisconnectFromVpn = viewModel::disconnectFromVpn,
+        onRequestToReauthentication = onRequestToReauthentication,
+        hasNeedToReauth = hasNeedToReauth,
     )
 }
 
@@ -134,9 +138,27 @@ private fun HomeScreen(
     onNavigateToSettings: () -> Unit = { },
     onNavigateToProfile: () -> Unit = { },
     onChangeVpnServiceState: (SstpVpnServiceState) -> Unit = { },
+    onConnectToVpn: () -> Unit = { },
+    onDisconnectFromVpn: () -> Unit = { },
+    onRequestToReauthentication: () -> Unit = { },
+    hasNeedToReauth: Boolean = false,
 ) {
     val userNotifier = rememberUserMessageNotifier()
     val scrollState = rememberScrollState()
+
+    LaunchedEffect(hasNeedToReauth) {
+        if (hasNeedToReauth) {
+            userNotifier.showMessage(
+                messageId = R.string.reauth,
+                actionLabelId = R.string.ok,
+                duration = SnackbarDuration.Indefinite,
+            ).also {
+                if (it == SnackbarResult.ActionPerformed) {
+                    onRequestToReauthentication()
+                }
+            }
+        }
+    }
 
     NsmaVpnScaffold(
         modifier = modifier,
@@ -191,11 +213,14 @@ private fun HomeScreen(
             windowSize = windowSize,
             userMessageNotifier = userNotifier,
             onChangeVpnServiceState = onChangeVpnServiceState,
+            onConnectToVpn = onConnectToVpn,
+            onDisconnectFromVpn = onDisconnectFromVpn,
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
                 .padding(vertical = 32.dp)
-                .padding(it),
+                .padding(it)
+                .consumeWindowInsets(it),
         )
     }
 }
@@ -207,16 +232,18 @@ private fun HomeContent(
     dataTraffic: DataTraffic?,
     windowSize: WindowSizeClass,
     userMessageNotifier: UserMessageNotifier,
-    modifier: Modifier = Modifier,
     onChangeVpnServiceState: (SstpVpnServiceState) -> Unit,
+    modifier: Modifier = Modifier,
+    onConnectToVpn: () -> Unit = { },
+    onDisconnectFromVpn: () -> Unit = { },
 ) {
     ConstraintLayout(
         modifier = modifier,
         constraintSet = windowSize.createConstraintSet,
     ) {
-        var vpnSwitchState by remember(uiState.vpnServiceState.started, isOnline) {
+        var vpnSwitchState by remember(uiState.vpnServiceState.started) {
             mutableStateOf(
-                if (uiState.vpnServiceState.started && isOnline) {
+                if (uiState.vpnServiceState.started) {
                     VpnSwitchState.On
                 } else {
                     VpnSwitchState.Off
@@ -249,34 +276,10 @@ private fun HomeContent(
         }
 
         val scope = rememberCoroutineScope()
-        val serviceConnectionCallback = remember(scope, onChangeVpnServiceState) {
-            object : ServiceConnection {
-                var vpnStartedStateCollectorJob: Job? = null
-
-                override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-                    if (service !is SstpVpnService.LocalBinder) return
-
-                    vpnStartedStateCollectorJob = service
-                        .sstpVpnServiceState
-                        .onEach(onChangeVpnServiceState)
-                        .launchIn(scope)
-                }
-
-                override fun onServiceDisconnected(name: ComponentName?) {
-                    vpnStartedStateCollectorJob?.cancel()
-                }
-            }
-        }
-        DisposableEffect(serviceConnectionCallback, context) {
-            context.bindService(
-                Intent(context, SstpVpnService::class.java),
-                serviceConnectionCallback,
-                Service.BIND_AUTO_CREATE
-            )
-            onDispose {
-                context.unbindService(serviceConnectionCallback)
-            }
-        }
+        VpnServiceEffect(
+            scope = scope,
+            onChangeVpnServiceState = onChangeVpnServiceState
+        )
 
         VpnSwitch(
             modifier = Modifier.layoutId("vpn_switch"),
@@ -300,26 +303,19 @@ private fun HomeContent(
                             }
                         }
 
-                        ContextCompat.startForegroundService(
-                            context,
-                            Intent(context, SstpVpnService::class.java).apply {
-                                action = SstpVpnService.ACTION_VPN_CONNECT
-                            }
-                        )
+                        onConnectToVpn()
                     }
 
                     VpnSwitchState.Off -> {
-                        context.startService(
-                            Intent(context, SstpVpnService::class.java).apply {
-                                action = SstpVpnService.ACTION_VPN_DISCONNECT
-                            }
-                        )
+                        onDisconnectFromVpn()
                     }
                 }
                 vpnSwitchState = it
             },
             enabled = !uiState.isSyncing || vpnSwitchState == VpnSwitchState.On,
-            connected = uiState.vpnServiceState.state is ConnectionState.Connected,
+            connected = uiState.vpnServiceState.let {
+                it.state is ConnectionState.Connected || it.state is ConnectionState.Disconnecting
+            },
         )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -329,6 +325,56 @@ private fun HomeContent(
         }
     }
 }
+
+@Composable
+private fun VpnServiceEffect(
+    scope: CoroutineScope,
+    onChangeVpnServiceState: (SstpVpnServiceState) -> Unit,
+) {
+    if (LocalInspectionMode.current) return
+
+    val serviceConnectionCallback = remember(scope, onChangeVpnServiceState) {
+        object : ServiceConnection {
+            var vpnStartedStateCollectorJob: Job? = null
+
+            override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                if (service !is SstpVpnService.LocalBinder) return
+
+                vpnStartedStateCollectorJob = service
+                    .sstpVpnServiceState
+                    .onEach(onChangeVpnServiceState)
+                    .launchIn(scope)
+            }
+
+            override fun onServiceDisconnected(name: ComponentName?) {
+                vpnStartedStateCollectorJob?.cancel()
+            }
+        }
+    }
+
+    val context = LocalContext.current
+    DisposableEffect(serviceConnectionCallback, context) {
+        context.bindService(
+            Intent(context, SstpVpnService::class.java),
+            serviceConnectionCallback,
+            Service.BIND_AUTO_CREATE
+        )
+        onDispose {
+            context.unbindService(serviceConnectionCallback)
+        }
+    }
+}
+
+val Context.isGrantedGetUsageStatsPermission: Boolean
+    get() {
+        val appOps = getSystemService<AppOpsManager>()!!
+        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            appOps.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), packageName)
+        } else {
+            appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), packageName)
+        }
+        return mode == AppOpsManager.MODE_ALLOWED
+    }
 
 @Composable
 private fun CurrentStateText(
@@ -343,11 +389,11 @@ private fun CurrentStateText(
         }
 
         connectionState is ConnectionState.Connected -> {
-            stringResource(connectionState.messageId, connectionState.serverCountryCode.toCountryFlagEmoji())
+            stringResource(connectionState.message.id, connectionState.serverCountryCode.toCountryFlagEmoji())
         }
 
         else -> {
-            stringResource(connectionState.messageId)
+            stringResource(connectionState.message.id)
         }
     }
 
@@ -364,6 +410,8 @@ private fun CurrentStateText(
 private fun PostNotificationPermissionEffect(
     userMessageNotifier: UserMessageNotifier
 ) {
+    if (LocalInspectionMode.current) return
+
     var trigger by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val permissionsRequest = rememberRequestPermissionsLauncher(
@@ -609,7 +657,20 @@ private fun HomeScreenPreview_StoppedInNetworkError() {
         uiState = HomeUiState(
             vpnServiceState = VpnServiceState(
                 started = false,
-                state = ConnectionState.NetworkError,
+                state = ConnectionState.Error.Network,
+            ),
+        ),
+    )
+}
+
+@HomeStates.PreviewStoppedInSystemError
+@Composable
+private fun HomeScreenPreview_StoppedInSystemError() {
+    HomeScreenPreview(
+        uiState = HomeUiState(
+            vpnServiceState = VpnServiceState(
+                started = false,
+                state = ConnectionState.Error.System,
             ),
         ),
     )
@@ -638,6 +699,7 @@ private fun HomeScreenPreview(uiState: HomeUiState) {
                 HomeScreen(
                     uiState = uiState,
                     windowSize = windowSize,
+
                 )
             }
         }

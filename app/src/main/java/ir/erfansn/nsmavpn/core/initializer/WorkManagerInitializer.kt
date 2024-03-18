@@ -5,14 +5,14 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.startup.Initializer
 import androidx.work.Configuration
 import androidx.work.WorkManager
-import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
-import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.android.EarlyEntryPoint
+import dagger.hilt.android.EarlyEntryPoints
 import dagger.hilt.components.SingletonComponent
 
-object WorkManagerInitializer : Initializer<WorkManager> {
+class WorkManagerInitializer : Initializer<WorkManager> {
 
-    @EntryPoint
+    @EarlyEntryPoint
     @InstallIn(SingletonComponent::class)
     interface WorkManagerInitializerEntryPoint {
         fun workerFactory(): HiltWorkerFactory
@@ -20,7 +20,7 @@ object WorkManagerInitializer : Initializer<WorkManager> {
 
     override fun create(context: Context): WorkManager {
         val workManagerInitializerEntryPoint =
-            EntryPointAccessors.fromApplication<WorkManagerInitializerEntryPoint>(context)
+            EarlyEntryPoints.get(context, WorkManagerInitializerEntryPoint::class.java)
 
         val configuration = Configuration.Builder()
             .setWorkerFactory(workManagerInitializerEntryPoint.workerFactory())

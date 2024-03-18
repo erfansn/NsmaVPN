@@ -83,6 +83,17 @@ annotation class HomeStates {
     annotation class PreviewStoppedInNetworkError
 
     @Preview(
+        group = "StoppedInSystemError",
+        name = "Light"
+    )
+    @Preview(
+        group = "StoppedInSystemError",
+        name = "Dark",
+        uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
+    )
+    annotation class PreviewStoppedInSystemError
+
+    @Preview(
         group = "StartedInValidating",
         name = "Light"
     )

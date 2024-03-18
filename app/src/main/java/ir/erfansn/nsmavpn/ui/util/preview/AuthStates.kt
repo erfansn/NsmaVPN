@@ -6,17 +6,6 @@ import androidx.compose.ui.tooling.preview.Preview
 annotation class AuthStates {
 
     @Preview(
-        group = "PreSignedIn",
-        name = "Light"
-    )
-    @Preview(
-        group = "PreSignedIn",
-        name = "Dark",
-        uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
-    )
-    annotation class PreviewPreSignedIn
-
-    @Preview(
         group = "SignedOut",
         name = "Light"
     )

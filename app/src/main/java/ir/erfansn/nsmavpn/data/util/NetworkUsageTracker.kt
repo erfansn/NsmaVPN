@@ -8,7 +8,6 @@ import androidx.core.content.getSystemService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import ir.erfansn.nsmavpn.data.model.NetworkUsage
 import ir.erfansn.nsmavpn.di.IoDispatcher
-import ir.erfansn.nsmavpn.feature.home.util.isGrantedGetUsageStatsPermission
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -17,14 +16,16 @@ import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.seconds
 
+interface NetworkUsageTracker {
+    fun trackUsage(startEpochTime: Long): Flow<NetworkUsage>
+}
+
 class DefaultNetworkUsageTracker @Inject constructor(
     @ApplicationContext private val context: Context,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : NetworkUsageTracker {
 
-    private val networkStatsManager = context.getSystemService<NetworkStatsManager>()!!
-    override val hasPermission: Boolean
-        get() = context.isGrantedGetUsageStatsPermission
+    private val networkStatsManager = context.getSystemService<NetworkStatsManager>()
 
     override fun trackUsage(startEpochTime: Long): Flow<NetworkUsage> =
         flow {
@@ -56,19 +57,13 @@ class DefaultNetworkUsageTracker @Inject constructor(
         networkType: Int,
         startEpochTime: Long,
     ): Bucket {
-        check(hasPermission)
-
-        return networkStatsManager.querySummaryForDevice(
+        return networkStatsManager?.querySummaryForDevice(
             networkType,
             null,
             startEpochTime,
             Long.MAX_VALUE,
-        ) ?: Bucket()
+        ) ?: run {
+            error("GetUsageAccess permission doesn't permitted or internal error occurred")
+        }
     }
-}
-
-interface NetworkUsageTracker {
-    val hasPermission: Boolean
-
-    fun trackUsage(startEpochTime: Long): Flow<NetworkUsage>
 }

@@ -7,16 +7,28 @@ import ir.erfansn.nsmavpn.data.repository.LastVpnConnectionRepository
 import ir.erfansn.nsmavpn.data.repository.ProfileRepository
 import ir.erfansn.nsmavpn.data.util.NetworkUsageTracker
 import ir.erfansn.nsmavpn.feature.home.vpn.ConnectionState
+import ir.erfansn.nsmavpn.feature.home.vpn.SstpVpnServiceAction
 import ir.erfansn.nsmavpn.feature.home.vpn.SstpVpnServiceState
 import ir.erfansn.nsmavpn.sync.VpnServersSyncManager
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val lastVpnConnectionRepository: LastVpnConnectionRepository,
     private val networkUsageTracker: NetworkUsageTracker,
+    private val sstpVpnServiceAction: SstpVpnServiceAction,
     vpnServersSyncManager: VpnServersSyncManager,
     profileRepository: ProfileRepository,
 ) : ViewModel() {
@@ -26,11 +38,11 @@ class HomeViewModel @Inject constructor(
         vpnServiceState,
         vpnServersSyncManager.isSyncing,
         profileRepository.userProfile,
-    ) { started, isSyncing, userProfile ->
+    ) { state, isSyncing, userProfile ->
         HomeUiState(
             isSyncing = isSyncing,
             userAvatarUrl = userProfile.avatarUrl,
-            vpnServiceState = started,
+            vpnServiceState = state,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -41,8 +53,6 @@ class HomeViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val dataTraffic = uiState
         .flatMapLatest {
-            check(networkUsageTracker.hasPermission)
-
             if (it.vpnServiceState.state is ConnectionState.Connected) {
                 val lastVpnConnection = lastVpnConnectionRepository.lastVpnConnection.first()
 
@@ -63,12 +73,27 @@ class HomeViewModel @Inject constructor(
         )
 
     fun updateVpnServiceState(state: SstpVpnServiceState) {
-        vpnServiceState.update { it.copy(started = state.started, state = state.connectionState) }
+        viewModelScope.launch {
+            vpnServiceState.update {
+                it.copy(
+                    started = state.started,
+                    state = state.connectionState
+                )
+            }
+        }
+    }
+
+    fun connectToVpn() {
+        sstpVpnServiceAction.connect()
+    }
+
+    fun disconnectFromVpn() {
+        sstpVpnServiceAction.disconnect()
     }
 }
 
 data class HomeUiState(
-    val userAvatarUrl: String = "",
+    val userAvatarUrl: String? = null,
     val isSyncing: Boolean = false,
     val vpnServiceState: VpnServiceState = VpnServiceState(),
 )

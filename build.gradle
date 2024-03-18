@@ -1,7 +1,7 @@
 buildscript {
     ext {
-        agp_version = '8.2.1'
-        hilt_version = '2.50'
+        agp_version = '8.3.0'
+        hilt_version = '2.51'
     }
 }// Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
@@ -12,4 +12,25 @@ plugins {
     id 'com.google.protobuf' version '0.9.4' apply false
     id 'io.gitlab.arturbosch.detekt' version '1.23.4' apply false
     id 'com.google.devtools.ksp' version "1.9.22-1.0.17" apply false
+    id 'app.cash.paparazzi' version "1.3.3" apply false
+}
+
+subprojects {
+    plugins.withId("app.cash.paparazzi") {
+        // Defer until afterEvaluate so that testImplementation is created by Android plugin.
+        afterEvaluate {
+            dependencies.constraints {
+                add("testImplementation", "com.google.guava:guava") {
+                    attributes {
+                        attribute(
+                                TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE,
+                                objects.named(TargetJvmEnvironment, TargetJvmEnvironment.STANDARD_JVM)
+                        )
+                    }
+                    because("LayoutLib and sdk-common depend on Guava's -jre published variant." +
+                            "See https://github.com/cashapp/paparazzi/issues/906.")
+                }
+            }
+        }
+    }
 }

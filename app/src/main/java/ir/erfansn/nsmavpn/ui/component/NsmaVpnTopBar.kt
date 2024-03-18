@@ -98,7 +98,7 @@ private val windowInsets
 
 @PreviewLightDark
 @Composable
-fun NsmaVpnTopBarPreview() {
+private fun NsmaVpnTopBarPreview() {
     NsmaVpnTheme {
         NsmaVpnTopBar(
             title = {
@@ -126,7 +126,7 @@ fun NsmaVpnTopBarPreview() {
 
 @PreviewLightDark
 @Composable
-fun NsmaVpnLargeTopBarPreview() {
+private fun NsmaVpnLargeTopBarPreview() {
     NsmaVpnTheme {
         NsmaVpnLargeTopBar(
             title = {

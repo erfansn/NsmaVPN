@@ -8,7 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import ir.erfansn.nsmavpn.feature.settings.tunnelsplitting.TunnelSplittingRoute
 import ir.erfansn.nsmavpn.navigation.NavScreensRoute
-import ir.erfansn.nsmavpn.navigation.popBackToHome
+import ir.erfansn.nsmavpn.ui.util.whenResumed
 
 fun NavGraphBuilder.settingsNavGraph(
     windowSize: WindowSizeClass,
@@ -21,8 +21,8 @@ fun NavGraphBuilder.settingsNavGraph(
         composable(NavSettingsRoute.Main) {
             SettingsRoute(
                 viewModel = hiltViewModel(),
-                onNavigateToBack = navController::popBackToHome,
-                onNavigateToTunnelSplitting = {
+                onNavigateToBack = whenResumed(onState = navController::popBackStack),
+                onNavigateToTunnelSplitting = whenResumed {
                     navController.navigate(NavSettingsRoute.TunnelSplitting)
                 }
             )
@@ -32,10 +32,7 @@ fun NavGraphBuilder.settingsNavGraph(
             TunnelSplittingRoute(
                 viewModel = hiltViewModel(),
                 windowClass = windowSize,
-                onNavigateToBack = {
-                    // To prevent extra pop due of multiple call
-                    navController.popBackStack(route = NavSettingsRoute.Main, inclusive = false)
-                }
+                onNavigateToBack = whenResumed(onState = navController::popBackStack)
             )
         }
     }

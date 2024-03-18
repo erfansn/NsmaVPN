@@ -202,7 +202,7 @@ private fun VpnSwitchThumb(
                     .background(
                         color = when {
                             enabled && state == VpnSwitchState.On -> if (connected) Green else Yellow
-                            state == VpnSwitchState.Off && enabled -> Gray
+                            enabled && state == VpnSwitchState.Off -> if (!connected) Gray else Yellow
                             else -> Red
                         },
                         shape = CircleShape,
@@ -254,7 +254,7 @@ private fun VpnSwitchThumb(
             Text(stateIndicatorText.uppercase())
             Icon(
                 modifier = Modifier.size(48.dp),
-                painter = painterResource(id = R.drawable.ic_round_power),
+                painter = painterResource(id = R.drawable.round_power_24),
                 contentDescription = null,
             )
         }

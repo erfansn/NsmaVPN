@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -60,7 +61,7 @@ import kotlin.random.Random
 fun ProfileRoute(
     windowSize: WindowSizeClass,
     onNavigateToBack: () -> Unit,
-    onNavigateToAuth: () -> Unit,
+    onSignOut: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ProfileViewModel = viewModel(),
 ) {
@@ -73,10 +74,7 @@ fun ProfileRoute(
         windowSize = windowSize,
         modifier = modifier,
         onNavigateToBack = onNavigateToBack,
-        onSignOut = {
-            viewModel.signOutFromAccount()
-            onNavigateToAuth()
-        },
+        onSignOut = onSignOut,
     )
 }
 
@@ -128,7 +126,12 @@ private fun ProfileScreen(
                     Text(text = stringResource(id = R.string.title_profile))
                 },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateToBack) {
+                    IconButton(
+                        onClick = {
+                            onNavigateToBack()
+                            shouldShowSignOutDialog = false
+                        }
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = stringResource(R.string.cd_back_to_home)
@@ -152,7 +155,8 @@ private fun ProfileScreen(
                 .fillMaxSize()
                 .verticalScroll(scrollState)
                 .padding(16.dp)
-                .padding(it),
+                .padding(it)
+                .consumeWindowInsets(it),
             uiState = uiState,
             isSubscribedToVpnGate = isSubscribedToVpnGate,
             windowSize = windowSize

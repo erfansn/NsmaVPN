@@ -13,8 +13,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
@@ -61,6 +65,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
@@ -128,6 +133,7 @@ private fun TunnelSplittingScreen(
         },
     ) { contentPadding ->
         AnimatedContent(
+            modifier = Modifier.consumeWindowInsets(contentPadding),
             targetState = uiState.appItems,
             label = "apps_items",
             contentKey = { it?.isNotEmpty() }
@@ -162,18 +168,27 @@ private fun TunnelSplittingScreen(
                                 else -> 3
                             }
                         }
+
                         LazyVerticalGrid(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .align(Alignment.TopCenter),
-                            contentPadding = contentPadding,
+                            contentPadding = PaddingValues(
+                                top = contentPadding.calculateTopPadding(),
+                                bottom = contentPadding.calculateBottomPadding(),
+                            ),
                             state = lazyGridState,
                             columns = GridCells.Fixed(columnsCount)
                         ) {
                             items(it) { item ->
+                                val layoutDirection = LocalLayoutDirection.current
                                 AppItem(
                                     itemState = item,
                                     onChangeAllowed = onAppAllowingChange,
+                                    contentPadding = PaddingValues(
+                                        start = contentPadding.calculateStartPadding(layoutDirection),
+                                        end = contentPadding.calculateEndPadding(layoutDirection)
+                                    )
                                 )
                             }
                         }
@@ -302,20 +317,27 @@ private fun TunnelSplittingTopBar(
 private fun AppItem(
     itemState: AppItemUiState,
     onChangeAllowed: (AppInfo, Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
+    val layoutDirection = LocalLayoutDirection.current
     ListItem(
         headlineContent = {
             Text(text = itemState.appInfo.name)
         },
         leadingContent = {
             Image(
-                modifier = Modifier.size(56.dp),
+                modifier = Modifier
+                    .padding(start = contentPadding.calculateStartPadding(layoutDirection))
+                    .size(56.dp),
                 painter = rememberDrawablePainter(drawable = itemState.appInfo.icon),
                 contentDescription = null
             )
         },
         trailingContent = {
             Switch(
+                modifier = Modifier
+                    .padding(end = contentPadding.calculateStartPadding(layoutDirection)),
                 checked = itemState.allowed,
                 onCheckedChange = null,
             )
@@ -323,7 +345,7 @@ private fun AppItem(
         colors = ListItemDefaults.colors(
             containerColor = Color.Transparent,
         ),
-        modifier = Modifier.clickable {
+        modifier = modifier.clickable {
             onChangeAllowed(itemState.appInfo, !itemState.allowed)
         }
     )
