@@ -100,7 +100,7 @@ dependencies {
     implementation 'com.google.apis:google-api-services-gmail:v1-rev20231106-2.0.0'
 
     implementation "it.skrape:skrapeit:1.2.2"
-    def coil_version = "2.5.0"
+    def coil_version = "2.6.0"
     implementation "io.coil-kt:coil-compose:$coil_version"
     implementation 'com.github.sebaslogen.resaca:resaca:3.0.0'
     implementation "io.github.reactivecircus.cache4k:cache4k:0.12.0"
