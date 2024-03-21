@@ -83,4 +83,13 @@
     <string name="switch_off">Start</string>
     <string name="switch_on">Stop</string>
     <string name="reauth">Need to reauth to obtain new servers</string>
+    <string-array name="digital_information_unit">
+        <item>Bytes</item>
+        <item>KiB</item>
+        <item>MiB</item>
+        <item>GiB</item>
+        <item>TiB</item>
+        <item>PiB</item>
+        <item>EiB</item>
+    </string-array>
 </resources>

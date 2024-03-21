@@ -58,6 +58,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -90,7 +91,7 @@ import ir.erfansn.nsmavpn.ui.util.preview.HomeStates
 import ir.erfansn.nsmavpn.ui.util.rememberRequestPermissionsLauncher
 import ir.erfansn.nsmavpn.ui.util.rememberUserMessageNotifier
 import ir.erfansn.nsmavpn.ui.util.toCountryFlagEmoji
-import ir.erfansn.nsmavpn.ui.util.toHumanReadableByteSize
+import ir.erfansn.nsmavpn.ui.util.toHumanReadableByteSizeAndUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
@@ -471,7 +472,7 @@ private fun DataTrafficDisplay(
                 .padding(vertical = 8.dp),
             icon = painterResource(id = R.drawable.round_upload_24),
             text = stringResource(R.string.upload),
-            value = stats?.upload.toHumanReadableByteSize()
+            value = stats?.upload.toHumanReadableByteFormat()
         )
         Box(
             modifier = Modifier
@@ -488,9 +489,22 @@ private fun DataTrafficDisplay(
                 .padding(vertical = 8.dp),
             icon = painterResource(id = R.drawable.round_download_24),
             text = stringResource(R.string.download),
-            value = stats?.download.toHumanReadableByteSize()
+            value = stats?.download.toHumanReadableByteFormat()
         )
     }
+}
+
+@Composable
+private fun Long?.toHumanReadableByteFormat(): String {
+    val unitsName = stringArrayResource(id = R.array.digital_information_unit)
+
+    val arguments = this?.let {
+        val (size, unit) = it.toHumanReadableByteSizeAndUnit(unitsName)
+        arrayOf(size, unit)
+    } ?: run {
+        arrayOf("---", unitsName[0])
+    }
+    return "%1\$s %2\$s".format(*arguments)
 }
 
 @Composable
@@ -699,7 +713,10 @@ private fun HomeScreenPreview(uiState: HomeUiState) {
                 HomeScreen(
                     uiState = uiState,
                     windowSize = windowSize,
-
+                    dataTraffic = listOf(
+                        null,
+                        DataTraffic(1023, 1024 * 1024),
+                    ).random()
                 )
             }
         }

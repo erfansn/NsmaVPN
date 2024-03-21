@@ -69,4 +69,13 @@
     <string name="switch_off">شروع</string>
     <string name="switch_on">توقف</string>
     <string name="reauth">برای به دست آوردن سرورهای جدید نیاز به احراز هویت مجدد دارید</string>
+    <string-array name="digital_information_unit">
+        <item>بایت</item>
+        <item>کیلوبایت</item>
+        <item>مگابایت</item>
+        <item>گیگابایت</item>
+        <item>ترابایت</item>
+        <item>پتابایت</item>
+        <item>اگزابایت</item>
+    </string-array>
 </resources>
