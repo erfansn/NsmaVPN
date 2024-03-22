@@ -42,11 +42,11 @@
     <string name="option_title_theme_mode_light">روشن</string>
     <string name="option_title_theme_mode_dark">تاریک</string>
     <string name="app_version">نسخه برنامه</string>
-    <string name="title_split_tunneling">جداساز تونل</string>
+    <string name="title_tunnel_splitting">جداساز تونل</string>
     <string name="desc_split_tunneling">برنامه های مجاز را برای استفاده از ترافیک VPN مشخص کنید</string>
     <string name="item_title_report_bug">گزارش باگ</string>
     <string name="item_title_licence">مجوز</string>
-    <string name="item_title_tunnel_splitting">جداسازی تونل</string>
+    <string name="item_title_split_tunneling">جداسازی تونل</string>
     <string name="item_title_use_dynamic_scheme">استفاده از طرح پویا</string>
     <string name="cd_more">بیشتر</string>
     <string name="no_such_app">چنین برنامه ای وجود ندارد!</string>
@@ -55,6 +55,9 @@
     <string name="searchbar_placeholder">نام برنامه</string>
     <string name="cd_search">جستجو</string>
     <string name="cd_clear">حذف کردن</string>
+    <string name="item_title_change_language">تغییر زبان</string>
+    <string name="settings_change_language_dialog_title">انتخاب یک زبان</string>
+    <string name="settings_change_language_confirm_button">اعمال</string>
     <string name="title_home">خانه</string>
     <string name="post_notification_permission_required">برای مشاهده وضعیت با اعلان باید مجوزش داده شود.</string>
     <string name="refer_user_to_settings_for_permission_granting">برای نمایش اعلان ارسال شده توسط برنامه، از تنظیمات برنامه اجازه آن را بدهید</string>
