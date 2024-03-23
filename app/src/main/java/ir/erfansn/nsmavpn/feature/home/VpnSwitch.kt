@@ -195,38 +195,30 @@ private fun VpnSwitchThumb(
         verticalArrangement = Arrangement.SpaceEvenly,
     ) {
         CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onPrimaryContainer) {
+            val indicatorColor = when {
+                enabled && state == VpnSwitchState.On -> if (connected) Green else Yellow
+                enabled && state == VpnSwitchState.Off -> if (!connected) Gray else Yellow
+                else -> Red
+            }
             Box(
                 modifier = Modifier
                     .width(16.dp)
                     .height(4.dp)
                     .background(
-                        color = when {
-                            enabled && state == VpnSwitchState.On -> if (connected) Green else Yellow
-                            enabled && state == VpnSwitchState.Off -> if (!connected) Gray else Yellow
-                            else -> Red
-                        },
+                        color = indicatorColor,
                         shape = CircleShape,
                     )
-                    .whenever(!enabled || state == VpnSwitchState.On) {
+                    .whenever(indicatorColor != Gray) {
                         drawBehind {
                             drawIntoCanvas {
                                 val paint = Paint()
-
-                                val color = when {
-                                    enabled && state == VpnSwitchState.On -> {
-                                        if (connected) Green else Yellow
-                                    }
-
-                                    else -> Red
-                                }
-
                                 val frameworkPaint = paint.asFrameworkPaint()
                                 frameworkPaint.color = Color.TRANSPARENT
                                 frameworkPaint.setShadowLayer(
                                     20f,
                                     0f,
                                     0f,
-                                    color
+                                    indicatorColor
                                         .copy(0.5f)
                                         .toArgb(),
                                 )

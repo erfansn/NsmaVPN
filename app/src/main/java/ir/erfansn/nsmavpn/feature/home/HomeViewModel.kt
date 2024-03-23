@@ -51,9 +51,9 @@ class HomeViewModel @Inject constructor(
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val dataTraffic = uiState
+    val dataTraffic = vpnServiceState
         .flatMapLatest {
-            if (it.vpnServiceState.state is ConnectionState.Connected) {
+            if (it.state is ConnectionState.Connected) {
                 val lastVpnConnection = lastVpnConnectionRepository.lastVpnConnection.first()
 
                 networkUsageTracker.trackUsage(lastVpnConnection.epochTime).map { usage ->

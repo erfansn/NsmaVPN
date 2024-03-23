@@ -219,7 +219,7 @@ private fun TunnelSplittingTopBar(
     ) {
         NsmaVpnTopBar(
             title = {
-                Text(text = stringResource(R.string.item_title_tunnel_splitting))
+                Text(text = stringResource(R.string.title_tunnel_splitting))
             },
             navigationIcon = {
                 IconButton(onClick = onNavigateToBack) {

@@ -47,6 +47,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -286,10 +287,10 @@ private fun HomeContent(
             modifier = Modifier.layoutId("vpn_switch"),
             state = vpnSwitchState,
             onStateChange = {
-                if (!isOnline) return@VpnSwitch
-
                 when (it) {
                     VpnSwitchState.On -> {
+                        if (!isOnline) return@VpnSwitch
+
                         if (!context.isGrantedGetUsageStatsPermission) {
                             scope.launch {
                                 userMessageNotifier.showMessage(
@@ -315,7 +316,8 @@ private fun HomeContent(
             },
             enabled = !uiState.isSyncing || vpnSwitchState == VpnSwitchState.On,
             connected = uiState.vpnServiceState.let {
-                it.state is ConnectionState.Connected || it.state is ConnectionState.Disconnecting
+                it.state is ConnectionState.Connected ||
+                        (vpnSwitchState == VpnSwitchState.Off && it.state in listOf(ConnectionState.Connecting, ConnectionState.Disconnecting))
             },
         )
 
@@ -495,6 +497,7 @@ private fun DataTrafficDisplay(
 }
 
 @Composable
+@ReadOnlyComposable
 private fun Long?.toHumanReadableByteFormat(): String {
     val unitsName = stringArrayResource(id = R.array.digital_information_unit)
 
@@ -504,7 +507,7 @@ private fun Long?.toHumanReadableByteFormat(): String {
     } ?: run {
         arrayOf("---", unitsName[0])
     }
-    return "%1\$s %2\$s".format(*arguments)
+    return stringResource(R.string.home_traffic_usage, *arguments)
 }
 
 @Composable

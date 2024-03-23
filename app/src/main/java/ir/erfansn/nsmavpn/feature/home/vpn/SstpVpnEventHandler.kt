@@ -20,7 +20,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
@@ -57,7 +57,7 @@ class DefaultSstpVpnEventHandler @Inject constructor(
 
     private var validationJob: Job? = null
 
-    private val _connectionState = MutableSharedFlow<ConnectionState>(replay = 1)
+    private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
     override val connectionState = _connectionState.asSharedFlow()
 
     private val sstpVpnServiceActionDelegator = object : BroadcastReceiver() {
@@ -150,7 +150,6 @@ class DefaultSstpVpnEventHandler @Inject constructor(
             }
             if (networkCallResult.isSuccess) {
                 result = true
-                println("Hello")
                 break
             }
         }
