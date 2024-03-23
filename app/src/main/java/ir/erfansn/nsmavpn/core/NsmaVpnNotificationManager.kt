@@ -14,6 +14,7 @@ import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.PendingIntentCompat
+import androidx.core.content.ContextCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import ir.erfansn.nsmavpn.R
 import ir.erfansn.nsmavpn.core.NsmaVpnNotificationManager.Companion.CONNECTION_NOTIFICATION_ID
@@ -57,7 +58,7 @@ class DefaultNsmaVpnNotificationManager @Inject constructor(
     override fun notifyOrUpdateNotification(connectionState: ConnectionState) {
         when (connectionState) {
             is ConnectionState.Error -> {
-                val notification = buildPlatformNotification(contentText = context.getString(connectionState.message.id))
+                val notification = buildPlatformNotification(contentText = ContextCompat.getString(context, connectionState.message.id))
                 notifyOrUpdateNotification(targetNotificationId = ERROR_NOTIFICATION_ID, notification = notification)
             }
             else -> {
@@ -78,7 +79,7 @@ class DefaultNsmaVpnNotificationManager @Inject constructor(
             -> {
                 NotificationCompat.Action.Builder(
                     R.drawable.baseline_close_24,
-                    context.getString(R.string.disconnect),
+                    ContextCompat.getString(context, R.string.disconnect),
                     PendingIntentCompat.getBroadcast(
                         context,
                         0,
@@ -93,8 +94,8 @@ class DefaultNsmaVpnNotificationManager @Inject constructor(
             }
         }
         val contentText = when (notificationState) {
-            is NotificationState.Connected -> context.getString(notificationState.messageId, notificationState.serverCountryCode.toCountryName())
-            else -> context.getString(notificationState.messageId)
+            is NotificationState.Connected -> ContextCompat.getContextForLanguage(context).getString(notificationState.messageId, notificationState.serverCountryCode.toCountryName())
+            else -> ContextCompat.getString(context, notificationState.messageId)
         }
 
         return buildPlatformNotification(contentText, action)
@@ -102,7 +103,7 @@ class DefaultNsmaVpnNotificationManager @Inject constructor(
 
     private fun buildPlatformNotification(
         contentText: String,
-        actions: NotificationCompat.Action? = null
+        actions: NotificationCompat.Action? = null,
     ): Notification {
         val launchAppPendingIntent = PendingIntentCompat.getActivity(
             context,
@@ -120,7 +121,7 @@ class DefaultNsmaVpnNotificationManager @Inject constructor(
         )
 
         return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID).apply {
-            setContentTitle(context.getString(R.string.vpn_service_notification_title))
+            setContentTitle(ContextCompat.getString(context, R.string.vpn_service_notification_title))
             setContentText(contentText)
             setContentIntent(launchAppPendingIntent)
             priority = NotificationCompat.PRIORITY_DEFAULT
@@ -162,5 +163,6 @@ private fun ConnectionState.toNotificationState() = when(this) {
     ConnectionState.Disconnecting -> NotificationState.Disconnecting
     ConnectionState.Validating -> NotificationState.Validating
     ConnectionState.Disconnected,
-    is ConnectionState.Error -> null
+    is ConnectionState.Error,
+    -> null
 }
