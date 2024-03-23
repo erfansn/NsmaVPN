@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_no_exists_server">سروری پیدا نشد</string>
+    <string name="permissions_not_granted">باید تمام مجوز های دسترسی اعطا شود</string>
+    <string name="ok">باشه</string>
+    <string name="go">برو</string>
+    <string name="cd_back">برگشت به عقب</string>
+    <string name="connecting">در‌حال اتصال…</string>
+    <string name="disconnecting">در‌حال قطع کردن…</string>
+    <string name="connected">متصل به %s</string>
+    <string name="disconnected">قطع شده</string>
+    <string name="initializing">در حال راه‌اندازی…</string>
+    <string name="network_error">خطای شبکه</string>
+    <string name="deactivated">غیر‌فعال شده!</string>
+    <string name="validating">در‌حال اعتبارسنجی…</string>
+    <string name="nsmavpn_notification_channel_name">اتصال VPN</string>
+    <string name="disconnect">قطع کردن</string>
+    <string name="vpn_service_notification_title">وضعیت VPN</string>
+    <string name="auth_explanation">برای به دست آوردن و جمع آوری سرورهای VPN، این برنامه از پیام های ایمیل شما که از VPN Gate ارسال شده است استفاده می کند، بنابراین تنها راه استفاده از این برنامه ورود به سیستم با ایمیلی است که در پیوند آینه روزانه VPN Gate مشترک شده است.</string>
+    <string name="sign_in">ورود</string>
+    <string name="permission_rationals">فقط با دسترسی به خواندن ایمیل ها، این برنامه می تواند سرورهای VPN را جمع آوری کند</string>
+    <string name="request">درخواست</string>
+    <string name="sign_out">خروج</string>
+    <string name="not_being_subscribed_to_vpngate">این حساب مشترک VPN Gate نیست، حساب دیگری را امتحان کنید</string>
+    <string name="network_problem">اتصال اینترنت خود را بررسی نمایید</string>
+    <string name="sign_in_failed">یک خطای ورود غیرقابل بازیابی رخ داد</string>
+    <string name="title_profile">پروفایل</string>
+    <string name="field_full_name">نام کامل</string>
+    <string name="field_email_address">آدرس ایمیل</string>
+    <string name="cd_avatar_picture">عکس آواتار</string>
+    <string name="cd_back_to_home">بازگشت به خانه</string>
+    <string name="cd_sign_out_from_account">خارج شدن از اکانت</string>
+    <string name="dialog_description_sign_out">این کار جمع آوری سرورهای VPN را متوقف می کند، اما سرورهای جمع آوری شده دست نخورده باقی می مانند.</string>
+    <string name="dialog_title_sign_out">خروج از حساب کاربری؟</string>
+    <string name="dialog_button_sign_out">خروج</string>
+    <string name="dialog_button_cancel">انصراف</string>
+    <string name="subscription_status">وضعیت اشتراک</string>
+    <string name="desc_subscription_status">به نظر می رسد اشتراک ایمیل شما از دریافت لینک های آینه ای VPN Gate لغو شده است و این ممکن است در جمع آوری سرورهای جدید مشکل ایجاد کند.</string>
+    <string name="title_settings">تنظیمات</string>
+    <string name="item_title_theme_mode">حالت تم</string>
+    <string name="option_title_theme_mode_default">پیشفرض سیستم</string>
+    <string name="option_title_theme_mode_light">روشن</string>
+    <string name="option_title_theme_mode_dark">تاریک</string>
+    <string name="app_version">نسخه برنامه</string>
+    <string name="title_tunnel_splitting">جداساز تونل</string>
+    <string name="desc_split_tunneling">برنامه های مجاز را برای استفاده از ترافیک VPN مشخص کنید</string>
+    <string name="item_title_report_bug">گزارش باگ</string>
+    <string name="item_title_licence">مجوز</string>
+    <string name="item_title_split_tunneling">جداسازی تونل</string>
+    <string name="item_title_use_dynamic_scheme">استفاده از طرح پویا</string>
+    <string name="cd_more">بیشتر</string>
+    <string name="no_such_app">چنین برنامه ای وجود ندارد!</string>
+    <string name="allow_all">فعال کردن همه</string>
+    <string name="disallow_all">غیرفعال کردن همه</string>
+    <string name="searchbar_placeholder">نام برنامه</string>
+    <string name="cd_search">جستجو</string>
+    <string name="cd_clear">حذف کردن</string>
+    <string name="item_title_change_language">تغییر زبان</string>
+    <string name="settings_change_language_dialog_title">انتخاب یک زبان</string>
+    <string name="settings_change_language_confirm_button">اعمال</string>
+    <string name="title_home">خانه</string>
+    <string name="post_notification_permission_required">برای مشاهده وضعیت با اعلان باید مجوزش داده شود.</string>
+    <string name="refer_user_to_settings_for_permission_granting">برای نمایش اعلان ارسال شده توسط برنامه، از تنظیمات برنامه اجازه آن را بدهید</string>
+    <string name="collecting_servers">جمع‌آوری سرور‌ها</string>
+    <string name="usage_access_permission">برای دیدن آمار اجازه دسترسی به استفاده را بدهید</string>
+    <string name="notification_permission_rationale">برای اطلاع از آخرین وضعیت vpn از اعلان، باید آن را اعطا کنید</string>
+    <string name="notification_permission_denied">اعلان‌ها به دلیل نداشتن مجوز نمایش داده نمی‌شوند</string>
+    <string name="cd_settings">تنظیمات</string>
+    <string name="cd_profile">پروفایل</string>
+    <string name="upload">آپلود</string>
+    <string name="download">دانلود</string>
+    <string name="switch_off">شروع</string>
+    <string name="switch_on">توقف</string>
+    <string name="reauth">برای به دست آوردن سرورهای جدید نیاز به احراز هویت مجدد دارید</string>
+    <string-array name="digital_information_unit">
+        <item>بایت</item>
+        <item>کیلوبایت</item>
+        <item>مگابایت</item>
+        <item>گیگابایت</item>
+        <item>ترابایت</item>
+        <item>پتابایت</item>
+        <item>اگزابایت</item>
+    </string-array>
+</resources>

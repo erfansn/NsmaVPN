@@ -5,5 +5,5 @@
         <item name="postSplashScreenTheme">@style/Theme.NsmaVpn</item>
     </style>
 
-    <style name="Theme.NsmaVpn" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.NsmaVpn" parent="Theme.AppCompat.DayNight.NoActionBar" />
 </resources>

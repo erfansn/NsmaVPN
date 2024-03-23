@@ -39,12 +39,16 @@ android {
         }
     }
 
+    androidResources {
+        generateLocaleConfig = true
+    }
+
     buildFeatures {
         compose true
         buildConfig true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion '1.5.9'
+        kotlinCompilerExtensionVersion '1.5.11'
     }
     packagingOptions {
         resources {
@@ -80,6 +84,7 @@ dependencies {
     implementation 'androidx.documentfile:documentfile:1.0.1'
     implementation 'androidx.navigation:navigation-compose:2.7.7'
     implementation 'androidx.work:work-runtime-ktx:2.9.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
 
     def androidx_hilt_version = '1.1.0'
     implementation "androidx.hilt:hilt-work:$androidx_hilt_version"
@@ -100,7 +105,7 @@ dependencies {
     implementation 'com.google.apis:google-api-services-gmail:v1-rev20231106-2.0.0'
 
     implementation "it.skrape:skrapeit:1.2.2"
-    def coil_version = "2.5.0"
+    def coil_version = "2.6.0"
     implementation "io.coil-kt:coil-compose:$coil_version"
     implementation 'com.github.sebaslogen.resaca:resaca:3.0.0'
     implementation "io.github.reactivecircus.cache4k:cache4k:0.12.0"

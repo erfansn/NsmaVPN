@@ -2,16 +2,20 @@ package ir.erfansn.nsmavpn.ui.util
 
 import java.text.DecimalFormat
 
-fun Long?.toHumanReadableByteSize(): String = when {
-    this == null -> "--- Bytes"
-    this < 0 -> throw IllegalArgumentException("Invalid file size: $this")
-    this < 1024 -> "$this Bytes"
-    else -> {
-        val unitIdx = (63 - java.lang.Long.numberOfLeadingZeros(this)) / 10
-        format(1L shl unitIdx * 10, "${"KMGTPE"[unitIdx - 1]}iB")
-    }
-}
+fun Long.toHumanReadableByteSizeAndUnit(
+    unitsName: Array<String> = arrayOf(
+        "Bytes",
+        "KiB",
+        "MiB",
+        "GiB",
+        "TiB",
+        "PiB",
+        "EiB",
+    )
+): Pair<String, String> {
+    require(unitsName.size == 7) { "Count of unit names must be exactly seven" }
+    require(this >= 0) { "Invalid Byte size: $this" }
 
-private fun Long.format(divider: Long, unitName: String): String {
-    return DecimalFormat("#.##").format(this / divider.toDouble()) + " " + unitName
+    val unitIdx = (63 - java.lang.Long.numberOfLeadingZeros(this)) / 10
+    return DecimalFormat("#.##").format(toDouble() / (1L shl unitIdx * 10)) to unitsName[unitIdx]
 }

@@ -16,13 +16,13 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.PendingIntentCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import ir.erfansn.nsmavpn.R
+import ir.erfansn.nsmavpn.core.NsmaVpnNotificationManager.Companion.CONNECTION_NOTIFICATION_ID
+import ir.erfansn.nsmavpn.core.NsmaVpnNotificationManager.Companion.ERROR_NOTIFICATION_ID
 import ir.erfansn.nsmavpn.core.application.MainActivity
 import ir.erfansn.nsmavpn.feature.home.vpn.ConnectionState
 import ir.erfansn.nsmavpn.feature.home.vpn.CountryCode
 import ir.erfansn.nsmavpn.feature.home.vpn.DefaultSstpVpnEventHandler.Companion.ACTION_DELEGATOR_VPN_DISCONNECT
 import ir.erfansn.nsmavpn.ui.util.toCountryName
-import ir.erfansn.nsmavpn.core.NsmaVpnNotificationManager.Companion.CONNECTION_NOTIFICATION_ID
-import ir.erfansn.nsmavpn.core.NsmaVpnNotificationManager.Companion.ERROR_NOTIFICATION_ID
 import javax.inject.Inject
 
 interface NsmaVpnNotificationManager {
@@ -120,7 +120,7 @@ class DefaultNsmaVpnNotificationManager @Inject constructor(
         )
 
         return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID).apply {
-            setContentTitle("VPN status")
+            setContentTitle(context.getString(R.string.vpn_service_notification_title))
             setContentText(contentText)
             setContentIntent(launchAppPendingIntent)
             priority = NotificationCompat.PRIORITY_DEFAULT
