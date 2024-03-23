@@ -286,10 +286,10 @@ private fun HomeContent(
             modifier = Modifier.layoutId("vpn_switch"),
             state = vpnSwitchState,
             onStateChange = {
-                if (!isOnline) return@VpnSwitch
-
                 when (it) {
                     VpnSwitchState.On -> {
+                        if (!isOnline) return@VpnSwitch
+
                         if (!context.isGrantedGetUsageStatsPermission) {
                             scope.launch {
                                 userMessageNotifier.showMessage(
