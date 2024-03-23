@@ -315,7 +315,8 @@ private fun HomeContent(
             },
             enabled = !uiState.isSyncing || vpnSwitchState == VpnSwitchState.On,
             connected = uiState.vpnServiceState.let {
-                it.state is ConnectionState.Connected || it.state is ConnectionState.Disconnecting
+                it.state is ConnectionState.Connected ||
+                        (vpnSwitchState == VpnSwitchState.Off && it.state in listOf(ConnectionState.Connecting, ConnectionState.Disconnecting))
             },
         )
 
