@@ -47,6 +47,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -496,6 +497,7 @@ private fun DataTrafficDisplay(
 }
 
 @Composable
+@ReadOnlyComposable
 private fun Long?.toHumanReadableByteFormat(): String {
     val unitsName = stringArrayResource(id = R.array.digital_information_unit)
 
@@ -505,7 +507,7 @@ private fun Long?.toHumanReadableByteFormat(): String {
     } ?: run {
         arrayOf("---", unitsName[0])
     }
-    return "%1\$s %2\$s".format(*arguments)
+    return stringResource(R.string.home_traffic_usage, *arguments)
 }
 
 @Composable
