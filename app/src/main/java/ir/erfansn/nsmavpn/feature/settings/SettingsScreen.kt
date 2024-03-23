@@ -50,7 +50,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.lerp
 import androidx.compose.ui.unit.dp
-import androidx.core.app.LocaleManagerCompat
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -210,7 +209,7 @@ private fun ChangeLanguageItem() {
         var selectedLocale by remember(context) {
             mutableStateOf(
                 AppCompatDelegate.getApplicationLocales()[0]
-                    ?: LocaleManagerCompat.getSystemLocales(context)[0]!!
+                    ?: context.configLocales[0]!!
             )
         }
 
