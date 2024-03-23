@@ -42,7 +42,7 @@ fun UserAvatar(
     avatarUrl: String? = null,
     placeholder: Painter = rememberVectorPainter(Icons.Rounded.AccountCircle),
     tintColor: Color = LocalContentColor.current,
-    contentDescription: String = stringResource(id = R.string.content_description_avatar_picture),
+    contentDescription: String = stringResource(id = R.string.cd_avatar_picture),
 ) {
     BoxWithConstraints(
         modifier = modifier
