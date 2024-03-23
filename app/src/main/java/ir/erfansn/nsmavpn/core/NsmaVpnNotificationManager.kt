@@ -48,7 +48,7 @@ class DefaultNsmaVpnNotificationManager @Inject constructor(
 
     private fun createNotificationChannel() {
         val channel = NotificationChannelCompat.Builder(NOTIFICATION_CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_DEFAULT)
-            .setName(context.getString(R.string.nsmavpn_notification_channel_name))
+            .setName(ContextCompat.getString(context, R.string.nsmavpn_notification_channel_name))
             .setShowBadge(false)
             .build()
 
