@@ -3,7 +3,7 @@ package ir.erfansn.nsmavpn.feature.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import ir.erfansn.nsmavpn.data.repository.ProfileRepository
+import ir.erfansn.nsmavpn.data.repository.UserProfileRepository
 import ir.erfansn.nsmavpn.data.repository.VpnGateMailRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -13,11 +13,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    profileRepository: ProfileRepository,
+    userProfileRepository: UserProfileRepository,
     vpnGateMailRepository: VpnGateMailRepository,
 ) : ViewModel() {
 
-    val uiState = profileRepository
+    val uiState = userProfileRepository
         .userProfile
         .map {
             ProfileUiState(
@@ -32,7 +32,7 @@ class ProfileViewModel @Inject constructor(
             initialValue = ProfileUiState()
         )
 
-    val isSubscribedToVpnGate = profileRepository
+    val isSubscribedToVpnGate = userProfileRepository
         .userProfile
         .map { vpnGateMailRepository.isSubscribedToDailyMail(it.emailAddress) }
         .retry()

@@ -25,7 +25,7 @@ interface VpnServersRepository {
 }
 
 class DefaultVpnServersRepository @Inject constructor(
-    private val profileRepository: ProfileRepository,
+    private val userProfileRepository: UserProfileRepository,
     private val vpnGateMailRepository: VpnGateMailRepository,
     private val vpnServersLocalDataSource: VpnServersLocalDataSource,
     private val lastVpnConnectionLocalDataSource: LastVpnConnectionLocalDataSource,
@@ -76,7 +76,7 @@ class DefaultVpnServersRepository @Inject constructor(
     }
 
     private suspend fun obtainSstpVpnServers(): List<Server> {
-        val emailAddress = profileRepository.userProfile.first().emailAddress
+        val emailAddress = userProfileRepository.userProfile.first().emailAddress
 
         tailrec suspend fun obtainServersFromVpnGate(count: Int = 0): List<Server> {
             val servers = vpnGateMailRepository.obtainMirrorSiteAddresses(

@@ -9,17 +9,17 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-interface ProfileRepository {
+interface UserProfileRepository {
     val userProfile: Flow<UserProfile>
     suspend fun saveUserProfile(avatarUrl: String, displayName: String, emailAddress: String)
     fun clearUserProfile()
     suspend fun isUserProfileSaved(): Boolean
 }
 
-class DefaultProfileRepository @Inject constructor(
+class DefaultUserProfileRepository @Inject constructor(
     private val userProfileLocalDataSource: UserProfileLocalDataSource,
     private val applicationScope: CoroutineScope,
-) : ProfileRepository {
+) : UserProfileRepository {
 
     override val userProfile: Flow<UserProfile> = userProfileLocalDataSource.userProfile
 

@@ -4,7 +4,7 @@ import ir.erfansn.nsmavpn.data.source.local.datastore.UserProfile
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-object StubProfileRepository : ProfileRepository {
+object StubUserProfileRepository : UserProfileRepository {
     override val userProfile: Flow<UserProfile>
         get() = flowOf(UserProfile.getDefaultInstance())
 

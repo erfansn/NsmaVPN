@@ -23,7 +23,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import ir.erfansn.nsmavpn.data.model.Configurations
-import ir.erfansn.nsmavpn.data.repository.ProfileRepository
+import ir.erfansn.nsmavpn.data.repository.UserProfileRepository
 import ir.erfansn.nsmavpn.data.util.NetworkMonitor
 import ir.erfansn.nsmavpn.navigation.NsmaVpnNavHost
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnBackground
@@ -37,7 +37,7 @@ class MainActivity : AppCompatActivity() {
 
     @Inject lateinit var networkMonitor: NetworkMonitor
 
-    @Inject lateinit var profileRepository: ProfileRepository
+    @Inject lateinit var userProfileRepository: UserProfileRepository
 
     private val viewModel by viewModels<MainActivityViewModel>()
 
@@ -84,7 +84,7 @@ class MainActivity : AppCompatActivity() {
                     onResetApp = viewModel::resetApp,
                     networkMonitor = networkMonitor,
                     windowSize = calculateWindowSizeClass(activity = this),
-                    isCompletedAuthFlow = profileRepository::isUserProfileSaved,
+                    isCompletedAuthFlow = userProfileRepository::isUserProfileSaved,
                 )
             }
         }

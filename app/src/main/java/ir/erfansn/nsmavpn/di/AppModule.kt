@@ -20,11 +20,11 @@ import ir.erfansn.nsmavpn.core.NsmaVpnNotificationManager
 import ir.erfansn.nsmavpn.data.repository.ConfigurationsRepository
 import ir.erfansn.nsmavpn.data.repository.DefaultConfigurationsRepository
 import ir.erfansn.nsmavpn.data.repository.DefaultLastVpnConnectionRepository
-import ir.erfansn.nsmavpn.data.repository.DefaultProfileRepository
+import ir.erfansn.nsmavpn.data.repository.DefaultUserProfileRepository
 import ir.erfansn.nsmavpn.data.repository.DefaultVpnGateMailRepository
 import ir.erfansn.nsmavpn.data.repository.DefaultVpnServersRepository
 import ir.erfansn.nsmavpn.data.repository.LastVpnConnectionRepository
-import ir.erfansn.nsmavpn.data.repository.ProfileRepository
+import ir.erfansn.nsmavpn.data.repository.UserProfileRepository
 import ir.erfansn.nsmavpn.data.repository.VpnGateMailRepository
 import ir.erfansn.nsmavpn.data.repository.VpnServersRepository
 import ir.erfansn.nsmavpn.data.source.local.DefaultLastVpnConnectionLocalDataSource
@@ -148,9 +148,9 @@ interface AppModule {
     ): VpnGateServiceLocalDataSource
 
     @Binds
-    fun bindsProfileRepository(
-        defaultProfileRepository: DefaultProfileRepository,
-    ): ProfileRepository
+    fun bindsUserProfileRepository(
+        defaultProfileRepository: DefaultUserProfileRepository,
+    ): UserProfileRepository
 
     @Binds
     fun bindsVpnServersLocalDataSource(

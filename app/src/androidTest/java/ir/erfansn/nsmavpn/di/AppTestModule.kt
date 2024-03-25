@@ -15,14 +15,16 @@ import dagger.Provides
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
+import ir.erfansn.nsmavpn.core.DefaultNsmaVpnNotificationManager
+import ir.erfansn.nsmavpn.core.NsmaVpnNotificationManager
 import ir.erfansn.nsmavpn.data.repository.ConfigurationsRepository
 import ir.erfansn.nsmavpn.data.repository.DefaultConfigurationsRepository
 import ir.erfansn.nsmavpn.data.repository.DefaultLastVpnConnectionRepository
-import ir.erfansn.nsmavpn.data.repository.DefaultProfileRepository
+import ir.erfansn.nsmavpn.data.repository.DefaultUserProfileRepository
 import ir.erfansn.nsmavpn.data.repository.DefaultVpnServersRepository
 import ir.erfansn.nsmavpn.data.repository.LastVpnConnectionRepository
-import ir.erfansn.nsmavpn.data.repository.ProfileRepository
 import ir.erfansn.nsmavpn.data.repository.StubVpnGateMailRepository
+import ir.erfansn.nsmavpn.data.repository.UserProfileRepository
 import ir.erfansn.nsmavpn.data.repository.VpnGateMailRepository
 import ir.erfansn.nsmavpn.data.repository.VpnServersRepository
 import ir.erfansn.nsmavpn.data.source.local.DefaultLastVpnConnectionLocalDataSource
@@ -61,8 +63,6 @@ import ir.erfansn.nsmavpn.feature.home.vpn.SstpVpnEventHandler
 import ir.erfansn.nsmavpn.feature.home.vpn.SstpVpnServiceAction
 import ir.erfansn.nsmavpn.sync.DefaultVpnServersSyncManager
 import ir.erfansn.nsmavpn.sync.VpnServersSyncManager
-import ir.erfansn.nsmavpn.core.DefaultNsmaVpnNotificationManager
-import ir.erfansn.nsmavpn.core.NsmaVpnNotificationManager
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -147,9 +147,9 @@ abstract class AppTestModule {
     ): VpnGateServiceLocalDataSource
 
     @Binds
-    abstract fun bindsProfileRepository(
-        defaultProfileRepository: DefaultProfileRepository,
-    ): ProfileRepository
+    abstract fun bindsUserProfileRepository(
+        defaultProfileRepository: DefaultUserProfileRepository,
+    ): UserProfileRepository
 
     @Binds
     abstract fun bindsVpnServersLocalDataSource(

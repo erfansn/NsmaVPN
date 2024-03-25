@@ -6,7 +6,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.erfansn.nsmavpn.R
 import ir.erfansn.nsmavpn.core.AndroidString
-import ir.erfansn.nsmavpn.data.repository.ProfileRepository
+import ir.erfansn.nsmavpn.data.repository.UserProfileRepository
 import ir.erfansn.nsmavpn.data.repository.VpnGateMailRepository
 import ir.erfansn.nsmavpn.sync.VpnServersSyncManager
 import kotlinx.coroutines.Job
@@ -20,7 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val vpnGateMailRepository: VpnGateMailRepository,
-    private val profileRepository: ProfileRepository,
+    private val userProfileRepository: UserProfileRepository,
     private val vpnServersSyncManager: VpnServersSyncManager
 ) : ViewModel() {
 
@@ -42,7 +42,7 @@ class AuthViewModel @Inject constructor(
             try {
                 val isSubscribed = vpnGateMailRepository.isSubscribedToDailyMail(account.email!!)
                 if (isSubscribed) {
-                    profileRepository.saveUserProfile(
+                    userProfileRepository.saveUserProfile(
                         avatarUrl = account.photoUrl.toString().substringBeforeLast('='),
                         displayName = account.displayName.toString(),
                         emailAddress = account.email.toString()
