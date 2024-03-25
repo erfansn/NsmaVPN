@@ -1,18 +1,12 @@
 package ir.erfansn.nsmavpn.data.repository
 
-import ir.erfansn.nsmavpn.data.model.Profile
+import ir.erfansn.nsmavpn.data.source.local.datastore.UserProfile
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
 object StubProfileRepository : ProfileRepository {
-    override val userProfile: Flow<Profile>
-        get() = flowOf(
-            Profile(
-                avatarUrl = "",
-                displayName = "",
-                emailAddress = ""
-            )
-        )
+    override val userProfile: Flow<UserProfile>
+        get() = flowOf(UserProfile.getDefaultInstance())
 
     override suspend fun saveUserProfile(
         avatarUrl: String,

@@ -29,10 +29,12 @@ import ir.erfansn.nsmavpn.data.repository.VpnGateMailRepository
 import ir.erfansn.nsmavpn.data.repository.VpnServersRepository
 import ir.erfansn.nsmavpn.data.source.local.DefaultLastVpnConnectionLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.DefaultUserPreferencesLocalDataSource
+import ir.erfansn.nsmavpn.data.source.local.DefaultUserProfileLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.DefaultVpnGateServiceLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.DefaultVpnServersLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.LastVpnConnectionLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.UserPreferencesLocalDataSource
+import ir.erfansn.nsmavpn.data.source.local.UserProfileLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.VpnGateServiceLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.VpnServersLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.datastore.LastVpnConnection
@@ -174,6 +176,11 @@ interface AppModule {
     fun bindsConfigurationsRepository(
         defaultConfigurationRepository: DefaultConfigurationsRepository
     ): ConfigurationsRepository
+
+    @Binds
+    fun bindsUserProfileLocalDataSource(
+        defaultUserProfileLocalDataSource: DefaultUserProfileLocalDataSource
+    ): UserProfileLocalDataSource
 
     companion object {
 
