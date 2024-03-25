@@ -4,16 +4,9 @@ option java_package = "ir.erfansn.nsmavpn.data.source.local.datastore";
 option java_multiple_files = true;
 
 message UserPreferences {
-  ProfileProto profile_proto = 1;
-  ThemeModeProto theme_mode_proto = 2;
-  bool enable_dynamic_scheme = 3;
-  repeated string split_tunneling_app_id = 4;
-}
-
-message ProfileProto {
-  string avatar_url = 1;
-  string display_name = 2;
-  string email_address = 3;
+  ThemeModeProto theme_mode_proto = 1;
+  bool enable_dynamic_scheme = 2;
+  repeated string split_tunneling_app_id = 3;
 }
 
 enum ThemeModeProto {
