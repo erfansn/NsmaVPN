@@ -9,6 +9,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import io.sentry.Sentry
 import ir.erfansn.nsmavpn.data.repository.DefaultVpnServersRepository
 import java.util.concurrent.TimeUnit
 
@@ -26,7 +27,7 @@ class VpnServersSyncWorker @AssistedInject constructor(
 
             Result.success()
         }.getOrElse {
-            // TODO: Use Crashlytics service to report errors
+            Sentry.captureException(it)
             Result.retry()
         }
     }

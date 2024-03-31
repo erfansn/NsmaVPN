@@ -2,6 +2,9 @@
     <string name="app_name" translatable="false">Nsma VPN</string>
 
     <!--Common-->
+    <!-- https://github.com/getsentry/sentry-docs/pull/1723 -->
+    <string name="sentry_dsn" translatable="false">https://9da4ea8df2a0b6c3d0fee91be46af375@o4506970976157696.ingest.us.sentry.io/4506970992738304</string>
+    <!-- https://github.com/cli/oauth/issues/1 -->
     <string name="web_client_id" translatable="false">870845865908\-4qde8iut5e3j76tmtn54rcthqjh4lcg8.apps.googleusercontent.com</string>
     <string name="error_no_exists_server">Not found VPN server</string>
     <string name="permissions_not_granted">Must all scopes permission be granted</string>

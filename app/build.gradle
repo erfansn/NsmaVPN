@@ -1,5 +1,7 @@
 plugins {
     id 'com.android.application'
+    id "io.sentry.android.gradle"
+    id "io.sentry.kotlin.compiler.gradle"
     id 'org.jetbrains.kotlin.android'
     id 'com.google.dagger.hilt.android'
     id 'com.google.protobuf'
