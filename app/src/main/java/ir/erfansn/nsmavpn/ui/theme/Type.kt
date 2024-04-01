@@ -6,6 +6,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import ir.erfansn.nsmavpn.R
 
+private val fontFamily = FontFamily(
+    Font(R.font.baloo_bhaijaan2, FontWeight.Normal)
+)
+
 val Typography = Typography().run {
     copy(
         displayLarge = displayLarge.copy(
@@ -55,7 +59,3 @@ val Typography = Typography().run {
         )
     )
 }
-
-private val fontFamily = FontFamily(
-    Font(R.font.baloo_bhaijaan2, FontWeight.Normal)
-)
