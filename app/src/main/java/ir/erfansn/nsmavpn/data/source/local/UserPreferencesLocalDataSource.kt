@@ -3,8 +3,9 @@ package ir.erfansn.nsmavpn.data.source.local
 import androidx.datastore.core.DataStore
 import ir.erfansn.nsmavpn.data.model.AppInfo
 import ir.erfansn.nsmavpn.data.model.Configurations
-import ir.erfansn.nsmavpn.data.model.Profile
-import ir.erfansn.nsmavpn.data.source.local.datastore.*
+import ir.erfansn.nsmavpn.data.source.local.datastore.ThemeModeProto
+import ir.erfansn.nsmavpn.data.source.local.datastore.UserPreferences
+import ir.erfansn.nsmavpn.data.source.local.datastore.copy
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -15,8 +16,6 @@ interface UserPreferencesLocalDataSource {
     suspend fun addAppsToSplitTunnelingList(apps: List<AppInfo>)
     suspend fun removeAppFromSplitTunnelingList(app: AppInfo)
     suspend fun clearSplitTunnelingList()
-    suspend fun saveUserProfile(profile: Profile)
-    suspend fun clearUserProfile()
 }
 
 class DefaultUserPreferencesLocalDataSource @Inject constructor(
@@ -69,26 +68,6 @@ class DefaultUserPreferencesLocalDataSource @Inject constructor(
         dataStore.updateData {
             it.copy {
                 splitTunnelingAppId.clear()
-            }
-        }
-    }
-
-    override suspend fun saveUserProfile(profile: Profile) {
-        dataStore.updateData {
-            it.copy {
-                profileProto = profileProto {
-                    avatarUrl = profile.avatarUrl
-                    emailAddress = profile.emailAddress
-                    displayName = profile.displayName
-                }
-            }
-        }
-    }
-
-    override suspend fun clearUserProfile() {
-        dataStore.updateData {
-            it.copy {
-                clearProfileProto()
             }
         }
     }

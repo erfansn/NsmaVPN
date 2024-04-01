@@ -1,5 +1,7 @@
 plugins {
     id 'com.android.application'
+    id "io.sentry.android.gradle"
+    id "io.sentry.kotlin.compiler.gradle"
     id 'org.jetbrains.kotlin.android'
     id 'com.google.dagger.hilt.android'
     id 'com.google.protobuf'
@@ -96,8 +98,8 @@ dependencies {
     implementation 'com.google.accompanist:accompanist-drawablepainter:0.34.0'
 
     implementation 'androidx.datastore:datastore:1.0.0'
-    implementation 'com.google.protobuf:protobuf-javalite:3.25.1'
-    implementation 'com.google.protobuf:protobuf-kotlin-lite:3.25.1'
+    implementation 'com.google.protobuf:protobuf-javalite:3.25.3'
+    implementation 'com.google.protobuf:protobuf-kotlin-lite:3.25.3'
 
     implementation 'com.google.android.gms:play-services-auth:21.0.0'
     implementation 'com.google.api-client:google-api-client:2.2.0'
@@ -108,7 +110,7 @@ dependencies {
     def coil_version = "2.6.0"
     implementation "io.coil-kt:coil-compose:$coil_version"
     implementation 'com.github.sebaslogen.resaca:resaca:3.0.0'
-    implementation "io.github.reactivecircus.cache4k:cache4k:0.12.0"
+    implementation "io.github.reactivecircus.cache4k:cache4k:0.13.0"
     implementation "com.squareup.okhttp3:okhttp:4.12.0"
     implementation "androidx.tracing:tracing:1.2.0"
 
@@ -149,7 +151,7 @@ androidComponents {
 
 protobuf {
     protoc {
-        artifact = 'com.google.protobuf:protoc:3.25.1'
+        artifact = 'com.google.protobuf:protoc:3.25.3'
     }
 
     // Generates the java Protobuf-lite code for the Protobufs in this project. See

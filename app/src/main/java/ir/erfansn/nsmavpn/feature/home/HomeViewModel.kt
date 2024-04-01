@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.erfansn.nsmavpn.data.repository.LastVpnConnectionRepository
-import ir.erfansn.nsmavpn.data.repository.ProfileRepository
+import ir.erfansn.nsmavpn.data.repository.UserProfileRepository
 import ir.erfansn.nsmavpn.data.util.NetworkUsageTracker
 import ir.erfansn.nsmavpn.feature.home.vpn.ConnectionState
 import ir.erfansn.nsmavpn.feature.home.vpn.SstpVpnServiceAction
@@ -30,14 +30,14 @@ class HomeViewModel @Inject constructor(
     private val networkUsageTracker: NetworkUsageTracker,
     private val sstpVpnServiceAction: SstpVpnServiceAction,
     vpnServersSyncManager: VpnServersSyncManager,
-    profileRepository: ProfileRepository,
+    userProfileRepository: UserProfileRepository,
 ) : ViewModel() {
 
     private val vpnServiceState = MutableStateFlow(VpnServiceState())
     val uiState = combine(
         vpnServiceState,
         vpnServersSyncManager.isSyncing,
-        profileRepository.userProfile,
+        userProfileRepository.userProfile,
     ) { state, isSyncing, userProfile ->
         HomeUiState(
             isSyncing = isSyncing,

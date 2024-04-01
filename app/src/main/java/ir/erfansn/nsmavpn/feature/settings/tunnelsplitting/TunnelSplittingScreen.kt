@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -232,6 +233,7 @@ private fun TunnelSplittingTopBar(
             actions = {
                 var expanded by remember { mutableStateOf(false) }
                 DropdownMenu(
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest),
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
                     offset = DpOffset((-12).dp, 8.dp)

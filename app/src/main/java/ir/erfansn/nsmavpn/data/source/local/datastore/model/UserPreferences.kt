@@ -1,15 +1,8 @@
 package ir.erfansn.nsmavpn.data.source.local.datastore.model
 
 import ir.erfansn.nsmavpn.data.model.Configurations
-import ir.erfansn.nsmavpn.data.model.Profile
 import ir.erfansn.nsmavpn.data.source.local.datastore.ThemeModeProto
 import ir.erfansn.nsmavpn.data.source.local.datastore.UserPreferences
-
-fun UserPreferences.toProfile() = Profile(
-    avatarUrl = profileProto.avatarUrl,
-    displayName = profileProto.displayName,
-    emailAddress = profileProto.emailAddress
-)
 
 fun UserPreferences.toConfigurations() = Configurations(
     themeMode = when (themeModeProto) {

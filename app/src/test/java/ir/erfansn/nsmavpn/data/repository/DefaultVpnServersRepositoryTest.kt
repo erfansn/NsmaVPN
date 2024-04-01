@@ -2,22 +2,16 @@ package ir.erfansn.nsmavpn.data.repository
 
 import com.google.common.truth.Truth.assertThat
 import ir.erfansn.nsmavpn.data.source.local.FakeLastVpnConnectionLocalDataSource
-import ir.erfansn.nsmavpn.data.source.local.MockVpnServersLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.LastVpnConnectionLocalDataSource
-import ir.erfansn.nsmavpn.data.source.local.VpnServersLocalDataSource
+import ir.erfansn.nsmavpn.data.source.local.MockVpnServersLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.datastore.Server
 import ir.erfansn.nsmavpn.data.source.local.datastore.server
 import ir.erfansn.nsmavpn.data.source.local.datastore.urlParts
 import ir.erfansn.nsmavpn.data.util.PingChecker
 import ir.erfansn.nsmavpn.data.util.StubPingChecker
 import ir.erfansn.nsmavpn.data.util.StubVpnGateContentExtractor
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -40,7 +34,7 @@ class DefaultVpnServersRepositoryTest {
         mockVpnServersLocalDataSource = MockVpnServersLocalDataSource()
         fakeLastVpnConnectionLocalDataSource = FakeLastVpnConnectionLocalDataSource()
         defaultVpnServersRepository = DefaultVpnServersRepository(
-            profileRepository = StubProfileRepository,
+            userProfileRepository = StubUserProfileRepository,
             vpnGateMailRepository = stubVpnGateMailRepository,
             vpnServersLocalDataSource = mockVpnServersLocalDataSource,
             lastVpnConnectionLocalDataSource = fakeLastVpnConnectionLocalDataSource,

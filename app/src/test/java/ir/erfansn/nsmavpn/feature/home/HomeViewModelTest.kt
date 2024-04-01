@@ -2,7 +2,7 @@ package ir.erfansn.nsmavpn.feature.home
 
 import com.google.common.truth.Truth.assertThat
 import ir.erfansn.nsmavpn.data.repository.FakeLastVpnConnectionRepository
-import ir.erfansn.nsmavpn.data.repository.StubProfileRepository
+import ir.erfansn.nsmavpn.data.repository.StubUserProfileRepository
 import ir.erfansn.nsmavpn.data.source.local.datastore.Server
 import ir.erfansn.nsmavpn.data.util.FakeNetworkUsageTracker
 import ir.erfansn.nsmavpn.feature.home.vpn.ConnectionState
@@ -39,7 +39,7 @@ class HomeViewModelTest {
             networkUsageTracker = FakeNetworkUsageTracker,
             sstpVpnServiceAction = DummySstpVpnServiceAction,
             vpnServersSyncManager = StubVpnServersSyncManager,
-            profileRepository = StubProfileRepository,
+            userProfileRepository = StubUserProfileRepository,
         )
     }
 

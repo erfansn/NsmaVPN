@@ -4,3 +4,4 @@ detekt/*.jar
 
 *.iml
 local.properties
+sentry.properties

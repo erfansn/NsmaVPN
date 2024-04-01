@@ -52,6 +52,13 @@
         "composeOptions"
       ],
       "groupName": "kotlin related stuffs"
+    },
+    {
+      "matchPackageNames": [
+        "io.sentry.android.gradle",
+        "io.sentry.kotlin.compiler.gradle"
+      ],
+      "groupName": "Sentry"
     }
   ]
 }

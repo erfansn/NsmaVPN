@@ -12,7 +12,7 @@ import android.service.quicksettings.TileService
 import androidx.annotation.RequiresApi
 import dagger.hilt.android.AndroidEntryPoint
 import ir.erfansn.nsmavpn.data.model.isEmpty
-import ir.erfansn.nsmavpn.data.repository.ProfileRepository
+import ir.erfansn.nsmavpn.data.repository.UserProfileRepository
 import ir.erfansn.nsmavpn.feature.home.vpn.SstpVpnService
 import ir.erfansn.nsmavpn.feature.home.vpn.SstpVpnServiceAction
 import ir.erfansn.nsmavpn.sync.VpnServersSyncManager
@@ -61,7 +61,7 @@ class VpnSwitchTileService : TileService() {
     @Inject
     lateinit var sstpVpnServiceAction: SstpVpnServiceAction
     @Inject
-    lateinit var profileRepository: ProfileRepository
+    lateinit var userProfileRepository: UserProfileRepository
 
     override fun onCreate() {
         super.onCreate()
@@ -79,7 +79,7 @@ class VpnSwitchTileService : TileService() {
         vpnServiceStartedCollectorJob = combine(
                 vpnServiceStarted,
                 vpnServersSyncManager.isSyncing,
-                profileRepository.userProfile,
+                userProfileRepository.userProfile,
             ) { started, syncing, userProfile ->
                 qsTile.state = when {
                     userProfile.isEmpty() || !isVpnPrepared || syncing -> Tile.STATE_UNAVAILABLE
