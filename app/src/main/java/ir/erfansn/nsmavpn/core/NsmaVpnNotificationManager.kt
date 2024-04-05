@@ -126,7 +126,7 @@ class DefaultNsmaVpnNotificationManager @Inject constructor(
             setContentIntent(launchAppPendingIntent)
             priority = NotificationCompat.PRIORITY_DEFAULT
             setCategory(NotificationCompat.CATEGORY_SERVICE)
-            setSmallIcon(R.drawable.baseline_vpn_lock_24)
+            setSmallIcon(R.drawable.ic_broken_shield)
             actions?.let(::addAction)
         }.build()
     }
