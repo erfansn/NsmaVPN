@@ -472,9 +472,9 @@ private fun DataTrafficDisplay(
             modifier = Modifier
                 .weight(1f)
                 .padding(vertical = 8.dp),
-            icon = painterResource(id = R.drawable.round_upload_24),
-            text = stringResource(R.string.upload),
-            value = stats?.upload.toHumanReadableByteFormat()
+            icon = painterResource(id = R.drawable.round_download_24),
+            text = stringResource(R.string.download),
+            value = stats?.download.toHumanReadableByteFormat()
         )
         Box(
             modifier = Modifier
@@ -489,9 +489,9 @@ private fun DataTrafficDisplay(
             modifier = Modifier
                 .weight(1f)
                 .padding(vertical = 8.dp),
-            icon = painterResource(id = R.drawable.round_download_24),
-            text = stringResource(R.string.download),
-            value = stats?.download.toHumanReadableByteFormat()
+            icon = painterResource(id = R.drawable.round_upload_24),
+            text = stringResource(R.string.upload),
+            value = stats?.upload.toHumanReadableByteFormat()
         )
     }
 }

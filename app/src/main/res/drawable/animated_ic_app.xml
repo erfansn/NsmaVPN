@@ -1,0 +1,54 @@
+<animated-vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:drawable="@drawable/ic_launcher_foreground">
+
+    <target android:name="layout">
+        <aapt:attr name="android:animation">
+            <set>
+                <set>
+                    <objectAnimator
+                        android:propertyName="scaleX"
+                        android:duration="500"
+                        android:valueFrom="1"
+                        android:valueTo="0.95"
+                        android:valueType="floatType"
+                        android:repeatCount="-1"
+                        android:repeatMode="reverse"
+                        android:interpolator="@android:interpolator/anticipate_overshoot"/>
+                    <objectAnimator
+                        android:propertyName="scaleY"
+                        android:duration="500"
+                        android:valueFrom="1"
+                        android:valueTo="0.95"
+                        android:valueType="floatType"
+                        android:repeatCount="-1"
+                        android:repeatMode="reverse"
+                        android:interpolator="@android:interpolator/anticipate_overshoot"/>
+                </set>
+                <set>
+                    <objectAnimator
+                        android:propertyName="scaleX"
+                        android:startOffset="500"
+                        android:duration="500"
+                        android:valueFrom="0.95"
+                        android:valueTo="1"
+                        android:valueType="floatType"
+                        android:repeatCount="-1"
+                        android:repeatMode="reverse"
+                        android:interpolator="@android:interpolator/anticipate_overshoot"/>
+                    <objectAnimator
+                        android:propertyName="scaleY"
+                        android:startOffset="500"
+                        android:duration="500"
+                        android:valueFrom="0.95"
+                        android:valueTo="1"
+                        android:valueType="floatType"
+                        android:repeatCount="-1"
+                        android:repeatMode="reverse"
+                        android:interpolator="@android:interpolator/anticipate_overshoot"/>
+                </set>
+            </set>
+        </aapt:attr>
+    </target>
+</animated-vector>
