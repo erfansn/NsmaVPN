@@ -1,7 +1,7 @@
 buildscript {
     ext {
         agp_version = '8.3.1'
-        hilt_version = '2.51'
+        hilt_version = '2.51.1'
         sentry_version = '4.4.0'
     }
 }// Top-level build file where you can add configuration options common to all sub-projects/modules.
