@@ -132,7 +132,7 @@ dependencies {
     androidTestImplementation "com.google.dagger:hilt-android-testing:$hilt_version"
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
 
-    detektPlugins 'io.nlopez.compose.rules:detekt:0.3.8'
+    detektPlugins 'io.nlopez.compose.rules:detekt:0.3.15'
 }
 
 androidComponents {
