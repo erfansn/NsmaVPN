@@ -30,6 +30,8 @@ class DefaultInstalledAppsListProvider @Inject constructor(
                     it.applicationInfo
                 }.sortedBy {
                     it.loadLabel(packageManager).toString()
+                }.filter {
+                    it.packageName != context.packageName
                 }.map {
                     AppInfo(
                         id = it.packageName,
