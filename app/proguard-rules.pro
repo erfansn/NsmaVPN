@@ -76,3 +76,13 @@
 -dontwarn org.ietf.jgss.GSSName
 -dontwarn org.ietf.jgss.Oid
 -dontwarn sun.reflect.Reflection
+
+-keep class * extends com.google.api.client.json.GenericJson {
+    *;
+}
+
+-keepattributes Signature,RuntimeVisibleAnnotations,AnnotationDefault
+
+-keepclassmembers class * {
+  @com.google.api.client.util.Key <fields>;
+}

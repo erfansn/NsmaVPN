@@ -37,6 +37,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -209,6 +210,7 @@ private fun LayoutType.AuthContent(
                     Button(
                         enabled = it != AuthenticationStatus.InProgress,
                         onClick = googleAuthState::signIn,
+                        modifier = Modifier.testTag("sign_in"),
                     ) {
                         Text(
                             text = stringResource(id = R.string.sign_in)
@@ -217,7 +219,10 @@ private fun LayoutType.AuthContent(
                 }
                 AuthenticationStatus.PermissionsNotGranted -> {
                     DescriptionText(stringId = R.string.permission_rationals)
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
                         Button(
                             onClick = googleAuthState::requestPermissions,
                         ) {

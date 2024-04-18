@@ -71,6 +71,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
@@ -380,10 +381,7 @@ private fun TunnelSplittingScreenPreview_AppItems() {
                     appInfo = AppInfo(
                         id = "com.example.$it",
                         name = "Example $it",
-                        icon = resource.getDrawable(
-                            R.drawable.ic_launcher_background,
-                            null
-                        ),
+                        icon = ResourcesCompat.getDrawable(resource, R.mipmap.ic_launcher, null)!!,
                     ),
                     allowed = Random.nextBoolean(),
                 )

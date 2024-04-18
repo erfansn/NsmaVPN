@@ -30,12 +30,10 @@ import ir.erfansn.nsmavpn.data.repository.VpnServersRepository
 import ir.erfansn.nsmavpn.data.source.local.DefaultLastVpnConnectionLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.DefaultUserPreferencesLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.DefaultUserProfileLocalDataSource
-import ir.erfansn.nsmavpn.data.source.local.DefaultVpnGateServiceLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.DefaultVpnServersLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.LastVpnConnectionLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.UserPreferencesLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.UserProfileLocalDataSource
-import ir.erfansn.nsmavpn.data.source.local.VpnGateServiceLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.VpnServersLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.datastore.LastVpnConnection
 import ir.erfansn.nsmavpn.data.source.local.datastore.LastVpnConnectionSerializer
@@ -43,8 +41,6 @@ import ir.erfansn.nsmavpn.data.source.local.datastore.UserPreferences
 import ir.erfansn.nsmavpn.data.source.local.datastore.UserPreferencesSerializer
 import ir.erfansn.nsmavpn.data.source.local.datastore.UserProfile
 import ir.erfansn.nsmavpn.data.source.local.datastore.UserProfileSerializer
-import ir.erfansn.nsmavpn.data.source.local.datastore.VpnGateService
-import ir.erfansn.nsmavpn.data.source.local.datastore.VpnGateServiceSerializer
 import ir.erfansn.nsmavpn.data.source.local.datastore.VpnServers
 import ir.erfansn.nsmavpn.data.source.local.datastore.VpnServersSerializer
 import ir.erfansn.nsmavpn.data.source.remote.DefaultVpnGateMailMessagesRemoteDataSource
@@ -143,11 +139,6 @@ interface AppModule {
     ): SstpVpnServiceAction
 
     @Binds
-    fun bindsVpnGateServiceLocalDataSource(
-        defaultVpnGateServiceLocalDataSource: DefaultVpnGateServiceLocalDataSource
-    ): VpnGateServiceLocalDataSource
-
-    @Binds
     fun bindsUserProfileRepository(
         defaultProfileRepository: DefaultUserProfileRepository,
     ): UserProfileRepository
@@ -197,38 +188,47 @@ interface AppModule {
             CoroutineScope(SupervisorJob() + ioDispatcher)
 
         @[Provides Singleton]
-        fun providesUserPreferencesDataStore(@ApplicationContext context: Context): DataStore<UserPreferences> =
+        fun providesUserPreferencesDataStore(
+            @ApplicationContext context: Context,
+            applicationScope: CoroutineScope,
+        ): DataStore<UserPreferences> =
             DataStoreFactory.create(
                 serializer = UserPreferencesSerializer,
-                produceFile = { context.dataStoreFile("user_preferences") }
+                produceFile = { context.dataStoreFile("user_preferences") },
+                scope = applicationScope
             )
 
         @[Provides Singleton]
-        fun providesLastVpnConnectionDataStore(@ApplicationContext context: Context): DataStore<LastVpnConnection> =
+        fun providesLastVpnConnectionDataStore(
+            @ApplicationContext context: Context,
+            applicationScope: CoroutineScope
+        ): DataStore<LastVpnConnection> =
             DataStoreFactory.create(
                 serializer = LastVpnConnectionSerializer,
-                produceFile = { context.dataStoreFile("last_vpn_connection") }
+                produceFile = { context.dataStoreFile("last_vpn_connection") },
+                scope = applicationScope,
             )
 
         @[Provides Singleton]
-        fun providesVpnGateServiceDataStore(@ApplicationContext context: Context): DataStore<VpnGateService> =
-            DataStoreFactory.create(
-                serializer = VpnGateServiceSerializer,
-                produceFile = { context.dataStoreFile("vpn_gate_service") }
-            )
-
-        @[Provides Singleton]
-        fun providesVpnServersDataStore(@ApplicationContext context: Context): DataStore<VpnServers> =
+        fun providesVpnServersDataStore(
+            @ApplicationContext context: Context,
+            applicationScope: CoroutineScope
+        ): DataStore<VpnServers> =
             DataStoreFactory.create(
                 serializer = VpnServersSerializer,
-                produceFile = { context.dataStoreFile("vpn_servers") }
+                produceFile = { context.dataStoreFile("vpn_servers") },
+                scope = applicationScope
             )
 
         @[Provides Singleton]
-        fun providesUserProfileDataStore(@ApplicationContext context: Context): DataStore<UserProfile> =
+        fun providesUserProfileDataStore(
+            @ApplicationContext context: Context,
+            applicationScope: CoroutineScope
+        ): DataStore<UserProfile> =
             DataStoreFactory.create(
                 serializer = UserProfileSerializer,
-                produceFile = { context.dataStoreFile("user_profile") }
+                produceFile = { context.dataStoreFile("user_profile") },
+                scope = applicationScope
             )
 
         @Provides

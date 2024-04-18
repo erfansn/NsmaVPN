@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
    <include domain="file" path="." />
-   <exclude domain="file" path="datastore/user_profile" />
    <include domain="sharedpref" path="." />
    <exclude domain="sharedpref" path="permissions_status_determined.xml" />
-   <exclude domain="sharedpref" path="com.google.android.gms.signin.xml" />
 </full-backup-content>

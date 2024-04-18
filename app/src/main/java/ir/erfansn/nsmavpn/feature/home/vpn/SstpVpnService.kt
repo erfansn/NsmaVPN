@@ -9,8 +9,8 @@ import android.os.Binder
 import android.os.IBinder
 import androidx.core.app.ServiceCompat
 import dagger.hilt.android.AndroidEntryPoint
-import ir.erfansn.nsmavpn.data.util.NetworkMonitor
 import ir.erfansn.nsmavpn.core.NsmaVpnNotificationManager
+import ir.erfansn.nsmavpn.data.util.NetworkMonitor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -84,7 +84,6 @@ class SstpVpnService : VpnService() {
                         sstpVpnEventHandler.startConnecting()
                     }
                     .catch {
-                        it.printStackTrace()
                         sstpVpnEventHandler.disconnectVpnDue(ConnectionState.Error.Network)
                     }
                     .launchIn(serviceScope)
