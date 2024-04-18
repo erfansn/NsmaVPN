@@ -14,7 +14,6 @@ abstract class GoogleApi<T : AbstractGoogleJsonClient> {
 
     protected abstract fun getService(): T
 
-
     fun selectAccount(emailAddress: String): T {
         credential.selectedAccountName = emailAddress
         checkNotNull(credential.selectedAccount) { "No account associate with $emailAddress in your device" }

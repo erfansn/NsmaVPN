@@ -1,6 +1,5 @@
 syntax = "proto3";
 
-import "vpn_gate_service.proto";
 import "vpn_servers.proto";
 
 option java_package = "ir.erfansn.nsmavpn.data.source.local.datastore";

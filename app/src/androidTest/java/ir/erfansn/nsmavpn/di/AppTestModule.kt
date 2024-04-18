@@ -29,18 +29,14 @@ import ir.erfansn.nsmavpn.data.repository.VpnGateMailRepository
 import ir.erfansn.nsmavpn.data.repository.VpnServersRepository
 import ir.erfansn.nsmavpn.data.source.local.DefaultLastVpnConnectionLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.DefaultUserPreferencesLocalDataSource
-import ir.erfansn.nsmavpn.data.source.local.DefaultVpnGateServiceLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.DefaultVpnServersLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.LastVpnConnectionLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.UserPreferencesLocalDataSource
-import ir.erfansn.nsmavpn.data.source.local.VpnGateServiceLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.VpnServersLocalDataSource
 import ir.erfansn.nsmavpn.data.source.local.datastore.LastVpnConnection
 import ir.erfansn.nsmavpn.data.source.local.datastore.LastVpnConnectionSerializer
 import ir.erfansn.nsmavpn.data.source.local.datastore.UserPreferences
 import ir.erfansn.nsmavpn.data.source.local.datastore.UserPreferencesSerializer
-import ir.erfansn.nsmavpn.data.source.local.datastore.VpnGateService
-import ir.erfansn.nsmavpn.data.source.local.datastore.VpnGateServiceSerializer
 import ir.erfansn.nsmavpn.data.source.local.datastore.VpnServers
 import ir.erfansn.nsmavpn.data.source.local.datastore.VpnServersSerializer
 import ir.erfansn.nsmavpn.data.source.remote.DefaultVpnGateMailMessagesRemoteDataSource
@@ -142,11 +138,6 @@ abstract class AppTestModule {
     ): SstpVpnServiceAction
 
     @Binds
-    abstract fun bindsVpnGateServiceLocalDataSource(
-        defaultVpnGateServiceLocalDataSource: DefaultVpnGateServiceLocalDataSource
-    ): VpnGateServiceLocalDataSource
-
-    @Binds
     abstract fun bindsUserProfileRepository(
         defaultProfileRepository: DefaultUserProfileRepository,
     ): UserProfileRepository
@@ -202,13 +193,6 @@ abstract class AppTestModule {
             DataStoreFactory.create(
                 serializer = LastVpnConnectionSerializer,
                 produceFile = { context.dataStoreFile("last_vpn_connection") }
-            )
-
-        @[Provides Singleton]
-        fun providesVpnGateServiceDataStore(@ApplicationContext context: Context): DataStore<VpnGateService> =
-            DataStoreFactory.create(
-                serializer = VpnGateServiceSerializer,
-                produceFile = { context.dataStoreFile("vpn_gate_service") }
             )
 
         @[Provides Singleton]
