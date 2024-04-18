@@ -107,12 +107,15 @@ private class MutableGoogleAuthState(
                 AuthenticationStatus.PermissionsNotGranted
             }
         } catch (e: ApiException) {
-            Sentry.captureException(e)
+            if (e.statusCode == GoogleSignInStatusCodes.SIGN_IN_CANCELLED) return
 
             when (e.statusCode) {
                 CommonStatusCodes.NETWORK_ERROR -> onErrorOccur?.invoke(AndroidString(R.string.network_problem))
-                GoogleSignInStatusCodes.SIGN_IN_FAILED -> onErrorOccur?.invoke(AndroidString(R.string.sign_in_failed))
+                CommonStatusCodes.DEVELOPER_ERROR,
+                GoogleSignInStatusCodes.SIGN_IN_FAILED,
+                -> onErrorOccur?.invoke(AndroidString(R.string.sign_in_failed))
             }
+            Sentry.captureException(e)
         }
     }
 
