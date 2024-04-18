@@ -16,6 +16,8 @@ plugins {
     id 'app.cash.paparazzi' version "1.3.3" apply false
     id "io.sentry.android.gradle" version "$sentry_version" apply false
     id "io.sentry.kotlin.compiler.gradle" version "$sentry_version" apply false
+    id 'com.android.test' version "$agp_version" apply false
+    id 'androidx.baselineprofile' version '1.2.3' apply false
 }
 
 subprojects {
