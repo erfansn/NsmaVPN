@@ -50,6 +50,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.lerp
 import androidx.compose.ui.unit.dp
+import androidx.core.app.LocaleManagerCompat
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -63,6 +64,7 @@ import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
 import ir.erfansn.nsmavpn.ui.theme.isSupportDynamicScheme
 import ir.erfansn.nsmavpn.ui.util.preview.SettingsStates
 import org.xmlpull.v1.XmlPullParser
+import java.util.Locale
 import kotlin.random.Random
 
 @Composable
@@ -203,13 +205,13 @@ private fun SettingsScreen(
 
 @Composable
 private fun ChangeLanguageItem() {
-    val context = LocalContext.current
     var shouldShowDialog by remember { mutableStateOf(false) }
     if (shouldShowDialog) {
+        val context = LocalContext.current
         var selectedLocale by remember(context) {
             mutableStateOf(
                 AppCompatDelegate.getApplicationLocales()[0]
-                    ?: context.configLocales[0]!!
+                    ?: context.configLocales.primarySystemLocaleOrFirst(context)
             )
         }
 
@@ -236,7 +238,7 @@ private fun ChangeLanguageItem() {
                     context.configLocales.let {
                         for (i in 0..<it.size()) {
                             SelectiveRow(
-                                text = it[i]!!.displayName.toString(),
+                                text = it[i]!!.displayName,
                                 selected = it[i]!!.isO3Language == selectedLocale.isO3Language,
                                 onSelect = {
                                     selectedLocale = it[i]!!
@@ -256,9 +258,22 @@ private fun ChangeLanguageItem() {
     )
 }
 
+private fun LocaleListCompat.primarySystemLocaleOrFirst(context: Context): Locale {
+    val primaryLang = LocaleManagerCompat.getSystemLocales(context)[0]
+    var targetLangIndex = 0
+    for (index in 0..<size()) {
+        if (this[index]!! == primaryLang) {
+            targetLangIndex = index
+            break
+        }
+    }
+    return context.configLocales[targetLangIndex]!!
+}
+
 private val Context.configLocales: LocaleListCompat
     @SuppressLint("DiscouragedApi")
     get() {
+        // TODO: Generalize this and put in a gist https://stackoverflow.com/questions/49264779/parsing-androidmanifest-xml-with-xmlresourceparser-not-working-as-expected/49300152#49300152
         val tagsList = mutableListOf<String>()
         val localeConfigId = resources.getIdentifier("_generated_res_locale_config", "xml", packageName)
         val xpp: XmlPullParser = resources.getXml(localeConfigId)
@@ -270,7 +285,6 @@ private val Context.configLocales: LocaleListCompat
         }
         return LocaleListCompat.forLanguageTags(tagsList.joinToString(","))
     }
-
 
 @Composable
 private fun ThemeModeItem(

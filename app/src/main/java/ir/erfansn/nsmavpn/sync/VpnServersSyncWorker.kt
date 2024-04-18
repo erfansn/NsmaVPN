@@ -11,6 +11,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import io.sentry.Sentry
 import ir.erfansn.nsmavpn.data.repository.DefaultVpnServersRepository
+import kotlinx.coroutines.CancellationException
 import java.util.concurrent.TimeUnit
 
 @HiltWorker
@@ -27,7 +28,7 @@ class VpnServersSyncWorker @AssistedInject constructor(
 
             Result.success()
         }.getOrElse {
-            Sentry.captureException(it)
+            if (it !is CancellationException) Sentry.captureException(it)
             Result.retry()
         }
     }
