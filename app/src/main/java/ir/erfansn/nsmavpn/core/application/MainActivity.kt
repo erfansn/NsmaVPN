@@ -3,6 +3,7 @@ package ir.erfansn.nsmavpn.core.application
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.SystemBarStyle
+import androidx.activity.compose.ReportDrawnWhen
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -17,6 +18,10 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -47,6 +52,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         var uiState: MainActivityUiState by mutableStateOf(MainActivityUiState.Loading)
+        var isBackgroundDrawn by mutableStateOf(false)
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -57,12 +63,17 @@ class MainActivity : AppCompatActivity() {
             }
         }
         splash.setKeepOnScreenCondition {
-            uiState == MainActivityUiState.Loading
+            uiState == MainActivityUiState.Loading || !isBackgroundDrawn
         }
 
         enableEdgeToEdge()
 
         setContent {
+            // Equals with TTID because of blocking the frame rendering by Splash
+            ReportDrawnWhen {
+                uiState is MainActivityUiState.Success && isBackgroundDrawn
+            }
+
             shouldUseDarkTheme(uiState).let { useDarkTheme ->
                 LaunchedEffect(useDarkTheme) {
                     val transparentStyle = SystemBarStyle.auto(
@@ -85,6 +96,9 @@ class MainActivity : AppCompatActivity() {
                     networkMonitor = networkMonitor,
                     windowSize = calculateWindowSizeClass(activity = this),
                     isCompletedAuthFlow = userProfileRepository::isUserProfileSaved,
+                    onBackgroundDrawn = {
+                        isBackgroundDrawn = true
+                    }
                 )
             }
         }
@@ -113,14 +127,20 @@ private fun shouldUseDynamicColor(uiState: MainActivityUiState): Boolean {
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun NsmaVpnApp(
     onResetApp: () -> Unit,
     networkMonitor: NetworkMonitor,
     windowSize: WindowSizeClass,
     isCompletedAuthFlow: suspend () -> Boolean,
+    onBackgroundDrawn: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    NsmaVpnBackground {
+    NsmaVpnBackground(
+        modifier = modifier.semantics { testTagsAsResourceId = true },
+        onDrawn = onBackgroundDrawn
+    ) {
         NsmaVpnNavHost(
             networkMonitor = networkMonitor,
             windowSize = windowSize,

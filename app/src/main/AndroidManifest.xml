@@ -23,8 +23,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.NsmaVpn.Starting"
-        android:enableOnBackInvokedCallback="true"
+        android:enableOnBackInvokedCallback="false"
         tools:targetApi="tiramisu">
+        <profileable android:shell="true" />
         <activity
             android:name=".core.application.MainActivity"
             android:exported="true">
@@ -33,6 +34,9 @@
                 <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <data android:scheme="nsmavpn" />
             </intent-filter>
         </activity>
 

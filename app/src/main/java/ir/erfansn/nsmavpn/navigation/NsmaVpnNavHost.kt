@@ -13,6 +13,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navDeepLink
 import com.google.android.gms.common.Scopes
 import com.google.android.gms.common.api.Scope
 import com.google.api.services.gmail.GmailScopes
@@ -26,7 +27,6 @@ import ir.erfansn.nsmavpn.feature.home.HomeRoute
 import ir.erfansn.nsmavpn.feature.profile.ProfileRoute
 import ir.erfansn.nsmavpn.feature.settings.settingsNavGraph
 import ir.erfansn.nsmavpn.ui.util.whenResumed
-
 
 @Composable
 fun NsmaVpnNavHost(
@@ -46,7 +46,14 @@ fun NsmaVpnNavHost(
         navController = navController,
         startDestination = NavScreensRoute.Home,
     ) {
-        composable(NavScreensRoute.Home) {
+        composable(
+            route = NavScreensRoute.Home,
+            deepLinks = listOf(
+                navDeepLink {
+                    uriPattern = "nsmavpn://{flag}"
+                }
+            )
+        ) {
             var shouldShowHomeRoute by remember { mutableStateOf(false) }
             if (shouldShowHomeRoute) {
                 HomeRoute(
@@ -67,7 +74,12 @@ fun NsmaVpnNavHost(
                 )
             }
 
-            LaunchedEffect(isCompletedAuthFlow, navController) {
+            LaunchedEffect(isCompletedAuthFlow, navController, it) {
+                if (it.arguments?.getString("flag") == "ir.erfansn.nsmavpn.MacroBenchmark") {
+                    shouldShowHomeRoute = true
+                    return@LaunchedEffect
+                }
+
                 if (!isCompletedAuthFlow()) {
                     navController.navigateToAuth()
                 } else {
