@@ -3,6 +3,8 @@ package ir.erfansn.nsmavpn.feature.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import ir.erfansn.nsmavpn.R
+import ir.erfansn.nsmavpn.core.AndroidString
 import ir.erfansn.nsmavpn.data.repository.LastVpnConnectionRepository
 import ir.erfansn.nsmavpn.data.repository.UserProfileRepository
 import ir.erfansn.nsmavpn.data.util.NetworkUsageTracker
@@ -16,7 +18,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flattenConcat
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -34,15 +36,18 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val vpnServiceState = MutableStateFlow(VpnServiceState())
+    private val userError = MutableStateFlow<UserError?>(null)
     val uiState = combine(
         vpnServiceState,
         vpnServersSyncManager.isSyncing,
         userProfileRepository.userProfile,
-    ) { state, isSyncing, userProfile ->
+        userError,
+    ) { state, isSyncing, userProfile, userError ->
         HomeUiState(
             isSyncing = isSyncing,
             userAvatarUrl = userProfile.avatarUrl,
             vpnServiceState = state,
+            userError = userError
         )
     }.stateIn(
         scope = viewModelScope,
@@ -52,19 +57,22 @@ class HomeViewModel @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val dataTraffic = vpnServiceState
-        .flatMapLatest {
-            if (it.state is ConnectionState.Connected) {
+        .combine(userError) { vpnService, error ->
+            if (vpnService.state is ConnectionState.Connected) {
                 val lastVpnConnection = lastVpnConnectionRepository.lastVpnConnection.first()
 
                 networkUsageTracker.trackUsage(lastVpnConnection.epochTime).map { usage ->
                     DataTraffic(upload = usage.transmitted, download = usage.received)
                 }
             } else {
+                check(error !is UserError.UsageAccessPermissionLose)
+
                 flowOf(
                     DataTraffic(download = 0, upload = 0)
                 )
             }
         }
+        .flattenConcat()
         .catch<DataTraffic?> { emit(null) }
         .stateIn(
             scope = viewModelScope,
@@ -84,11 +92,24 @@ class HomeViewModel @Inject constructor(
     }
 
     fun connectToVpn() {
+        clearUserError()
+
+        if (!networkUsageTracker.isUsageAccessPermissionGrant) {
+            userError.update { UserError.UsageAccessPermissionLose(AndroidString(R.string.usage_access_permission)) }
+        }
         sstpVpnServiceAction.connect()
     }
 
     fun disconnectFromVpn() {
         sstpVpnServiceAction.disconnect()
+    }
+
+    fun notifyUserErrorShown() {
+        clearUserError()
+    }
+
+    private fun clearUserError() {
+        userError.update { null }
     }
 }
 
@@ -96,7 +117,12 @@ data class HomeUiState(
     val userAvatarUrl: String? = null,
     val isSyncing: Boolean = false,
     val vpnServiceState: VpnServiceState = VpnServiceState(),
+    val userError: UserError? = null
 )
+
+sealed interface UserError {
+    data class UsageAccessPermissionLose(val message: AndroidString) : UserError
+}
 
 data class VpnServiceState(
     val started: Boolean = false,

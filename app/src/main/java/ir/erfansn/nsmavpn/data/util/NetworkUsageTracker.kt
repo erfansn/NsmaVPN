@@ -1,9 +1,12 @@
 package ir.erfansn.nsmavpn.data.util
 
+import android.app.AppOpsManager
 import android.app.usage.NetworkStats.Bucket
 import android.app.usage.NetworkStatsManager
 import android.content.Context
 import android.net.ConnectivityManager
+import android.os.Build
+import android.os.Process
 import androidx.core.content.getSystemService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import ir.erfansn.nsmavpn.data.model.NetworkUsage
@@ -17,6 +20,7 @@ import javax.inject.Inject
 import kotlin.time.Duration.Companion.seconds
 
 interface NetworkUsageTracker {
+    val isUsageAccessPermissionGrant: Boolean
     fun trackUsage(startEpochTime: Long): Flow<NetworkUsage>
 }
 
@@ -26,6 +30,17 @@ class DefaultNetworkUsageTracker @Inject constructor(
 ) : NetworkUsageTracker {
 
     private val networkStatsManager = context.getSystemService<NetworkStatsManager>()
+
+    override val isUsageAccessPermissionGrant: Boolean
+        get() {
+            val appOps = context.getSystemService<AppOpsManager>() ?: return false
+            val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                appOps.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName)
+            } else {
+                appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName)
+            }
+            return mode == AppOpsManager.MODE_ALLOWED
+        }
 
     override fun trackUsage(startEpochTime: Long): Flow<NetworkUsage> =
         flow {
@@ -57,7 +72,9 @@ class DefaultNetworkUsageTracker @Inject constructor(
         networkType: Int,
         startEpochTime: Long,
     ): Bucket {
-        return networkStatsManager?.querySummaryForDevice(
+        checkNotNull(networkStatsManager) { "Cannot access to NetworkStatsManager!" }
+
+        return networkStatsManager.querySummaryForDevice(
             networkType,
             null,
             startEpochTime,
