@@ -1,6 +1,5 @@
 package ir.erfansn.nsmavpn.feature.home
 
-import android.app.AppOpsManager
 import android.app.Service
 import android.content.ComponentName
 import android.content.Context
@@ -9,7 +8,6 @@ import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.IBinder
-import android.os.Process
 import android.provider.Settings
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -72,7 +70,6 @@ import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.layoutId
 import androidx.core.content.ContextCompat
-import androidx.core.content.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.erfansn.nsmavpn.R
@@ -127,6 +124,7 @@ fun HomeRoute(
         onDisconnectFromVpn = viewModel::disconnectFromVpn,
         onRequestToReauthentication = onRequestToReauthentication,
         hasNeedToReauth = hasNeedToReauth,
+        onUserErrorShown = viewModel::notifyUserErrorShown,
     )
 }
 
@@ -144,6 +142,7 @@ private fun HomeScreen(
     onDisconnectFromVpn: () -> Unit = { },
     onRequestToReauthentication: () -> Unit = { },
     hasNeedToReauth: Boolean = false,
+    onUserErrorShown: () -> Unit = { }
 ) {
     val userNotifier = rememberUserMessageNotifier()
     val scrollState = rememberScrollState()
@@ -217,6 +216,7 @@ private fun HomeScreen(
             onChangeVpnServiceState = onChangeVpnServiceState,
             onConnectToVpn = onConnectToVpn,
             onDisconnectFromVpn = onDisconnectFromVpn,
+            onUserErrorShown = onUserErrorShown,
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
@@ -238,6 +238,7 @@ private fun HomeContent(
     modifier: Modifier = Modifier,
     onConnectToVpn: () -> Unit = { },
     onDisconnectFromVpn: () -> Unit = { },
+    onUserErrorShown: () -> Unit = { }
 ) {
     ConstraintLayout(
         modifier = modifier,
@@ -276,6 +277,24 @@ private fun HomeContent(
                 )
             }
         }
+        uiState.userError?.let { error ->
+            LaunchedEffect(error) {
+                when (error) {
+                    is UserError.UsageAccessPermissionLose -> {
+                        userMessageNotifier.showMessage(
+                            messageId = error.message.id,
+                            duration = SnackbarDuration.Long,
+                            actionLabelId = R.string.ok,
+                        ).also { result ->
+                            if (result == SnackbarResult.ActionPerformed) {
+                                context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                            }
+                        }
+                    }
+                }
+                onUserErrorShown()
+            }
+        }
 
         val scope = rememberCoroutineScope()
         VpnServiceEffect(
@@ -290,21 +309,6 @@ private fun HomeContent(
                 when (it) {
                     VpnSwitchState.On -> {
                         if (!isOnline) return@VpnSwitch
-
-                        if (!context.isGrantedGetUsageStatsPermission) {
-                            scope.launch {
-                                userMessageNotifier.showMessage(
-                                    messageId = R.string.usage_access_permission,
-                                    duration = SnackbarDuration.Long,
-                                    actionLabelId = R.string.ok,
-                                ).also { result ->
-                                    if (result == SnackbarResult.ActionPerformed) {
-                                        context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-                                    }
-                                }
-                            }
-                        }
-
                         onConnectToVpn()
                     }
 
@@ -367,17 +371,6 @@ private fun VpnServiceEffect(
         }
     }
 }
-
-val Context.isGrantedGetUsageStatsPermission: Boolean
-    get() {
-        val appOps = getSystemService<AppOpsManager>()!!
-        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            appOps.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), packageName)
-        } else {
-            appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), packageName)
-        }
-        return mode == AppOpsManager.MODE_ALLOWED
-    }
 
 @Composable
 private fun CurrentStateText(
