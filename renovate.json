@@ -17,7 +17,8 @@
       "matchPackageNames": [
         "com.google.dagger:hilt-android",
         "com.google.dagger:hilt-compiler",
-        "com.google.dagger.hilt.android"
+        "com.google.dagger.hilt.android",
+        "com.google.dagger:hilt-android-testing"
       ],
       "groupName": "hilt dependencies"
     },
@@ -41,6 +42,7 @@
       "matchPackageNames": [
         "com.android.application",
         "com.android.library",
+        "com.android.test",
         "gradle"
       ],
       "groupName": "gradle related stuffs"
@@ -48,6 +50,7 @@
     {
       "matchPackageNames": [
         "org.jetbrains.kotlin.android",
+        "org.jetbrains.kotlin.plugin.parcelize",
         "com.google.devtools.ksp",
         "composeOptions"
       ],
@@ -58,7 +61,22 @@
         "io.sentry.android.gradle",
         "io.sentry.kotlin.compiler.gradle"
       ],
-      "groupName": "Sentry"
+      "groupName": "sentry plugins"
+    },
+    {
+      "matchPackageNames": [
+        "androidx.hilt:hilt-navigation-compose",
+        "androidx.hilt:hilt-work",
+        "androidx.hilt:hilt-compiler"
+      ],
+      "groupName": "androidx hilt dependencies"
+    },
+    {
+      "matchPackageNames": [
+        "androidx.navigation:navigation-compose",
+        "androidx.navigation:navigation-testing"
+      ],
+      "groupName": "navigation dependencies"
     }
   ]
 }

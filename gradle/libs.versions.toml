@@ -18,7 +18,7 @@ googleApiClientVersion = "2.2.0"
 googleApiServicesGmailVersion = "v1-rev20231218-2.0.0"
 hiltAndroidVersion = "2.51.1"
 androidxHiltVersion = "1.2.0"
-junit = "1.1.5"
+junitExtVersion = "1.1.5"
 junitVersion = "4.13.2"
 kotlinVersion = "1.9.23"
 kotlinxCoroutinesTestVersion = "1.8.0"
@@ -28,9 +28,7 @@ navigationComposeVersion = "2.7.7"
 okhttpVersion = "4.12.0"
 playServicesAuthVersion = "21.0.0"
 profileinstallerVersion = "1.3.1"
-protobufKotlinLiteVersion = "3.25.3"
-protobufJavaliteVersion = "3.25.3"
-protobufVersion = "0.9.4"
+protobufPluginVersion = "0.9.4"
 gitlabDetektVersion = "1.23.4"
 kspVersion = "1.9.23-1.0.19"
 paparazziVersion = "1.3.3"
@@ -47,7 +45,7 @@ truthVersion = "1.1.5"
 uiautomatorVersion = "2.3.0"
 workRuntimeKtxVersion = "2.9.0"
 detektComposeRulesVersion = "0.3.8"
-protobufCompilerVersion = "3.25.3"
+protobufVersion = "3.25.3"
 
 [libraries]
 accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanistDrawablepainterVersion" }
@@ -61,7 +59,7 @@ androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "d
 androidx-documentfile = { module = "androidx.documentfile:documentfile", version.ref = "documentfileVersion" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "androidxHiltVersion" }
 androidx-hilt-work = { module = "androidx.hilt:hilt-work", version.ref = "androidxHiltVersion" }
-androidx-junit = { module = "androidx.test.ext:junit", version.ref = "junit" }
+androidx-junit = { module = "androidx.test.ext:junit", version.ref = "junitExtVersion" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycleRuntimeComposeVersion" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeComposeVersion" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationComposeVersion" }
@@ -86,8 +84,8 @@ junit = { module = "junit:junit", version.ref = "junitVersion" }
 mockwebserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "mockwebserverVersion" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttpVersion" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuthVersion" }
-protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", version.ref = "protobufKotlinLiteVersion" }
-protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobufJavaliteVersion" }
+protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", version.ref = "protobufVersion" }
+protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobufVersion" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectricVersion" }
 skrapeit = { module = "it.skrape:skrapeit", version.ref = "skrapeitVersion" }
 truth = { module = "com.google.truth:truth", version.ref = "truthVersion" }
@@ -105,7 +103,7 @@ androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-mani
 # Detekt plugin
 detekt-compose-rules = { module = "io.nlopez.compose.rules:detekt", version.ref = "detektComposeRulesVersion" }
 # Procobuf compiler
-protobuf-compiler = { module = "com.google.protobuf:protoc", version.ref = "protobufCompilerVersion" }
+protobuf-compiler = { module = "com.google.protobuf:protoc", version.ref = "protobufVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agpVersion" }
@@ -114,7 +112,7 @@ android-test = { id = "com.android.test", version.ref = "agpVersion" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlinVersion" }
 kotlin-plugin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlinVersion" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroidVersion" }
-protobuf = { id = "com.google.protobuf", version.ref = "protobufVersion" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobufPluginVersion" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "gitlabDetektVersion" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "kspVersion" }
 paparazzi = { id = "app.cash.paparazzi", version.ref = "paparazziVersion" }
