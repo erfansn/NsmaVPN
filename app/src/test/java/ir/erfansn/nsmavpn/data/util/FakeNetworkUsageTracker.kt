@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
 object FakeNetworkUsageTracker : NetworkUsageTracker {
+    override val isUsageAccessPermissionGrant: Boolean
+        get() = true
 
     override fun trackUsage(startEpochTime: Long): Flow<NetworkUsage> {
         require(startEpochTime >= 0)
