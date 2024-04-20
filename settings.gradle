@@ -17,6 +17,8 @@ dependencyResolutionManagement {
         maven { url "https://jitpack.io" }
     }
 }
+
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 rootProject.name = "NsmaVPN"
 include ':app'
 include ':macrobenchmark'
