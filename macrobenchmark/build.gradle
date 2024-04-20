@@ -1,7 +1,7 @@
 plugins {
-    id 'com.android.test'
-    id 'androidx.baselineprofile'
-    id 'org.jetbrains.kotlin.android'
+    alias libs.plugins.android.test
+    alias libs.plugins.androidx.baselineprofile
+    alias libs.plugins.kotlin.android
 }
 
 // Best articles about this:
@@ -22,13 +22,30 @@ android {
     }
 
     targetProjectPath = ":app"
+
+    testOptions {
+        managedDevices {
+            localDevices {
+                pixel8Api34 {
+                    device = "Pixel 8"
+                    apiLevel = 34
+                    systemImageSource = "aosp"
+                }
+            }
+        }
+    }
+}
+
+baselineProfile {
+    managedDevices = ['pixel8Api34']
+    useConnectedDevices = false
 }
 
 dependencies {
-    implementation 'androidx.test:rules:1.5.0'
-    implementation 'androidx.test.ext:junit:1.1.5'
-    implementation 'androidx.test.uiautomator:uiautomator:2.3.0'
-    implementation 'androidx.benchmark:benchmark-macro-junit4:1.2.3'
+    implementation libs.androidx.rules
+    implementation libs.androidx.junit
+    implementation libs.androidx.uiautomator
+    implementation libs.androidx.benchmark.macro.junit4
 }
 
 androidComponents {
