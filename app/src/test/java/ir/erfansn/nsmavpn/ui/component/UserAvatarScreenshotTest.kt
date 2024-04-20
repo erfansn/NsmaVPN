@@ -40,7 +40,7 @@ class UserAvatarScreenshotTest {
         val engine = FakeImageLoaderEngine.Builder()
             .intercept(
                 FakeImageUrl,
-                paparazzi.context.getDrawable(R.drawable.ic_launcher_background)!!
+                paparazzi.context.getDrawable(R.drawable.ic_launcher_foreground)!!
             )
             .build()
         val imageLoader = ImageLoader.Builder(paparazzi.context)
