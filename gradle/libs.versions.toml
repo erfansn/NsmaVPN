@@ -46,6 +46,7 @@ uiautomatorVersion = "2.3.0"
 workRuntimeKtxVersion = "2.9.0"
 detektComposeRulesVersion = "0.3.8"
 protobufVersion = "3.25.3"
+composeCompilerVersion = "1.5.11"
 
 [libraries]
 accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanistDrawablepainterVersion" }
