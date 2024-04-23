@@ -122,4 +122,4 @@ sentry-android = { id = "io.sentry.android.gradle", version.ref = "sentryVersion
 sentry-kotlin-compiler = { id = "io.sentry.kotlin.compiler.gradle", version.ref = "sentryVersion" }
 androidx-baselineprofile = { id = "androidx.baselineprofile", version.ref = "baselineProfileVersion" }
 dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependencyAnalysisVersion" }
-undercouch-download = { id = "com.undercouch.download", version.ref = "undercouchDownloadVersion" }
+undercouch-download = { id = "de.undercouch.download", version.ref = "undercouchDownloadVersion" }
