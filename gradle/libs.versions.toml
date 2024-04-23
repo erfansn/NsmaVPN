@@ -47,6 +47,7 @@ workRuntimeKtxVersion = "2.9.0"
 detektComposeRulesVersion = "0.3.8"
 protobufVersion = "3.25.3"
 composeCompilerVersion = "1.5.11"
+undercouchDownloadVersion = "5.6.0"
 
 [libraries]
 accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanistDrawablepainterVersion" }
@@ -121,3 +122,4 @@ sentry-android = { id = "io.sentry.android.gradle", version.ref = "sentryVersion
 sentry-kotlin-compiler = { id = "io.sentry.kotlin.compiler.gradle", version.ref = "sentryVersion" }
 androidx-baselineprofile = { id = "androidx.baselineprofile", version.ref = "baselineProfileVersion" }
 dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependencyAnalysisVersion" }
+undercouch-download = { id = "com.undercouch.download", version.ref = "undercouchDownloadVersion" }

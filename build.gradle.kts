@@ -14,6 +14,7 @@ plugins {
     alias(libs.plugins.androidx.baselineprofile) apply false
     alias(libs.plugins.kotlin.plugin.parcelize) apply false
     alias(libs.plugins.dependency.analysis)
+    alias(libs.plugins.undercouch.download) apply false
 }
 
 subprojects {
