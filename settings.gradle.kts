@@ -1,6 +1,7 @@
 import java.net.URI
 
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         // Sometimes, it worked instead of google() notation
         // maven { url = URI.create("https://maven.google.com") }
