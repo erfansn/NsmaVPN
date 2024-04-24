@@ -1,3 +1,6 @@
+@file:Suppress("INLINE_FROM_HIGHER_PLATFORM")
+
+import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.Locale
 
@@ -8,11 +11,11 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.protobuf)
-    alias(libs.plugins.detekt)
     alias(libs.plugins.ksp)
     alias(libs.plugins.paparazzi)
     alias(libs.plugins.kotlin.plugin.parcelize)
     alias(libs.plugins.androidx.baselineprofile)
+    id("nsmavpn.detekt")
 }
 
 // Best articles about this:
@@ -55,7 +58,7 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = libs.versions.composeCompilerVersion.get()
     }
-    packagingOptions {
+    packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1,DEPENDENCIES}"
             excludes += "/mozilla/public-suffix-list.txt"
@@ -71,6 +74,8 @@ android {
     }
 }
 
+tasks.preBuild.dependsOn(tasks.detektWrapper)
+
 baselineProfile {
     dexLayoutOptimization = true
     automaticGenerationDuringBuild = true
@@ -81,7 +86,7 @@ androidComponents {
     registerSourceType("proto")
 
     // Temporarily solution about problem with generated classes of Protobuf [https://github.com/google/ksp/issues/1590]
-    onVariants(selector().all()) { variant ->
+    onVariants { variant ->
         afterEvaluate {
             val capName = variant.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
             tasks.named<KotlinCompile>("ksp${capName}Kotlin") {
@@ -111,10 +116,6 @@ protobuf {
             }
         }
     }
-}
-
-detekt {
-    config.setFrom("$rootDir/detekt/config.yml")
 }
 
 dependencies {
@@ -178,6 +179,4 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.hilt.android.testing)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-
-    detektPlugins(libs.detekt.compose.rules)
 }

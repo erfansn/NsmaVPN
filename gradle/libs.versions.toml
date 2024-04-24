@@ -106,6 +106,10 @@ androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-mani
 detekt-compose-rules = { module = "io.nlopez.compose.rules:detekt", version.ref = "detektComposeRulesVersion" }
 # Procobuf compiler
 protobuf-compiler = { module = "com.google.protobuf:protoc", version.ref = "protobufVersion" }
+# Plugins classpath
+android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agpVersion" }
+detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "gitlabDetektVersion" }
+undertouch-download-gradle-plugin = { module = "de.undercouch:gradle-download-task", version.ref = "undercouchDownloadVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agpVersion" }
