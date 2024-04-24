@@ -24,6 +24,9 @@ dependencyResolutionManagement {
             version("compile", "34")
             version("target", "34")
         }
+        create("jvm") {
+            version("toolchain", "17")
+        }
     }
 }
 

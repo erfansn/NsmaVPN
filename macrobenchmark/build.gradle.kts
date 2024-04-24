@@ -8,7 +8,7 @@ plugins {
 // - [https://stefma.medium.com/sourcecompatibility-targetcompatibility-and-jvm-toolchains-in-gradle-explained-d2c17c8cff7c]
 // - [https://developer.android.com/build/jdks#source-compat]
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(jvm.versions.toolchain.get().toInt())
 }
 
 android {
@@ -50,11 +50,11 @@ dependencies {
 }
 
 androidComponents {
-    onVariants(selector().all()) { v ->
-        val artifactsLoader = v.artifacts.getBuiltArtifactsLoader()
-        v.instrumentationRunnerArguments.put(
+    onVariants { variant ->
+        val artifactsLoader = variant.artifacts.getBuiltArtifactsLoader()
+        variant.instrumentationRunnerArguments.put(
             "targetAppId",
-            v.testedApks.map { artifactsLoader.load(it)?.applicationId }
+            variant.testedApks.map { artifactsLoader.load(it)?.applicationId!! }
         )
     }
 }

@@ -1,6 +1,5 @@
 @file:Suppress("INLINE_FROM_HIGHER_PLATFORM")
 
-import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.Locale
 
@@ -22,7 +21,7 @@ plugins {
 // - [https://stefma.medium.com/sourcecompatibility-targetcompatibility-and-jvm-toolchains-in-gradle-explained-d2c17c8cff7c]
 // - [https://developer.android.com/build/jdks#source-compat]
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(jvm.versions.toolchain.get().toInt())
 }
 
 android {
