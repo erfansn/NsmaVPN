@@ -74,8 +74,6 @@ android {
     }
 }
 
-tasks.preBuild.dependsOn(tasks.detektWrapper)
-
 baselineProfile {
     dexLayoutOptimization = true
     automaticGenerationDuringBuild = true

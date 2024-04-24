@@ -16,16 +16,10 @@ abstract class DetektConventionsPlugin : ProjectPlugin {
         with(pluginManager) {
             apply("io.gitlab.arturbosch.detekt")
             apply("de.undercouch.download")
+            apply("com.android.application")
         }
 
         val detektComposeRulesVersion = unsafeLibs.findVersion("detektComposeRulesVersion").get().toString()
-        tasks.register<DetektComposeRulesConfigTask>("writeDetektComposeRulesIdeaConfig") {
-            group = "Detekt Compose Rules"
-            description = "Config Detekt Compose rules to Idea if needed"
-
-            ruleVersion.set(detektComposeRulesVersion)
-            dependsOn("downloadDetektComposeRulesJarFile")
-        }
         tasks.register<Download>("downloadDetektComposeRulesJarFile") {
             group = "Detekt Compose Rules"
             description = "Download the Detekt Compose rules jar file"
@@ -34,15 +28,18 @@ abstract class DetektConventionsPlugin : ProjectPlugin {
             dest("$rootDir/detekt/detekt-compose-$detektComposeRulesVersion-all.jar")
             overwrite(false)
         }
+        tasks.register<DetektComposeRulesConfigTask>("writeDetektComposeRulesIdeaConfig") {
+            group = "Detekt Compose Rules"
+            description = "Config Detekt Compose rules to Idea if needed"
 
-        tasks.register("detektWrapper") {
-            dependsOn(tasks.named("detekt"))
+            ruleVersion.set(detektComposeRulesVersion)
+            dependsOn("downloadDetektComposeRulesJarFile")
         }
         tasks.named("detekt").dependsOn(tasks.named("writeDetektComposeRulesIdeaConfig"))
+        tasks.named("preBuild").dependsOn(tasks.named("detekt"))
 
         extensions.getByType<DetektExtension>().apply {
             config.setFrom("$rootDir/detekt/config.yml")
-            buildUponDefaultConfig
         }
 
         dependencies {
