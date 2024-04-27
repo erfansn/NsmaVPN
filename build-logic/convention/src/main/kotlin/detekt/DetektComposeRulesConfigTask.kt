@@ -28,7 +28,7 @@ abstract class DetektComposeRulesConfigTask : DefaultTask() {
     @TaskAction
     fun taskAction() {
         if (!detektIdeaConfigFile.exists()) {
-            println("Warning: To use Detekt in Android Studio while coding, download and enable Detekt plugin.")
+            logger.warn("To use Detekt in Android Studio while coding, download and enable Detekt plugin.")
             return
         }
 
@@ -65,7 +65,7 @@ abstract class DetektComposeRulesConfigTask : DefaultTask() {
         targetOption?.takeUnless {
             it.attributes.getNamedItem("value").nodeValue == "true"
         }?.let {
-            println("Please enable the Detekt plugin to use it")
+            logger.warn("Please enable the Detekt plugin to use it")
         }
     }
 
