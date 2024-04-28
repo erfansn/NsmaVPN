@@ -2,13 +2,10 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
-      <entry key="NsmaVpnNavGraphTest">
+      <entry key="Baseline Profile Generator">
         <State />
       </entry>
       <entry key="app">
-        <State />
-      </entry>
-      <entry key="navigateToHomeRoute_whenUserCompletedAuthFlow()">
         <State />
       </entry>
     </value>
