@@ -1,11 +1,11 @@
 /*
- * Copyright 2022 The Android Open Source Project
+ * Copyright 2022 Erfan Sn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 @file:OptIn(ExperimentalFoundationApi::class)
 
 package ir.erfansn.nsmavpn.ui.component.modifier
@@ -27,9 +26,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.repeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
-import ir.erfansn.nsmavpn.ui.component.modifier.FixedMotionDurationScale.scaleFactor
-import ir.erfansn.nsmavpn.ui.component.modifier.MarqueeAnimationMode.Companion.Immediately
-import ir.erfansn.nsmavpn.ui.component.modifier.MarqueeAnimationMode.Companion.WhileFocused
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -62,14 +58,17 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.constrainWidth
 import androidx.compose.ui.unit.dp
+import ir.erfansn.nsmavpn.ui.component.modifier.FixedMotionDurationScale.scaleFactor
+import ir.erfansn.nsmavpn.ui.component.modifier.MarqueeAnimationMode.Companion.Immediately
+import ir.erfansn.nsmavpn.ui.component.modifier.MarqueeAnimationMode.Companion.WhileFocused
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.math.absoluteValue
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 import kotlin.math.sign
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 // From https://cs.android.com/android/platform/superproject/+/master:frameworks/base/core/java/android/widget/TextView.java;l=736;drc=6d97d6d7215fef247d1a90e05545cac3676f9212
 @Suppress("OPT_IN_MARKER_ON_WRONG_TARGET")
