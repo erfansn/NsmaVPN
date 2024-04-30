@@ -91,12 +91,8 @@ android {
 
 baselineProfile {
     dexLayoutOptimization = true
-    automaticGenerationDuringBuild = false
-    // saveInSrc = false
-}
-
-sentry {
-    autoUploadProguardMapping = false
+    automaticGenerationDuringBuild = true
+    saveInSrc = false
 }
 
 androidComponents {
