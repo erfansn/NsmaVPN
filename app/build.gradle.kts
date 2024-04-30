@@ -74,8 +74,9 @@ android {
     }
     packaging {
         resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1,DEPENDENCIES}"
+            excludes += "/META-INF/{AL2.0,LGPL2.1,DEPENDENCIES,INDEX.LIST}"
             excludes += "/mozilla/public-suffix-list.txt"
+            excludes += "DebugProbesKt.bin"
         }
     }
     kotlinOptions {
