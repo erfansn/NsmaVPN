@@ -127,3 +127,4 @@ sentry-kotlin-compiler = { id = "io.sentry.kotlin.compiler.gradle", version.ref 
 androidx-baselineprofile = { id = "androidx.baselineprofile", version.ref = "baselineProfileVersion" }
 dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependencyAnalysisVersion" }
 undercouch-download = { id = "de.undercouch.download", version.ref = "undercouchDownloadVersion" }
+nsmavpn-detekt = { id = "nsmavpn.detekt", version = "unspecified" }

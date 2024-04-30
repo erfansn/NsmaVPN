@@ -29,7 +29,7 @@ plugins {
     alias(libs.plugins.paparazzi)
     alias(libs.plugins.kotlin.plugin.parcelize)
     alias(libs.plugins.androidx.baselineprofile)
-    id("nsmavpn.detekt")
+    alias(libs.plugins.nsmavpn.detekt)
 }
 
 // Best articles about this:
