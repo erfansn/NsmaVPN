@@ -29,7 +29,7 @@ plugins {
     alias(libs.plugins.paparazzi)
     alias(libs.plugins.kotlin.plugin.parcelize)
     alias(libs.plugins.androidx.baselineprofile)
-    id("nsmavpn.detekt")
+    alias(libs.plugins.nsmavpn.detekt)
 }
 
 // Best articles about this:
@@ -56,6 +56,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("debug")
         }
@@ -73,8 +74,9 @@ android {
     }
     packaging {
         resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1,DEPENDENCIES}"
+            excludes += "/META-INF/{AL2.0,LGPL2.1,DEPENDENCIES,INDEX.LIST}"
             excludes += "/mozilla/public-suffix-list.txt"
+            excludes += "DebugProbesKt.bin"
         }
     }
     kotlinOptions {
@@ -89,12 +91,8 @@ android {
 
 baselineProfile {
     dexLayoutOptimization = true
-    automaticGenerationDuringBuild = false
-    // saveInSrc = false
-}
-
-sentry {
-    autoUploadProguardMapping = false
+    automaticGenerationDuringBuild = true
+    saveInSrc = false
 }
 
 androidComponents {
