@@ -11,7 +11,7 @@
     <option name="enableForProjectResult" value="Accepted" />
     <option name="pluginJars">
       <list>
-        <option value="$PROJECT_DIR$/detekt/detekt-compose-0.3.8-all.jar" />
+        <option value="$PROJECT_DIR$/detekt/detekt-compose-0.3.18-all.jar" />
       </list>
     </option>
     <option name="treatAsErrors" value="true" />

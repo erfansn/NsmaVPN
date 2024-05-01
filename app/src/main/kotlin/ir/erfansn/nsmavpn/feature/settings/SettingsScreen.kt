@@ -19,6 +19,7 @@ package ir.erfansn.nsmavpn.feature.settings
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -69,6 +70,7 @@ import androidx.core.app.LocaleManagerCompat
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import ir.erfansn.nsmavpn.BuildConfig
 import ir.erfansn.nsmavpn.R
 import ir.erfansn.nsmavpn.data.model.Configurations
@@ -195,9 +197,9 @@ private fun SettingsScreen(
             }
             item {
                 SettingsItem(
-                    title = stringResource(R.string.item_title_licence),
+                    title = stringResource(R.string.item_title_licences),
                     onClick = {
-                        uriHandler.openUri(context.getString(R.string.link_licences))
+                        context.startActivity(Intent(context, OssLicensesMenuActivity::class.java))
                     }
                 )
             }
@@ -223,12 +225,7 @@ private fun ChangeLanguageItem() {
     var shouldShowDialog by remember { mutableStateOf(false) }
     if (shouldShowDialog) {
         val context = LocalContext.current
-        var selectedLocale by remember(context) {
-            mutableStateOf(
-                AppCompatDelegate.getApplicationLocales()[0]
-                    ?: context.configLocales.primarySystemLocaleOrFirst(context)
-            )
-        }
+        var selectedLocale by remember(context) { mutableStateOf(context.currentLocale) }
 
         AlertDialog(
             onDismissRequest = {
@@ -272,6 +269,10 @@ private fun ChangeLanguageItem() {
         }
     )
 }
+
+private val Context.currentLocale
+    get() = AppCompatDelegate.getApplicationLocales()[0]
+        ?: configLocales.primarySystemLocaleOrFirst(this)
 
 private fun LocaleListCompat.primarySystemLocaleOrFirst(context: Context): Locale {
     val primaryLang = LocaleManagerCompat.getSystemLocales(context)[0]

@@ -30,6 +30,7 @@ plugins {
     alias(libs.plugins.kotlin.plugin.parcelize)
     alias(libs.plugins.androidx.baselineprofile)
     alias(libs.plugins.nsmavpn.detekt)
+    alias(libs.plugins.gms.oss.licenses)
 }
 
 // Best articles about this:
@@ -167,6 +168,7 @@ dependencies {
     implementation(libs.protobuf.javalite)
     implementation(libs.protobuf.kotlin.lite)
 
+    implementation(libs.play.services.oss.licenses)
     implementation(libs.play.services.auth)
     implementation(libs.google.api.client)
     implementation(libs.google.api.client.android)

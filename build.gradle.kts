@@ -15,6 +15,7 @@ plugins {
     alias(libs.plugins.kotlin.plugin.parcelize) apply false
     alias(libs.plugins.dependency.analysis)
     alias(libs.plugins.undercouch.download) apply false
+    alias(libs.plugins.gms.oss.licenses) apply false
 }
 
 subprojects {
