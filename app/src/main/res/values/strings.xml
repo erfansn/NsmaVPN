@@ -74,7 +74,7 @@
     <string name="title_tunnel_splitting">Tunnel splitting</string>
     <string name="desc_split_tunneling">Specify allowed apps to use <xliff:g id="vpn">VPN</xliff:g> traffic</string>
     <string name="item_title_report_bug">Report bug</string>
-    <string name="item_title_licences">Licences</string>
+    <string name="item_title_licenses">Licenses</string>
     <string name="item_title_split_tunneling">Split tunneling</string>
     <string name="item_title_use_dynamic_scheme">Use Dynamic scheme</string>
     <string name="cd_more">More</string>
