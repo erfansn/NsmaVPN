@@ -60,7 +60,7 @@
     <string name="title_tunnel_splitting">جداساز تونل</string>
     <string name="desc_split_tunneling">برنامه های مجاز را برای استفاده از ترافیک VPN مشخص کنید</string>
     <string name="item_title_report_bug">گزارش باگ</string>
-    <string name="item_title_licence">مجوز</string>
+    <string name="item_title_licences">مجوز ها</string>
     <string name="item_title_split_tunneling">جداسازی تونل</string>
     <string name="item_title_use_dynamic_scheme">استفاده از طرح پویا</string>
     <string name="cd_more">بیشتر</string>
