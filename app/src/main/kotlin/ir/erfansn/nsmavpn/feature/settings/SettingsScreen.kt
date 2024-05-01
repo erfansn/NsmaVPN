@@ -197,7 +197,7 @@ private fun SettingsScreen(
             }
             item {
                 SettingsItem(
-                    title = stringResource(R.string.item_title_licences),
+                    title = stringResource(R.string.item_title_licenses),
                     onClick = {
                         context.startActivity(Intent(context, OssLicensesMenuActivity::class.java))
                     }
