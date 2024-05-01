@@ -54,12 +54,27 @@ android {
         testInstrumentationRunner = "ir.erfansn.nsmavpn.HiltTestRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file(System.getenv("RELEASE_STORE_FILE_PATH"))
+            storePassword = System.getenv("RELEASE_STORE_PASS")
+            keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+            keyPassword = System.getenv("RELEASE_KEY_PASS")
+        }
+    }
     buildTypes {
+        debug {
+            // This value isn't secret: https://github.com/cli/oauth/issues/1
+            resValue("string", "web_client_id", "870845865908-4qde8iut5e3j76tmtn54rcthqjh4lcg8.apps.googleusercontent.com")
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
+
+            // How to create one: https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid#get_your_google_api_client_id
+            resValue("string", "web_client_id", "870845865908-gc4r0i630d55tujd4555f6p8hjbg2fjc.apps.googleusercontent.com")
         }
     }
 
