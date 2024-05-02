@@ -16,6 +16,7 @@
 package ir.erfansn.nsmavpn.ui.component
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,6 +27,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.util.trace
@@ -47,20 +50,37 @@ fun NsmaVpnBackground(
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.background),
     ) {
-        trace("NsmaVpnBackgroundImageTrace") {
-            AsyncImage(
+        if (!LocalInspectionMode.current) {
+            trace("NsmaVpnBackgroundImageTrace") {
+                AsyncImage(
+                    modifier = Modifier
+                        .alpha(0.06f)
+                        .basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            animationMode = MarqueeAnimationMode.Immediately,
+                            delayMillis = 100,
+                        ),
+                    model = R.drawable.world_map,
+                    contentDescription = null,
+                    onSuccess = { onDrawn() },
+                    colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground),
+                    filterQuality = FilterQuality.High,
+                    contentScale = ContentScale.Crop
+                )
+            }
+        } else {
+            Image(
                 modifier = Modifier
+                    .fillMaxSize()
                     .alpha(0.06f)
                     .basicMarquee(
                         iterations = Int.MAX_VALUE,
                         animationMode = MarqueeAnimationMode.Immediately,
                         delayMillis = 100,
                     ),
-                model = R.drawable.world_map,
+                painter = painterResource(id = R.drawable.world_map),
                 contentDescription = null,
-                onSuccess = { onDrawn() },
                 colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground),
-                filterQuality = FilterQuality.High,
                 contentScale = ContentScale.Crop
             )
         }

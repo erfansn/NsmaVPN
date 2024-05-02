@@ -2,7 +2,6 @@ name: Build and Github Release
 run-name: Cooking the next version
 
 on:
-  workflow_dispatch:
   push:
     tags:
       - 'v*'
@@ -36,6 +35,12 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Decode and persist temporarily Keystore
+        run: |
+          DEST_FILE_PATH="${RUNNER_TEMP}"/release-key.jks
+          echo "KEYSTORE_FILE_PATH=$DEST_FILE_PATH" >> "$GITHUB_ENV"
+          base64 -d <<< "${{ secrets.RELEASE_STORE_FILE_BASE64 }}" > $DEST_FILE_PATH
+
       - name: Assemble release variant including baseline profile generation
         run: ./gradlew :app:assembleRelease
           -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
@@ -43,6 +48,11 @@ jobs:
           -Pandroid.experimental.testOptions.managedDevices.emulator.showKernelLogging=true
           -Pandroid.experimental.androidTest.numManagedDeviceShards=1
           -Pandroid.experimental.testOptions.managedDevices.maxConcurrentDevices=1
+        env:
+          RELEASE_STORE_FILE_PATH: ${{ env.KEYSTORE_FILE_PATH }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASS: ${{ secrets.RELEASE_KEY_PASS }}
+          RELEASE_STORE_PASS: ${{ secrets.RELEASE_STORE_PASS }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v4.3.3
@@ -55,7 +65,7 @@ jobs:
     needs: build
     permissions:
       contents: write
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Download APK from build
         uses: actions/download-artifact@v4.1.7

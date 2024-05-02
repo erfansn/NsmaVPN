@@ -20,8 +20,6 @@
     <!--Common-->
     <!-- https://github.com/getsentry/sentry-docs/pull/1723 -->
     <string name="sentry_dsn" translatable="false">https://9da4ea8df2a0b6c3d0fee91be46af375@o4506970976157696.ingest.us.sentry.io/4506970992738304</string>
-    <!-- https://github.com/cli/oauth/issues/1 -->
-    <string name="web_client_id" translatable="false">870845865908\-4qde8iut5e3j76tmtn54rcthqjh4lcg8.apps.googleusercontent.com</string>
     <string name="error_no_exists_server">Not found VPN server</string>
     <string name="permissions_not_granted">Must all scopes permission be granted</string>
     <string name="ok">OK</string>
@@ -70,13 +68,15 @@
     <string name="option_title_theme_mode_light">Light</string>
     <string name="option_title_theme_mode_dark">Dark</string>
     <string name="link_feedback" translatable="false">https://github.com/ErfanSn/NsmaVPN/issues</string>
+    <string name="link_privacy_policy" translatable="false">https://github.com/ErfanSn/NsmaVPN/PRIVACY_POLICY.md</string>
     <string name="app_version">App version</string>
     <string name="title_tunnel_splitting">Tunnel splitting</string>
     <string name="desc_split_tunneling">Specify allowed apps to use <xliff:g id="vpn">VPN</xliff:g> traffic</string>
-    <string name="item_title_report_bug">Report bug</string>
+    <string name="item_title_create_issue">Create issue</string>
+    <string name="item_title_privacy_policy">Privacy policy</string>
     <string name="item_title_licenses">Licenses</string>
     <string name="item_title_split_tunneling">Split tunneling</string>
-    <string name="item_title_use_dynamic_scheme">Use Dynamic scheme</string>
+    <string name="item_title_use_dynamic_color">Use Dynamic color</string>
     <string name="cd_more">More</string>
     <string name="no_such_app">No such app!</string>
     <string name="allow_all">Allow all</string>

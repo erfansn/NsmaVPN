@@ -161,7 +161,7 @@ private fun SettingsScreen(
             if (isSupportDynamicScheme()) {
                 item {
                     SettingsItem(
-                        title = stringResource(R.string.item_title_use_dynamic_scheme),
+                        title = stringResource(R.string.item_title_use_dynamic_color),
                         onClick = onCheckDynamicScheme
                     ) {
                         Switch(
@@ -189,7 +189,7 @@ private fun SettingsScreen(
             }
             item {
                 SettingsItem(
-                    title = stringResource(R.string.item_title_report_bug),
+                    title = stringResource(R.string.item_title_create_issue),
                     onClick = {
                         uriHandler.openUri(context.getString(R.string.link_feedback))
                     }
@@ -197,7 +197,15 @@ private fun SettingsScreen(
             }
             item {
                 SettingsItem(
-                    title = stringResource(R.string.item_title_licences),
+                    title = stringResource(R.string.item_title_privacy_policy),
+                    onClick = {
+                        uriHandler.openUri(context.getString(R.string.link_privacy_policy))
+                    }
+                )
+            }
+            item {
+                SettingsItem(
+                    title = stringResource(R.string.item_title_licenses),
                     onClick = {
                         context.startActivity(Intent(context, OssLicensesMenuActivity::class.java))
                     }
@@ -225,7 +233,7 @@ private fun ChangeLanguageItem() {
     var shouldShowDialog by remember { mutableStateOf(false) }
     if (shouldShowDialog) {
         val context = LocalContext.current
-        var selectedLocale by remember(context) { mutableStateOf(context.currentLocale) }
+        var selectedLocale by remember(context) { mutableStateOf(context.currentLocaleOrDefault) }
 
         AlertDialog(
             onDismissRequest = {
@@ -270,7 +278,7 @@ private fun ChangeLanguageItem() {
     )
 }
 
-private val Context.currentLocale
+private val Context.currentLocaleOrDefault
     get() = AppCompatDelegate.getApplicationLocales()[0]
         ?: configLocales.primarySystemLocaleOrFirst(this)
 

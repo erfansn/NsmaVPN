@@ -4,7 +4,7 @@ pluginManagement {
     includeBuild("build-logic")
     repositories {
         // Sometimes, it worked instead of google() notation
-        // maven { url = URI.create("https://maven.google.com") }
+        // maven { url = uri("https://maven.google.com") }
         gradlePluginPortal()
         google()
         mavenCentral()
@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         // Sometimes, it worked instead of google() notation
-        // maven { url = URI.create("https://maven.google.com") }
+        // maven { url = uri("https://maven.google.com") }
         google()
         mavenCentral()
         maven { url = URI.create("https://jitpack.io") }

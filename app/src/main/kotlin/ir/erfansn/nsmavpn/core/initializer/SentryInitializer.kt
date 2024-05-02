@@ -38,7 +38,9 @@ class SentryInitializer : Initializer<Unit> {
             options.isEnableAutoActivityLifecycleTracing = true
             options.isEnableActivityLifecycleBreadcrumbs = true
 
-            options.environment = if (BuildConfig.DEBUG) "stage" else "production"
+            options.environment = "production"
+
+            options.isEnabled = !BuildConfig.DEBUG
         }
     }
 
