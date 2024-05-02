@@ -68,7 +68,7 @@
     <string name="option_title_theme_mode_light">Light</string>
     <string name="option_title_theme_mode_dark">Dark</string>
     <string name="link_feedback" translatable="false">https://github.com/ErfanSn/NsmaVPN/issues</string>
-    <string name="link_privacy_policy" translatable="false">https://github.com/ErfanSn/NsmaVPN/PRIVACY_POLICY.md</string>
+    <string name="link_privacy_policy" translatable="false">https://github.com/ErfanSn/NsmaVPN/blob/master/PRIVACY_POLICY.md</string>
     <string name="app_version">App version</string>
     <string name="title_tunnel_splitting">Tunnel splitting</string>
     <string name="desc_split_tunneling">Specify allowed apps to use <xliff:g id="vpn">VPN</xliff:g> traffic</string>
