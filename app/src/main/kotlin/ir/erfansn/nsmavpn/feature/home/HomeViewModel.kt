@@ -33,7 +33,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flattenConcat
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -72,7 +72,7 @@ class HomeViewModel @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val dataTraffic = vpnServiceState
-        .combine(userError) { vpnService, error ->
+        .flatMapLatest { vpnService ->
             if (vpnService.state is ConnectionState.Connected) {
                 val lastVpnConnection = lastVpnConnectionRepository.lastVpnConnection.first()
 
@@ -80,14 +80,13 @@ class HomeViewModel @Inject constructor(
                     DataTraffic(upload = usage.transmitted, download = usage.received)
                 }
             } else {
-                check(error !is UserError.UsageAccessPermissionLose)
+                check(userError.value !is UserError.UsageAccessPermissionLose)
 
                 flowOf(
                     DataTraffic(download = 0, upload = 0)
                 )
             }
         }
-        .flattenConcat()
         .catch<DataTraffic?> { emit(null) }
         .stateIn(
             scope = viewModelScope,
