@@ -68,6 +68,9 @@ And finally sync then build the project, that's it.
 ## 🤝 Contributing
 We welcome your contribution with open arms. Please refer to [CONTRIBUTING.md](/CONTRIBUTING.md) for instructions on how to contribute.
 
+## 🔏 Privacy Policy
+You can read about it [here](/PRIVACY_POLICY.md).
+
 ## 📜 License
 **Nsma VPN** is distributed under the terms of the Apache License (Version 2.0).
 See the [license](/LICENSE) for more information.
