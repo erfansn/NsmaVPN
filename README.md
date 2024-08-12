@@ -7,6 +7,9 @@ It is enough to sign in with a **Gmail** account that is subscribed to the [VPN 
 
 This VPN uses the implementation of [SSTP](https://en.wikipedia.org/wiki/Secure_Socket_Tunneling_Protocol) protocol in the [Open SSTP Client](https://github.com/kittoku/Open-SSTP-Client) with slight changes.
 
+## 🔏 Privacy Policy
+You can read about it [here](/PRIVACY_POLICY.md).
+
 ## 💡 Features
 - Easy to use only two steps, sign in then tap, and finally only one tap!
 - There's no server for collecting and processing data, all stuff remains locally for better privacy.
@@ -67,9 +70,6 @@ And finally sync then build the project, that's it.
 
 ## 🤝 Contributing
 We welcome your contribution with open arms. Please refer to [CONTRIBUTING.md](/CONTRIBUTING.md) for instructions on how to contribute.
-
-## 🔏 Privacy Policy
-You can read about it [here](/PRIVACY_POLICY.md).
 
 ## 📜 License
 **Nsma VPN** is distributed under the terms of the Apache License (Version 2.0).
