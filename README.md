@@ -8,7 +8,7 @@ It is enough to sign in with a **Gmail** account that is subscribed to the [VPN 
 This VPN uses the implementation of [SSTP](https://en.wikipedia.org/wiki/Secure_Socket_Tunneling_Protocol) protocol in the [Open SSTP Client](https://github.com/kittoku/Open-SSTP-Client) with slight changes.
 
 ## 🔏 Privacy Policy
-You can read about it [here](/PRIVACY_POLICY.md).
+You can read about it [here](https://nsmavpn.erfansn.ir/privacy_policy.html).
 
 ## 💡 Features
 - Easy to use only two steps, sign in then tap, and finally only one tap!
