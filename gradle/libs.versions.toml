@@ -11,11 +11,13 @@ composeBomVersion = "2024.04.01"
 constraintlayoutComposeVersion = "1.0.1"
 coreKtxVersion = "1.13.0"
 coreSplashscreenVersion = "1.0.1"
+credentialsVersion = "1.5.0"
 datastoreVersion = "1.0.0"
 documentfileVersion = "1.0.1"
 googleApiClientAndroidVersion = "2.4.1"
 googleApiClientVersion = "2.4.1"
 googleApiServicesGmailVersion = "v1-rev20240422-2.0.0"
+googleidVersion = "1.1.1"
 hiltAndroidVersion = "2.51.1"
 androidxHiltVersion = "1.2.0"
 junitExtVersion = "1.1.5"
@@ -59,6 +61,8 @@ androidx-benchmark-macro-junit4 = { module = "androidx.benchmark:benchmark-macro
 androidx-constraintlayout-compose = { module = "androidx.constraintlayout:constraintlayout-compose", version.ref = "constraintlayoutComposeVersion" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtxVersion" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreenVersion" }
+androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "credentialsVersion" }
+androidx-credentials-play-services-auth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentialsVersion" }
 androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "datastoreVersion" }
 androidx-documentfile = { module = "androidx.documentfile:documentfile", version.ref = "documentfileVersion" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "androidxHiltVersion" }
@@ -81,6 +85,7 @@ coil-test = { module = "io.coil-kt:coil-test", version.ref = "coilTestVersion" }
 google-api-client = { module = "com.google.api-client:google-api-client", version.ref = "googleApiClientVersion" }
 google-api-client-android = { module = "com.google.api-client:google-api-client-android", version.ref = "googleApiClientAndroidVersion" }
 google-api-services-gmail = { module = "com.google.apis:google-api-services-gmail", version.ref = "googleApiServicesGmailVersion" }
+googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleidVersion" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroidVersion" }
 hilt-android-testing = { module = "com.google.dagger:hilt-android-testing", version.ref = "hiltAndroidVersion" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTestVersion" }
