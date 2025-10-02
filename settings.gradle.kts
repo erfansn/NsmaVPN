@@ -17,15 +17,15 @@ dependencyResolutionManagement {
         // maven { url = uri("https://maven.google.com") }
         google()
         mavenCentral()
-        maven { url = URI.create("https://jitpack.io") }
+        maven("https://jitpack.io")
     }
     versionCatalogs {
         create("sdk") {
-            version("compile", "34")
-            version("target", "34")
+            version("compile", "36")
+            version("target", "36")
         }
         create("jvm") {
-            version("toolchain", "17")
+            version("toolchain", "21")
         }
     }
 }

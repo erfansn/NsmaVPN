@@ -38,8 +38,6 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -281,12 +279,12 @@ private fun DownSideArrows(
     ) {
         Icon(
             modifier = Modifier.size(36.dp),
-            imageVector = Icons.Rounded.KeyboardArrowDown,
-            contentDescription = null,
+            painter = painterResource(R.drawable.round_keyboard_arrow_down_24),
+            contentDescription = null
         )
         Icon(
             modifier = Modifier.alpha(0.4f),
-            imageVector = Icons.Rounded.KeyboardArrowDown,
+            painter = painterResource(R.drawable.round_keyboard_arrow_down_24),
             contentDescription = null,
         )
     }

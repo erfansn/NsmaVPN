@@ -20,7 +20,7 @@ plugins {
 group = "ir.erfansn.nsmavpn.buildlogic"
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 gradlePlugin {

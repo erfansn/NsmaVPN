@@ -51,7 +51,7 @@ import javax.inject.Inject
 interface SstpVpnEventHandler {
     val connectionState: SharedFlow<ConnectionState>
     fun initState()
-    context(SstpVpnService) suspend fun startConnecting()
+    context(_: SstpVpnService) suspend fun startConnecting()
     fun disconnectVpnDue(error: ConnectionState.Error)
     suspend fun shutdownVpnTunnel(quietly: Boolean)
     fun cleanUp()
@@ -96,14 +96,14 @@ class DefaultSstpVpnEventHandler @Inject constructor(
         _connectionState.tryEmit(ConnectionState.Connecting)
     }
 
-    context(SstpVpnService)
+    context(service: SstpVpnService)
     override suspend fun startConnecting() {
         controlClient?.cleanUp()
         currentServer = (vpnServersRepository.tryToGetLastVpnConnectionServer() ?: obtainVpnServer()).also {
             OscPrefKey.HOME_HOSTNAME = it.address.hostName
             OscPrefKey.SSL_PORT = it.address.portNumber
         }
-        initializeClient()
+        service.initializeClient()
     }
 
     private suspend fun obtainVpnServer(): Server {

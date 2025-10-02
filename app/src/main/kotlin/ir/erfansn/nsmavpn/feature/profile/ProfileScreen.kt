@@ -34,9 +34,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.ExitToApp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -150,7 +147,7 @@ private fun ProfileScreen(
                         }
                     ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                            painter = painterResource(R.drawable.round_arrow_back_24),
                             contentDescription = stringResource(R.string.cd_back_to_home)
                         )
                     }
@@ -158,7 +155,7 @@ private fun ProfileScreen(
                 actions = {
                     IconButton(onClick = { shouldShowSignOutDialog = true }) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.ExitToApp,
+                            painter = painterResource(R.drawable.round_exit_to_app_24),
                             contentDescription = stringResource(R.string.cd_sign_out_from_account)
                         )
                     }

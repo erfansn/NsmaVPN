@@ -54,7 +54,7 @@ android {
 
 baselineProfile {
     managedDevices += "pixel8Api34"
-    useConnectedDevices = false
+    useConnectedDevices = true
 }
 
 dependencies {

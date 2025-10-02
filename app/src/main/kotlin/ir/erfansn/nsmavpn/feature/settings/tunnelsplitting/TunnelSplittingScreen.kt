@@ -48,11 +48,6 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Clear
-import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -82,6 +77,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
@@ -241,7 +237,7 @@ private fun TunnelSplittingTopBar(
             navigationIcon = {
                 IconButton(onClick = onNavigateToBack) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                        painter = painterResource(R.drawable.round_arrow_back_24),
                         contentDescription = stringResource(id = R.string.cd_back)
                     )
                 }
@@ -271,7 +267,7 @@ private fun TunnelSplittingTopBar(
                 }
                 IconButton(onClick = { expanded = true }) {
                     Icon(
-                        imageVector = Icons.Rounded.MoreVert,
+                        painter = painterResource(R.drawable.outline_more_vert_24),
                         contentDescription = stringResource(R.string.cd_more)
                     )
                 }
@@ -304,7 +300,7 @@ private fun TunnelSplittingTopBar(
                 leadingIcon = {
                     Icon(
                         modifier = Modifier.padding(start = 4.dp),
-                        imageVector = Icons.Rounded.Search,
+                        painter = painterResource(R.drawable.round_search_24),
                         contentDescription = stringResource(R.string.cd_search),
                     )
                 },
@@ -319,7 +315,7 @@ private fun TunnelSplittingTopBar(
                             onClick = { onSearchQueryChange("") }
                         ) {
                             Icon(
-                                imageVector = Icons.Rounded.Clear,
+                                painter = painterResource(R.drawable.round_clear_24),
                                 contentDescription = stringResource(R.string.cd_clear)
                             )
                         }

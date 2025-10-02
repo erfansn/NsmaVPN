@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:Suppress("INLINE_FROM_HIGHER_PLATFORM")
-
+import org.gradle.kotlin.dsl.kotlin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.Locale
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.sentry.android)
-    alias(libs.plugins.sentry.kotlin.compiler)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.protobuf)
@@ -31,6 +29,7 @@ plugins {
     alias(libs.plugins.androidx.baselineprofile)
     alias(libs.plugins.nsmavpn.detekt)
     alias(libs.plugins.gms.oss.licenses)
+    alias(libs.plugins.compose.compiler)
 }
 
 // Best articles about this:
@@ -85,9 +84,7 @@ android {
         compose = true
         buildConfig = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.composeCompilerVersion.get()
-    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1,DEPENDENCIES,INDEX.LIST}"
@@ -95,9 +92,7 @@ android {
             excludes += "DebugProbesKt.bin"
         }
     }
-    kotlinOptions {
-        freeCompilerArgs += "-Xcontext-receivers"
-    }
+
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
@@ -105,24 +100,23 @@ android {
     }
 }
 
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            "-Xannotation-default-target=param-property",
+            "-Xcontext-parameters"
+        )
+    }
+}
+
 baselineProfile {
     dexLayoutOptimization = true
-    automaticGenerationDuringBuild = true
-    saveInSrc = false
+    automaticGenerationDuringBuild = false
+    saveInSrc = true
 }
 
 androidComponents {
     registerSourceType("proto")
-
-    // Temporarily solution about problem with generated classes of Protobuf [https://github.com/google/ksp/issues/1590]
-    onVariants { variant ->
-        afterEvaluate {
-            val capName = variant.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-            tasks.named<KotlinCompile>("ksp${capName}Kotlin") {
-                setSource(tasks.getByName("generate${capName}Proto").outputs)
-            }
-        }
-    }
 }
 
 protobuf {
@@ -147,13 +141,18 @@ protobuf {
     }
 }
 
+sentry {
+    autoUploadProguardMapping = false
+}
+
 dependencies {
+    implementation(libs.androidx.benchmark.macro.junit4)
     implementation(libs.androidx.profileinstaller)
     baselineProfile(projects.macrobenchmark)
 
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
-    implementation(libs.androidx.compose.material3.asProvider())
+    implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material3.windowsize)
     implementation(libs.androidx.compose.ui.tooling.preview)
     debugImplementation(libs.androidx.compose.ui.tooling)
@@ -190,6 +189,7 @@ dependencies {
     implementation(libs.google.api.client)
     implementation(libs.google.api.client.android)
     implementation(libs.google.api.services.gmail)
+    implementation(libs.googleid)
 
     implementation(libs.skrapeit)
     implementation(libs.coil.compose)

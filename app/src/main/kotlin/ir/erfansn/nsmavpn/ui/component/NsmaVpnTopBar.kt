@@ -25,10 +25,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeContent
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.AccountCircle
-import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -46,8 +42,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import ir.erfansn.nsmavpn.R
 import ir.erfansn.nsmavpn.ui.component.NsmaVpnTopBarDefaults.animatedContainerColor
 import ir.erfansn.nsmavpn.ui.theme.NsmaVpnTheme
 
@@ -133,7 +131,7 @@ private fun NsmaVpnTopBarPreview() {
             navigationIcon = {
                 IconButton(onClick = { }) {
                     Icon(
-                        imageVector = Icons.Rounded.AccountCircle,
+                        painter = painterResource(R.drawable.round_account_circle_24),
                         contentDescription = null,
                     )
                 }
@@ -141,7 +139,7 @@ private fun NsmaVpnTopBarPreview() {
             actions = {
                 IconButton(onClick = { }) {
                     Icon(
-                        imageVector = Icons.Rounded.Clear,
+                        painter = painterResource(R.drawable.round_clear_24),
                         contentDescription = null,
                     )
                 }
@@ -161,7 +159,7 @@ private fun NsmaVpnLargeTopBarPreview() {
             navigationIcon = {
                 IconButton(onClick = { }) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                        painter = painterResource(R.drawable.round_arrow_back_24),
                         contentDescription = null,
                     )
                 }

@@ -10,12 +10,12 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.paparazzi) apply false
     alias(libs.plugins.sentry.android) apply false
-    alias(libs.plugins.sentry.kotlin.compiler) apply false
     alias(libs.plugins.androidx.baselineprofile) apply false
     alias(libs.plugins.kotlin.plugin.parcelize) apply false
     alias(libs.plugins.dependency.analysis)
     alias(libs.plugins.undercouch.download) apply false
     alias(libs.plugins.gms.oss.licenses) apply false
+    alias(libs.plugins.compose.compiler) apply false
 }
 
 subprojects {

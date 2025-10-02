@@ -42,7 +42,7 @@ class DefaultInstalledAppsListProvider @Inject constructor(
         return withContext(defaultDispatcher) {
             packageManager.getInstalledPackages(PackageManager.GET_META_DATA)
                 .map {
-                    it.applicationInfo
+                    it.applicationInfo!!
                 }.sortedBy {
                     it.loadLabel(packageManager).toString()
                 }.filter {
