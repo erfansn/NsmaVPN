@@ -60,9 +60,9 @@ The app's design system is based on [Material 3](https://m3.material.io/), and i
 
 ## 🛠️ How To Build
 Just follow the steps of [this link](https://developers.google.com/identity/sign-in/android/legacy-gsi-start#configure-a-google-api-console-project) to get the `client id` and if you have created it for the debug key, replace it in this line:
-https://github.com/ErfanSn/NsmaVPN/blob/78382f8896de6d4950dc95314a5834b5113f9491/app/build.gradle.kts#L68
+https://github.com/erfansn/NsmaVPN/blob/4c01ec32bcc95c6f40c9e6b4892163f4ed9c4f48/app/build.gradle.kts#L67
 otherwise:
-https://github.com/ErfanSn/NsmaVPN/blob/78382f8896de6d4950dc95314a5834b5113f9491/app/build.gradle.kts#L77
+https://github.com/erfansn/NsmaVPN/blob/4c01ec32bcc95c6f40c9e6b4892163f4ed9c4f48/app/build.gradle.kts#L76
 And finally sync then build the project, that's it.
 
 ## 🔮 Future Plans
